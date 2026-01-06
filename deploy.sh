@@ -5,6 +5,13 @@
 
 set -e
 
+# Load environment variables
+if [ -f "$PROJECT_DIR/.env" ]; then
+    set -a
+    . "$PROJECT_DIR/.env"
+    set +a
+fi
+
 COLOR_GREEN='\033[0;32m'
 COLOR_RED='\033[0;31m'
 COLOR_YELLOW='\033[1;33m'
