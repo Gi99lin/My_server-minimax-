@@ -35,20 +35,17 @@ services:
 
   # 3x-ui панель для Xray (VPN)
   3x-ui:
-    image: vaxilu/x-ui:latest
+    image: ghcr.io/mhsanaei/3x-ui:latest
     container_name: 3x-ui
     restart: unless-stopped
-    expose:
-      - "2053"  # Внутренний порт
     volumes:
-      - 3x-ui-data:/db
-      - 3x-ui-config:/etc/x-ui
+      - 3x-ui-data:/etc/x-ui
+      - 3x-ui-cert:/root/cert
     environment:
       - XRAY_VMESS_AEAD_FORCED=false
-    networks:
-      - app-network
-    depends_on:
-      - nginx-proxy-manager
+      - XUI_ENABLE_FAIL2BAN=true
+    tty: true
+    network_mode: host
 
   # Matrix Synapse сервер
   matrix-synapse:
@@ -116,7 +113,7 @@ volumes:
 
   # 3x-ui
   3x-ui-data:
-  3x-ui-config:
+  3x-ui-cert:
 
   # Matrix
   matrix-data:
