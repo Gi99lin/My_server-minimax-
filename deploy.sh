@@ -91,8 +91,9 @@ EOF"
             cat > "$PROJECT_DIR/mas-config/secrets.yaml" << EOF
 # MAS Configuration File
 # Generated automatically by deploy.sh
-encryption_key: "$MAS_ENC_KEY"
-signing_key: "$MAS_SIGN_KEY"
+secrets:
+  encryption_key: "$MAS_ENC_KEY"
+  signing_key: "$MAS_SIGN_KEY"
 database_encryption_key: "$MAS_DB_KEY"
 admin:
   username: "admin"
