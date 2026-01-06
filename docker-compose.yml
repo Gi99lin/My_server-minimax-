@@ -66,7 +66,7 @@ services:
     depends_on:
       - matrix-postgres
 
-  # PostgreSQL для Matrix
+  # PostgreSQL для Matrix и MAS
   matrix-postgres:
     image: postgres:15-alpine
     container_name: matrix-postgres
@@ -79,10 +79,27 @@ services:
       - POSTGRES_DB=synapse
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
     networks:
       - app-network
 
-  # Telegram бот
+  # Matrix Authentication Service (для iOS клиентов)
+  mas:
+    image: ghcr.io/matrix-org/matrix-authentication-service:latest
+    container_name: mas
+    restart: unless-stopped
+    expose:
+      - "8080"
+    volumes:
+      - mas-data:/data
+    environment:
+      - MAS_SERVER_NAME=${MATRIX_DOMAIN}
+      - MAS_DATABASE_URL=postgres://matrix:mas@matrix-postgres:5432/mas
+      - MAS_SECRET=mas_secret_key_change_this_in_production
+    depends_on:
+      - matrix-postgres
+    networks:
+      - app-network
   telegram-bot:
     build:
       context: ./telegram-bot
@@ -118,6 +135,9 @@ volumes:
   # Matrix
   matrix-data:
   postgres-data:
+
+  # MAS
+  mas-data:
 
   # Telegram Bot
   telegram-bot-data:
