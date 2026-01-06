@@ -10,7 +10,7 @@ COLOR_RED='\033[0;31m'
 COLOR_YELLOW='\033[1;33m'
 COLOR_NC='\033[0m'
 
-PROJECT_DIR="/opt/vps-server"
+PROJECT_DIR="$(dirname "$(readlink -f "$0")")"
 DOMAIN="gigglin.tech"
 
 log() {
