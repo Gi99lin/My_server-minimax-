@@ -79,7 +79,7 @@ EOF"
         fi
 
         # Generate MAS config if it doesn't exist
-        if [ ! -f "mas-config/mas.yaml" ]; then
+        if [ ! -f "mas-config/config.yaml" ]; then
             warn "Generating MAS configuration..."
             mkdir -p "$PROJECT_DIR/mas-config"
             
@@ -89,7 +89,7 @@ EOF"
             # Generate signing key (RSA)
             MAS_SIGN_KEY=$(openssl genrsa 2048 2>/dev/null | base64 | tr -d '\n')
             
-            cat > "$PROJECT_DIR/mas-config/mas.yaml" << EOF
+            cat > "$PROJECT_DIR/mas-config/config.yaml" << EOF
 # MAS Configuration File
 # Generated automatically by deploy.sh
 
@@ -127,7 +127,7 @@ account:
   password_registration_enabled: true
   password_change_allowed: true
 EOF
-            chmod 644 "$PROJECT_DIR/mas-config/mas.yaml"
+            chmod 644 "$PROJECT_DIR/mas-config/config.yaml"
             log "MAS configuration generated!"
         fi
 
