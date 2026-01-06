@@ -79,9 +79,10 @@ EOF"
 # MAS Configuration File
 # Generated automatically by deploy.sh
 secrets:
-  encryption_key: "${MAS_ENCRYPTION_KEY}"
-  signing_key: "${MAS_SIGNING_KEY}"
-database_encryption_key: "${MAS_DATABASE_KEY}"
+  encryption:
+    encryption_key: "${MAS_ENCRYPTION_KEY}"
+    signing_key: "${MAS_SIGNING_KEY}"
+  database_encryption_key: "${MAS_DATABASE_KEY}"
 admin:
   username: "admin"
   password_hash: ""
@@ -89,7 +90,7 @@ session:
   timeout: 3600
   remember_for: 2592000
 EOF
-            chmod 600 "$PROJECT_DIR/mas-config/secrets.yaml"
+            chmod 644 "$PROJECT_DIR/mas-config/secrets.yaml"
             log "MAS secrets generated!"
         fi
 
