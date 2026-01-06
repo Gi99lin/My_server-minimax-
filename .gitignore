@@ -27,3 +27,6 @@ env/
 
 # Bot data
 telegram-bot/data/
+
+# MAS secrets
+mas-config/
