@@ -35,7 +35,7 @@ services:
 
   # 3x-ui панель для Xray (VPN)
   3x-ui:
-    image: alireza0/3x-ui:latest
+    image: mhsanaei/3x-ui:latest
     container_name: 3x-ui
     restart: unless-stopped
     expose:
