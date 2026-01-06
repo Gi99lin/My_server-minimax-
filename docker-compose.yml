@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  # Nginx Proxy Manager - управление SSL и реверс-прокси
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - "80:80"      # HTTP
+      - "443:443"    # HTTPS
+      - "81:81"      # Admin UI
+    volumes:
+      - nginx-data:/data
+      - nginx-letsencrypt:/etc/letsencrypt
+    networks:
+      - app-network
+    environment:
+      - DB_SQLITE_FILE=/data/database.sqlite
+      - DISABLE_IPV6=true
+
+  # Landing page - главная страница "В разработке"
+  landing:
+    build:
+      context: ./nginx-landing
+      dockerfile: Dockerfile
+    container_name: landing
+    restart: unless-stopped
+    expose:
+      - "80"
+    volumes:
+      - landing-data:/usr/share/nginx/html
+    networks:
+      - app-network
+
+  # 3x-ui панель для Xray (VPN)
+  3x-ui:
+    image: alireza0/3x-ui:latest
+    container_name: 3x-ui
+    restart: unless-stopped
+    expose:
+      - "2053"  # Внутренний порт
+    volumes:
+      - 3x-ui-data:/db
+      - 3x-ui-config:/etc/x-ui
+    environment:
+      - XRAY_VMESS_AEAD_FORCED=false
+    networks:
+      - app-network
+    depends_on:
+      - nginx-proxy-manager
+
+  # Matrix Synapse сервер
+  matrix-synapse:
+    image: matrixdotorg/synapse:latest
+    container_name: matrix-synapse
+    restart: unless-stopped
+    expose:
+      - "8008"   # Client API
+      - "8448"   # Federation API
+    volumes:
+      - matrix-data:/data
+    environment:
+      - SYNAPSE_SERVER_NAME=${MATRIX_DOMAIN}
+      - SYNAPSE_REPORT_STATS=no
+      - SYNAPSE_LOG_LEVEL=INFO
+    networks:
+      - app-network
+    depends_on:
+      - matrix-postgres
+
+  # PostgreSQL для Matrix
+  matrix-postgres:
+    image: postgres:15-alpine
+    container_name: matrix-postgres
+    restart: unless-stopped
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_USER=matrix
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=synapse
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # Telegram бот
+  telegram-bot:
+    build:
+      context: ./telegram-bot
+      dockerfile: Dockerfile
+    container_name: telegram-bot
+    restart: unless-stopped
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_BOT_API_URL=${TELEGRAM_BOT_API_URL:-https://api.telegram.org}
+    volumes:
+      - telegram-bot-data:/app/data
+    networks:
+      - app-network
+    depends_on:
+      - matrix-synapse
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  # Nginx Proxy Manager
+  nginx-data:
+  nginx-letsencrypt:
+
+  # Landing
+  landing-data:
+
+  # 3x-ui
+  3x-ui-data:
+  3x-ui-config:
+
+  # Matrix
+  matrix-data:
+  postgres-data:
+
+  # Telegram Bot
+  telegram-bot-data:
