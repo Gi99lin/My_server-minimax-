@@ -78,32 +78,60 @@ enable_registration_without_verification: true
 EOF"
         fi
 
-        # Generate MAS secrets.yaml if it doesn't exist
-        if [ ! -f "mas-config/secrets.yaml" ]; then
-            warn "Generating MAS secrets..."
+        # Generate MAS config if it doesn't exist
+        if [ ! -f "mas-config/mas.yaml" ]; then
+            warn "Generating MAS configuration..."
             mkdir -p "$PROJECT_DIR/mas-config"
             
-            # Generate secure keys
-            MAS_ENC_KEY=$(openssl rand -base64 32)
-            MAS_SIGN_KEY=$(openssl rand -base64 32)
-            MAS_DB_KEY=$(openssl rand -base64 32)
+            # Generate encryption key (32-byte hex-encoded)
+            MAS_ENC_KEY=$(openssl rand -hex 32)
             
-            cat > "$PROJECT_DIR/mas-config/secrets.yaml" << EOF
+            # Generate signing key (RSA)
+            MAS_SIGN_KEY=$(openssl genrsa 2048 2>/dev/null | base64 | tr -d '\n')
+            
+            cat > "$PROJECT_DIR/mas-config/mas.yaml" << EOF
 # MAS Configuration File
 # Generated automatically by deploy.sh
+
+http:
+  public_base: https://auth.${DOMAIN}/
+  listeners:
+    - name: web
+      resources:
+        - name: discovery
+        - name: human
+        - name: oauth
+        - name: compat
+      binds:
+        - address: ":8080"
+
+database:
+  uri: postgresql://matrix:${POSTGRES_PASSWORD}@matrix-postgres:5432/mas
+
+matrix:
+  homeserver: ${DOMAIN}
+  secret: ${SYNAPE_SECRET:-$(openssl rand -hex 32)}
+  endpoint: "http://matrix-synapse:8008"
+
 secrets:
-  encryption_key: "$MAS_ENC_KEY"
-  signing_key: "$MAS_SIGN_KEY"
-database_encryption_key: "$MAS_DB_KEY"
-admin:
-  username: "admin"
-  password_hash: ""
+  encryption: "${MAS_ENC_KEY}"
+  keys:
+    - kid: "default"
+      key: |
+$(echo "$MAS_SIGN_KEY" | sed 's/^/        /')
+
+passwords:
+  enabled: true
+
+account:
+  password_registration_enabled: true
+  password_change_allowed: true
 EOF
-            chmod 644 "$PROJECT_DIR/mas-config/secrets.yaml"
-            log "MAS secrets generated!"
+            chmod 644 "$PROJECT_DIR/mas-config/mas.yaml"
+            log "MAS configuration generated!"
         fi
 
-        docker-compose up -d
+        docker-compose up -d mas
         log "Update complete!"
         ;;
 

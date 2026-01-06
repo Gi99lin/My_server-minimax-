@@ -92,11 +92,10 @@ services:
       - "8080"
     volumes:
       - mas-data:/data
-      - ./mas-config:/data/config
+      - ./mas-config/mas.yaml:/data/config/mas.yaml
     environment:
       - MAS_SERVER_NAME=${MATRIX_DOMAIN}
       - MAS_DATABASE_URL=postgres://matrix:${POSTGRES_PASSWORD}@matrix-postgres:5432/mas
-      - MAS_CONFIG=/data/config/secrets.yaml
     depends_on:
       - matrix-postgres
     networks:
