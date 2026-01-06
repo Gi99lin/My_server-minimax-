@@ -101,21 +101,6 @@ services:
       - matrix-postgres
     networks:
       - app-network
-  telegram-bot:
-    build:
-      context: ./telegram-bot
-      dockerfile: Dockerfile
-    container_name: telegram-bot
-    restart: unless-stopped
-    environment:
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - TELEGRAM_BOT_API_URL=${TELEGRAM_BOT_API_URL:-https://api.telegram.org}
-    volumes:
-      - telegram-bot-data:/app/data
-    networks:
-      - app-network
-    depends_on:
-      - matrix-synapse
 
 networks:
   app-network:
@@ -139,6 +124,3 @@ volumes:
 
   # MAS
   mas-data:
-
-  # Telegram Bot
-  telegram-bot-data:

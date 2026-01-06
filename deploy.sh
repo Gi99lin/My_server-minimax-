@@ -79,10 +79,9 @@ EOF"
 # MAS Configuration File
 # Generated automatically by deploy.sh
 secrets:
-  encryption:
-    encryption_key: "${MAS_ENCRYPTION_KEY}"
-    signing_key: "${MAS_SIGNING_KEY}"
-  database_encryption_key: "${MAS_DATABASE_KEY}"
+  encryption: "${MAS_ENCRYPTION_KEY}"
+  signing_key: "${MAS_SIGNING_KEY}"
+database_encryption_key: "${MAS_DATABASE_KEY}"
 admin:
   username: "admin"
   password_hash: ""
