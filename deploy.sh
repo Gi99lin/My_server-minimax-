@@ -18,7 +18,7 @@ COLOR_YELLOW='\033[1;33m'
 COLOR_NC='\033[0m'
 
 PROJECT_DIR="$(dirname "$(readlink -f "$0")")"
-DOMAIN="gigglin.tech"
+DOMAIN="${MATRIX_DOMAIN:-gigglin.tech}"
 
 log() {
     echo -e "${COLOR_GREEN}[INFO]${NC} $1"
@@ -83,16 +83,13 @@ EOF"
             warn "Generating MAS configuration..."
             mkdir -p "$PROJECT_DIR/mas-config"
             
-            # Generate encryption key (32-byte hex-encoded)
+            # Generate encryption key (32-byte hex-encoded = 64 hex chars)
             MAS_ENC_KEY=$(openssl rand -hex 32)
             
-            # Generate signing key (RSA)
-            MAS_SIGN_KEY=$(openssl genrsa 2048 2>/dev/null | base64 | tr -d '\n')
+            # Generate RSA signing key
+            MAS_RSA_KEY=$(openssl genrsa 2048 2>/dev/null)
             
-            cat > "$PROJECT_DIR/mas-config/config.yaml" << EOF
-# MAS Configuration File
-# Generated automatically by deploy.sh
-
+            cat > "$PROJECT_DIR/mas-config/config.yaml" << ENDFILE
 http:
   public_base: https://auth.${DOMAIN}/
   listeners:
@@ -110,7 +107,7 @@ database:
 
 matrix:
   homeserver: ${DOMAIN}
-  secret: ${SYNAPE_SECRET:-$(openssl rand -hex 32)}
+  secret: ${SYNAPSE_SECRET:-$(openssl rand -hex 32)}
   endpoint: "http://matrix-synapse:8008"
 
 secrets:
@@ -118,16 +115,20 @@ secrets:
   keys:
     - kid: "default"
       key: |
-$(echo "$MAS_SIGN_KEY" | sed 's/^/        /')
+$(echo "$MAS_RSA_KEY" | sed 's/^/        /')
 
 passwords:
   enabled: true
+  schemes:
+    - version: 1
+      algorithm: argon2id
 
 account:
   password_registration_enabled: true
   password_change_allowed: true
-EOF
-            chmod 644 "$PROJECT_DIR/mas-config/config.yaml"
+ENDFILE
+
+            chmod 600 "$PROJECT_DIR/mas-config/config.yaml"
             log "MAS configuration generated!"
         fi
 
