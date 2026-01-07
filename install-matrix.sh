@@ -14,6 +14,37 @@ echo "=== Развёртывание Element Server Suite Community ==="
 echo "[1/5] Создание namespace '$NAMESPACE'..."
 kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
 
+# 1.1 Создание секретов (из .env или дефолтные)
+echo "[1.1/5] Настройка секретов..."
+if [ -f ".env" ]; then
+    source .env
+    echo "Загружены переменные из .env"
+else
+    echo "ВНИМАНИЕ: .env не найден, используются дефолтные пароли!"
+    POSTGRES_PASSWORD="changeme"
+    SYNAPSE_SIGNING_KEY="generate_me_please"
+    MAS_CLIENT_SECRET="SynapseClientSecret123!"
+    LIVEKIT_API_KEY="matrix-rtc"
+    LIVEKIT_API_SECRET="secret"
+fi
+
+# Генерация ключей если не заданы
+if [ "$SYNAPSE_SIGNING_KEY" = "generate_me_please" ]; then
+    SYNAPSE_SIGNING_KEY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+fi
+
+# Создание ess-secrets
+kubectl create secret generic ess-secrets -n $NAMESPACE \
+  --from-literal=postgres-password="$POSTGRES_PASSWORD" \
+  --from-literal=synapse-postgres-password="$POSTGRES_PASSWORD" \
+  --from-literal=mas-client-secret="$MAS_CLIENT_SECRET" \
+  --from-literal=livekit-api-key="$LIVEKIT_API_KEY" \
+  --from-literal=livekit-api-secret="$LIVEKIT_API_SECRET" \
+  --from-literal=signing.key="$SYNAPSE_SIGNING_KEY" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+echo "Секреты созданы/обновлены в namespace $NAMESPACE"
+
 # 2. Создание директории конфигурации
 echo "[2/5] Создание директории конфигурации..."
 mkdir -p ~/ess-config-values
@@ -139,8 +170,18 @@ echo "   - admin.$SERVER_NAME -> localhost:[element-admin-nodeport]"
 echo "   - mrtc.$SERVER_NAME -> localhost:[mrtc-nodeport]"
 echo "   - $SERVER_NAME -> localhost:[wellknown-nodeport]"
 echo ""
-echo "4. Создайте первого пользователя:"
-echo "   kubectl exec -n $NAMESPACE -it deploy/ess-synapse -- register_new_matrix_user -c /data/homeserver.yaml http://localhost:8008"
+echo "4. Создание первого пользователя (admin):"
+echo "   Попытка автоматического создания пользователя admin..."
+    
+# Ожидание готовности MAS
+kubectl wait --for=condition=Available deployment/ess-matrix-authentication-service -n $NAMESPACE --timeout=300s
+
+if kubectl exec -n $NAMESPACE deployment/ess-matrix-authentication-service -- mas-cli manage register-user --yes -p 'changeme123' -a admin; then
+    echo "✅ Пользователь 'admin' создан (пароль: changeme123)"
+else
+    echo "⚠️ Не удалось создать пользователя (возможно уже существует)"
+fi
+
 echo ""
 echo "5. Протестируйте на https://app.$SERVER_NAME"
 echo ""

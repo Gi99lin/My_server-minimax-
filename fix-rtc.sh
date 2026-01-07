@@ -59,6 +59,23 @@ kubectl rollout restart deployment/ess-matrix-rtc-authorisation-service -n ess
 kubectl rollout status deployment/ess-matrix-rtc-authorisation-service -n ess
 
 echo ""
+echo "=== Настройка .well-known для RTC ==="
+echo "Обновляем client config в .well-known, чтобы клиенты знали куда стучаться (mrtc.$DOMAIN)"
+
+# Получаем текущий конфиг, патчим JSON с помощью jq и загружаем обратно
+# Устанавливаем livekit_service_url и auth issuer
+kubectl get cm -n ess ess-well-known-haproxy -o json | \
+  jq ".data.client = \"{\\\"m.homeserver\\\":{\\\"base_url\\\":\\\"https://matrix.gigglin.tech\\\"},\\\"org.matrix.msc2965.authentication\\\":{\\\"account\\\":\\\"https://auth.gigglin.tech/account\\\",\\\"issuer\\\":\\\"https://auth.gigglin.tech/\\\"},\\\"org.matrix.msc4143.rtc_foci\\\":[{\\\"livekit_service_url\\\":\\\"https://mrtc.gigglin.tech\\\",\\\"type\\\":\\\"livekit\\\"}]}\"" | \
+  kubectl replace -f -
+
+echo "Перезапуск HAProxy для применения..."
+kubectl rollout restart deployment/ess-haproxy -n ess
+kubectl rollout status deployment/ess-haproxy -n ess
+
+echo ""
+echo "✅ .well-known обновлен"
+
+echo ""
 echo "✅ ПРИМЕНЕНО"
 echo ""
 echo "=========================================="
