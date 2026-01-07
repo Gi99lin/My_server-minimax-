@@ -123,9 +123,7 @@ services:
       - "50000-50100:50000-50100/udp"  # WebRTC UDP (уменьшен диапазон для Docker)
     volumes:
       - ./livekit-config:/config:ro
-    command: --config /config/livekit.yaml
-    environment:
-      - LIVEKIT_KEYS=${LIVEKIT_API_KEY}:${LIVEKIT_API_SECRET}
+    command: ["--config", "/config/livekit.yaml"]
     depends_on:
       - redis
     networks:
