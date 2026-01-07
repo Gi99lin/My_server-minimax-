@@ -1,6 +1,6 @@
 # Deploy Instructions
 
-## DNS Setup (IMPORTANT!)
+## DNS Setup (ВАЖНО!)
 
 | Type | Host | Value |
 |------|------|-------|
@@ -8,75 +8,128 @@
 | A | www | 37.60.251.4 |
 | CNAME | vpn | gigglin.tech |
 | CNAME | matrix | gigglin.tech |
-
-## On Your Local Machine
-
-```bash
-# Create GitHub repository and push
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
-git branch -M main
-git push -u origin main
-```
+| CNAME | auth | gigglin.tech |
 
 ## On VPS (37.60.251.4)
 
+### 1. Установка Docker
+
 ```bash
-# Connect to VPS
 ssh root@37.60.251.4
 
-# Install Docker if not installed
+# Установить Docker
 curl -fsSL https://get.docker.com | sh
+```
 
-# Clone repository
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git /opt/vps-server
-cd /opt/vps-server
+### 2. Клонирование и настройка
 
-# Create .env from example
+```bash
+# Клонировать репозиторий
+git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git /root/vps-server
+cd /root/vps-server
+
+# Создать .env
 cp .env.example .env
-
-# Edit .env
 nano .env
-# Set:
-# - TELEGRAM_BOT_TOKEN=your_bot_token
-# - POSTGRES_PASSWORD=secure_password
-# - MATRIX_DOMAIN=gigglin.tech
+```
 
-# Start all services
-docker-compose up -d
+Заполните `.env`:
+```env
+MATRIX_DOMAIN=gigglin.tech
+POSTGRES_PASSWORD=ваш_надежный_пароль
 
-# Check status
-docker-compose ps
+# Email (Yandex)
+SMTP_HOST=smtp.yandex.ru
+SMTP_PORT=587
+SMTP_USERNAME=your-email@yandex.ru
+SMTP_PASSWORD=пароль_приложения_yandex
+SMTP_FROM_EMAIL=your-email@yandex.ru
+SMTP_FROM_NAME=gigglin.tech
+```
+
+### 3. Настройка MAS конфига
+
+```bash
+nano mas-config/config.yaml
+```
+
+Измените:
+- `database.uri` - пароль PostgreSQL должен совпадать с POSTGRES_PASSWORD
+- `email.*` - данные SMTP из .env
+- `secrets.*` - сгенерировать новые для продакшена
+
+### 4. Запуск
+
+```bash
+docker compose up -d
+docker compose ps
+```
+
+### 5. Проверка логов
+
+```bash
+docker logs mas --tail 20
+docker logs matrix-synapse --tail 20
 ```
 
 ## Nginx Proxy Manager Setup
 
-Access: http://37.60.251.4:81
-Default login: admin@example.com / changeme
+### Доступ
 
-### Create Proxy Hosts
+URL: http://37.60.251.4:81  
+Login: admin@example.com  
+Password: changeme
 
-**1. Landing Page - gigglin.tech**
-```
-Domain Names: gigglin.tech, www.gigglin.tech
-Forward Hostname/IP: landing
-Forward Port: 80
-SSL: Let's Encrypt
+### Создание Proxy Hosts
+
+**1. gigglin.tech (Landing + .well-known)**
+
+- Domain Names: `gigglin.tech`, `www.gigglin.tech`
+- Forward Hostname/IP: `landing`
+- Forward Port: `80`
+- SSL: Let's Encrypt ✓
+
+**Advanced → Custom Nginx Configuration:**
+```nginx
+location /.well-known/matrix/client {
+    add_header Content-Type application/json;
+    add_header Access-Control-Allow-Origin *;
+    return 200 '{"m.homeserver":{"base_url":"https://matrix.gigglin.tech"},"org.matrix.msc2965.authentication":{"issuer":"https://auth.gigglin.tech/","account":"https://auth.gigglin.tech/account"}}';
+}
 ```
 
-**2. VPN Panel - vpn.gigglin.tech**
-```
-Domain Names: vpn.gigglin.tech
-Forward Hostname/IP: 3x-ui
-Forward Port: 2053
-SSL: Let's Encrypt
-```
+**2. auth.gigglin.tech (MAS)**
 
-**3. Matrix - matrix.gigglin.tech**
-```
-Domain Names: matrix.gigglin.tech
-Forward Hostname/IP: matrix-synapse
-Forward Port: 8008
-SSL: Let's Encrypt
+- Domain Names: `auth.gigglin.tech`
+- Forward Hostname/IP: `mas`
+- Forward Port: `8080`
+- SSL: Let's Encrypt ✓
+
+**3. matrix.gigglin.tech (Synapse)**
+
+- Domain Names: `matrix.gigglin.tech`
+- Forward Hostname/IP: `matrix-synapse`
+- Forward Port: `8008`
+- SSL: Let's Encrypt ✓
+
+**4. vpn.gigglin.tech (3x-ui)**
+
+- Domain Names: `vpn.gigglin.tech`
+- Forward Hostname/IP: `3x-ui`
+- Forward Port: `2053`
+- SSL: Let's Encrypt ✓
+
+## Проверка работоспособности
+
+```bash
+# .well-known для Matrix
+curl https://gigglin.tech/.well-known/matrix/client
+
+# MAS OpenID Configuration
+curl https://auth.gigglin.tech/.well-known/openid-configuration
+
+# Synapse API
+curl https://matrix.gigglin.tech/_matrix/client/versions
 ```
 
 ## First Login
@@ -85,17 +138,42 @@ SSL: Let's Encrypt
 |---------|-----|-------------|
 | NPM Admin | http://37.60.251.4:81 | admin@example.com / changeme |
 | 3x-ui | https://vpn.gigglin.tech | admin / admin |
+| Element X | gigglin.tech | Регистрация через MAS |
 
-## Matrix Setup
+## Matrix (Element X)
+
+1. Скачайте Element X (iOS/Android)
+2. Выберите "Other" → введите `gigglin.tech`
+3. Нажмите "Sign Up"
+4. Введите email и пароль
+5. Подтвердите email (код придёт на почту)
+6. Готово!
+
+## Yandex SMTP Setup
+
+1. Включите 2FA: https://id.yandex.ru/security
+2. Создайте пароль приложения: https://id.yandex.ru/security/app-passwords
+3. Выберите тип "Почта"
+4. Скопируйте пароль в SMTP_PASSWORD
+
+## Сброс баз данных (при проблемах)
 
 ```bash
-# Wait 2-3 minutes for initialization
-docker exec -it matrix-synapse register_new_matrix_user http://localhost:8008 -c /data/config/homeserver.yaml
+docker compose stop mas matrix-synapse
 
-# Then use Element: https://app.element.io
+docker exec matrix-postgres psql -U matrix -d postgres -c "DROP DATABASE IF EXISTS mas;"
+docker exec matrix-postgres psql -U matrix -d postgres -c "DROP DATABASE IF EXISTS synapse;"
+docker exec matrix-postgres psql -U matrix -d postgres -c "CREATE DATABASE mas OWNER matrix;"
+docker exec matrix-postgres psql -U matrix -d postgres -c "CREATE DATABASE synapse OWNER matrix;"
+
+docker compose up -d mas matrix-synapse
 ```
 
-## Landing Page
+## Обновление
 
-Accessible at: https://gigglin.tech
-Shows "В разработке" (Under Construction) page with service info.
+```bash
+cd /root/vps-server
+git pull
+docker compose pull
+docker compose up -d
+```

@@ -5,19 +5,20 @@
 
 set -e
 
-# Load environment variables
-if [ -f "$PROJECT_DIR/.env" ]; then
-    set -a
-    . "$PROJECT_DIR/.env"
-    set +a
-fi
-
 COLOR_GREEN='\033[0;32m'
 COLOR_RED='\033[0;31m'
 COLOR_YELLOW='\033[1;33m'
 COLOR_NC='\033[0m'
 
 PROJECT_DIR="$(dirname "$(readlink -f "$0")")"
+
+# Load environment variables (after PROJECT_DIR is set)
+if [ -f "$PROJECT_DIR/.env" ]; then
+    set -a
+    . "$PROJECT_DIR/.env"
+    set +a
+fi
+
 DOMAIN="${MATRIX_DOMAIN:-gigglin.tech}"
 
 log() {
@@ -100,7 +101,7 @@ http:
         - name: oauth
         - name: compat
       binds:
-        - address: ":8080"
+        - address: "0.0.0.0:8080"
 
 database:
   uri: postgresql://matrix:${POSTGRES_PASSWORD}@matrix-postgres:5432/mas
