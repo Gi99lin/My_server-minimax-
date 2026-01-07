@@ -18,20 +18,9 @@ kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f 
 echo "[2/5] Создание директории конфигурации..."
 mkdir -p ~/ess-config-values
 
-# 3. Чтение пароля PostgreSQL
-echo "[3/5] Чтение пароля PostgreSQL..."
-if [ -f ".env" ]; then
-    source .env
-elif [ -f "../.env" ]; then
-    source ../.env
-else
-    echo "ОШИБКА: Файл .env не найден!"
-    exit 1
-fi
-
-# 4. Создание конфигурационного файла
-echo "[4/5] Создание values.yaml..."
-echo "PostgreSQL в host network, доступен на localhost:5432"
+# 3. Создание конфигурационного файла
+echo "[3/3] Создание values.yaml..."
+echo "Используется встроенный PostgreSQL из ESS"
 cat > ~/ess-config-values/ess-values.yaml <<EOF
 # Element Server Suite Community Configuration
 # Дата: $(date +%Y-%m-%d)
@@ -39,22 +28,13 @@ cat > ~/ess-config-values/ess-values.yaml <<EOF
 # Global settings
 serverName: "$SERVER_NAME"
 
-# Отключаем встроенный PostgreSQL (используем внешний Docker)
+# Используем встроенный PostgreSQL
 postgres:
-  enabled: false
+  enabled: true
 
 # Synapse Configuration
 synapse:
   enabled: true
-  
-  # Внешний PostgreSQL в host network
-  postgres:
-    host: "localhost"
-    port: 5432
-    database: synapse
-    user: matrix
-    password:
-      value: "${POSTGRES_PASSWORD}"
   
   ingress:
     host: "matrix.$SERVER_NAME"
@@ -63,15 +43,6 @@ synapse:
 # Matrix Authentication Service
 matrixAuthenticationService:
   enabled: true
-  
-  # Внешний PostgreSQL в host network
-  postgres:
-    host: "localhost"
-    port: 5432
-    database: mas
-    user: matrix
-    password:
-      value: "${POSTGRES_PASSWORD}"
   
   ingress:
     host: "auth.$SERVER_NAME"
@@ -128,8 +99,8 @@ EOF
 echo ""
 echo "Конфигурация сохранена в ~/ess-config-values/ess-values.yaml"
 
-# 5. Установка ESS через OCI registry
-echo "[5/5] Установка Element Server Suite Community..."
+# 4. Установка ESS через OCI registry
+echo "[4/4] Установка Element Server Suite Community..."
 echo "Это может занять 5-10 минут..."
 
 helm upgrade --install \
