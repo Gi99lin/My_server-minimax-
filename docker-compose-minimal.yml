@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # Nginx Proxy Manager для reverse proxy и SSL
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - "80:80"      # HTTP
+      - "81:81"      # Admin panel
+      - "443:443"    # HTTPS
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    networks:
+      - proxy_network
+
+  # 3x-ui VPN panel
+  3x-ui:
+    image: ghcr.io/mhsanaei/3x-ui:latest
+    container_name: 3x-ui
+    restart: unless-stopped
+    volumes:
+      - 3x-ui_data:/etc/x-ui
+    environment:
+      XRAY_VMESS_AEAD_FORCED: "false"
+    networks:
+      - proxy_network
+
+  # Landing page (nginx статический сайт)
+  landing:
+    build:
+      context: ./nginx-landing
+      dockerfile: Dockerfile
+    image: vps-server-landing
+    container_name: landing
+    restart: unless-stopped
+    networks:
+      - proxy_network
+
+  # Telegram bot (если нужен автозапуск)
+  # Раскомментируйте если бот готов к production
+  # telegram-bot:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   image: vps-server-telegram-bot
+  #   container_name: telegram-bot
+  #   restart: unless-stopped
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - proxy_network
+
+networks:
+  proxy_network:
+    driver: bridge
+
+volumes:
+  npm_data:
+  npm_letsencrypt:
+  3x-ui_data:
