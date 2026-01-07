@@ -52,6 +52,10 @@ matrixAuthenticationService:
 matrixRTC:
   enabled: true
   
+  # URL для внутренней коммуникации Authorization Service -> SFU
+  # ВАЖНО: должен быть ВНУТРЕННИЙ адрес, не внешний HTTPS
+  livekit_url: "ws://ess-matrix-rtc-sfu.ess.svc.cluster.local:7880"
+  
   ingress:
     host: "mrtc.$SERVER_NAME"
     tlsEnabled: false  # TLS terminates at NPM
