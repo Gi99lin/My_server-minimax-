@@ -29,17 +29,9 @@ else
     exit 1
 fi
 
-# 3.5. Получение IP-адреса PostgreSQL контейнера
-echo "[3.5/5] Получение IP PostgreSQL контейнера..."
-POSTGRES_IP=$(docker inspect matrix-postgres | grep -oP '(?<="IPAddress": ")[^"]+' | head -1)
-if [ -z "$POSTGRES_IP" ]; then
-    echo "ОШИБКА: Не удалось получить IP контейнера matrix-postgres"
-    exit 1
-fi
-echo "PostgreSQL IP: $POSTGRES_IP"
-
 # 4. Создание конфигурационного файла
 echo "[4/5] Создание values.yaml..."
+echo "PostgreSQL в host network, доступен на localhost:5432"
 cat > ~/ess-config-values/ess-values.yaml <<EOF
 # Element Server Suite Community Configuration
 # Дата: $(date +%Y-%m-%d)
@@ -55,9 +47,9 @@ postgres:
 synapse:
   enabled: true
   
-  # Внешний PostgreSQL
+  # Внешний PostgreSQL в host network
   postgres:
-    host: "$POSTGRES_IP"
+    host: "localhost"
     port: 5432
     database: synapse
     user: matrix
@@ -72,9 +64,9 @@ synapse:
 matrixAuthenticationService:
   enabled: true
   
-  # Внешний PostgreSQL
+  # Внешний PostgreSQL в host network
   postgres:
-    host: "$POSTGRES_IP"
+    host: "localhost"
     port: 5432
     database: mas
     user: matrix
