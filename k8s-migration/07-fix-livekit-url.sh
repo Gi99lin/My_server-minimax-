@@ -6,6 +6,9 @@
 
 set -e
 
+# Настройка окружения K3s
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
 NAMESPACE="ess"
 SERVER_NAME="gigglin.tech"
 
@@ -19,7 +22,7 @@ echo ""
 echo "[1/2] Обновление конфигурации..."
 cat > ~/ess-config-values/ess-values.yaml <<EOF
 # Element Server Suite Community Configuration
-# Обновлено: $(date +%Y-%m-%d %H:%M:%S)
+# Обновлено: $(date '+%Y-%m-%d %H:%M:%S')
 
 # Global settings
 serverName: "$SERVER_NAME"
