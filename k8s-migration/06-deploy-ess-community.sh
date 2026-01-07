@@ -74,7 +74,9 @@ curl -L https://raw.githubusercontent.com/element-hq/ess-helm/refs/heads/main/ch
 # 6. Использование внешнего PostgreSQL
 echo "[6/7] Конфигурация внешнего PostgreSQL..."
 # Читаем пароль из .env
-if [ -f "../.env" ]; then
+if [ -f ".env" ]; then
+    source .env
+elif [ -f "../.env" ]; then
     source ../.env
 else
     echo "ОШИБКА: Файл .env не найден!"
