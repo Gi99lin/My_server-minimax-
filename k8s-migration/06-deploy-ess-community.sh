@@ -11,69 +11,15 @@ SERVER_NAME="gigglin.tech"
 echo "=== Развёртывание Element Server Suite Community ==="
 
 # 1. Создание namespace
-echo "[1/7] Создание namespace '$NAMESPACE'..."
+echo "[1/5] Создание namespace '$NAMESPACE'..."
 kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
 
 # 2. Создание директории конфигурации
-echo "[2/7] Создание директории конфигурации..."
+echo "[2/5] Создание директории конфигурации..."
 mkdir -p ~/ess-config-values
 
-# 3. Скачивание fragment для hostnames
-echo "[3/7] Скачивание конфигурации hostnames..."
-curl -L https://raw.githubusercontent.com/element-hq/ess-helm/refs/heads/main/charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml -o ~/ess-config-values/hostnames.yaml
-
-# 4. Настройка hostnames
-echo "[4/7] Настройка доменных имён..."
-cat > ~/ess-config-values/hostnames.yaml <<EOF
-# Element Server Suite Community - Hostnames Configuration
-# Domain: gigglin.tech
-
-# Global domain settings
-global:
-  serverName: "$SERVER_NAME"
-
-# Synapse homeserver
-synapse:
-  ingress:
-    host: "matrix.$SERVER_NAME"
-
-# Matrix Authentication Service
-matrixAuthenticationService:
-  ingress:
-    host: "auth.$SERVER_NAME"
-
-# Matrix RTC Backend (для звонков)
-matrixRtcBackend:
-  enabled: true
-  ingress:
-    host: "mrtc.$SERVER_NAME"
-
-# Element Web (веб-клиент)
-elementWeb:
-  enabled: true
-  ingress:
-    host: "app.$SERVER_NAME"
-
-# Element Admin (админ-панель)
-elementAdmin:
-  enabled: true
-  ingress:
-    host: "admin.$SERVER_NAME"
-
-# .well-known delegation
-wellKnown:
-  enabled: true
-  ingress:
-    host: "$SERVER_NAME"
-EOF
-
-# 5. Конфигурация TLS (отключаем, используем NPM)
-echo "[5/7] Настройка TLS (external proxy mode)..."
-curl -L https://raw.githubusercontent.com/element-hq/ess-helm/refs/heads/main/charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml -o ~/ess-config-values/tls.yaml
-
-# 6. Использование внешнего PostgreSQL
-echo "[6/7] Конфигурация внешнего PostgreSQL..."
-# Читаем пароль из .env
+# 3. Чтение пароля PostgreSQL
+echo "[3/5] Чтение пароля PostgreSQL..."
 if [ -f ".env" ]; then
     source .env
 elif [ -f "../.env" ]; then
@@ -83,39 +29,115 @@ else
     exit 1
 fi
 
-cat > ~/ess-config-values/postgresql.yaml <<EOF
-# External PostgreSQL configuration
+# 4. Создание конфигурационного файла
+echo "[4/5] Создание values.yaml..."
+cat > ~/ess-config-values/ess-values.yaml <<EOF
+# Element Server Suite Community Configuration
+# Дата: $(date +%Y-%m-%d)
 
-# Отключаем встроенный PostgreSQL
-postgresql:
+# Global settings
+serverName: "$SERVER_NAME"
+
+# Отключаем встроенный PostgreSQL (используем внешний Docker)
+postgres:
   enabled: false
 
-# Настройки подключения для Synapse
+# Synapse Configuration
 synapse:
-  config:
-    database:
-      name: synapse
-      host: host.docker.internal  # K3s -> Docker host
-      port: 5432
-      user: matrix
-      password: "${POSTGRES_PASSWORD}"
+  enabled: true
+  
+  # Внешний PostgreSQL
+  postgres:
+    host: "host.docker.internal"
+    port: 5432
+    database: synapse
+    user: matrix
+    password:
+      value: "${POSTGRES_PASSWORD}"
+  
+  ingress:
+    host: "matrix.$SERVER_NAME"
+    tlsEnabled: false  # TLS terminates at NPM
 
-# Настройки подключения для MAS
+# Matrix Authentication Service
 matrixAuthenticationService:
-  config:
-    database:
-      uri: "postgresql://matrix:${POSTGRES_PASSWORD}@host.docker.internal:5432/mas"
+  enabled: true
+  
+  # Внешний PostgreSQL
+  postgres:
+    host: "host.docker.internal"
+    port: 5432
+    database: mas
+    user: matrix
+    password:
+      value: "${POSTGRES_PASSWORD}"
+  
+  ingress:
+    host: "auth.$SERVER_NAME"
+    tlsEnabled: false  # TLS terminates at NPM
+
+# Matrix RTC (для звонков)
+matrixRTC:
+  enabled: true
+  
+  ingress:
+    host: "mrtc.$SERVER_NAME"
+    tlsEnabled: false  # TLS terminates at NPM
+  
+  # Встроенный LiveKit SFU
+  sfu:
+    enabled: true
+    useStunToDiscoverPublicIP: true
+
+# Element Web
+elementWeb:
+  enabled: true
+  
+  ingress:
+    host: "app.$SERVER_NAME"
+    tlsEnabled: false  # TLS terminates at NPM
+
+# Element Admin
+elementAdmin:
+  enabled: true
+  
+  ingress:
+    host: "admin.$SERVER_NAME"
+    tlsEnabled: false  # TLS terminates at NPM
+
+# .well-known delegation
+wellKnownDelegation:
+  enabled: true
+  
+  ingress:
+    host: "$SERVER_NAME"
+    tlsEnabled: false  # TLS terminates at NPM
+
+# HAProxy (internal routing)
+haproxy:
+  replicas: 1
+
+# Отключаем TLS на всех Ingress (NPM терминирует SSL)
+ingress:
+  tlsEnabled: false
+  # Используем NodePort вместо ClusterIP для доступа извне
+  service:
+    type: NodePort
 EOF
 
-# 7. Установка ESS через OCI registry
-echo "[7/7] Установка Element Server Suite Community..."
+echo ""
+echo "Конфигурация сохранена в ~/ess-config-values/ess-values.yaml"
+
+# 5. Установка ESS через OCI registry
+echo "[5/5] Установка Element Server Suite Community..."
 echo "Это может занять 5-10 минут..."
 
-helm upgrade --install --namespace "$NAMESPACE" ess \
+helm upgrade --install \
+  --namespace "$NAMESPACE" \
+  --create-namespace \
+  ess \
   oci://ghcr.io/element-hq/ess-helm/matrix-stack \
-  -f ~/ess-config-values/hostnames.yaml \
-  -f ~/ess-config-values/tls.yaml \
-  -f ~/ess-config-values/postgresql.yaml \
+  -f ~/ess-config-values/ess-values.yaml \
   --wait \
   --timeout 15m
 
@@ -132,9 +154,9 @@ echo "1. Дождитесь статуса Running для всех pods:"
 echo "   kubectl get pods -n $NAMESPACE -w"
 echo ""
 echo "2. Получите NodePorts сервисов:"
-echo "   kubectl get svc -n $NAMESPACE | grep NodePort"
+echo "   kubectl get svc -n $NAMESPACE"
 echo ""
-echo "3. Настройте NPM Proxy Hosts:"
+echo "3. Настройте NPM Proxy Hosts для каждого сервиса:"
 echo "   - matrix.$SERVER_NAME -> localhost:[synapse-nodeport]"
 echo "   - auth.$SERVER_NAME -> localhost:[mas-nodeport]"
 echo "   - app.$SERVER_NAME -> localhost:[element-web-nodeport]"
@@ -143,6 +165,11 @@ echo "   - mrtc.$SERVER_NAME -> localhost:[mrtc-nodeport]"
 echo "   - $SERVER_NAME -> localhost:[wellknown-nodeport]"
 echo ""
 echo "4. Создайте первого пользователя:"
-echo "   kubectl exec -n $NAMESPACE -it deploy/ess-matrix-authentication-service -- mas-cli manage register-user"
+echo "   kubectl exec -n $NAMESPACE -it deploy/ess-synapse -- register_new_matrix_user -c /data/homeserver.yaml http://localhost:8008"
 echo ""
 echo "5. Протестируйте на https://app.$SERVER_NAME"
+echo ""
+echo "Просмотр логов:"
+echo "   kubectl logs -n $NAMESPACE -l app.kubernetes.io/name=synapse -f"
+echo "   kubectl logs -n $NAMESPACE -l app.kubernetes.io/name=matrix-authentication-service -f"
+echo "   kubectl logs -n $NAMESPACE -l app.kubernetes.io/name=matrix-rtc -f"
