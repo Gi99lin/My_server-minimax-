@@ -23,16 +23,10 @@ redis:
 keys:
   APIgiggl1n: T3st1ngS3cr3tK3yF0rL1v3K1tS3rv3r2024
 
-# Встроенный TURN сервер
+# Встроенный TURN сервер (отключен - требует отдельного сертификата)
+# При необходимости настройте внешний TURN сервер (coturn)
 turn:
-  enabled: true
-  # Домен TURN (должен совпадать с SSL сертификатом)
-  domain: livekit.gigglin.tech
-  # TLS порт для TURN (443 для максимальной совместимости)
-  # Но мы используем 5349 т.к. 443 занят NPM
-  tls_port: 5349
-  # UDP порт для TURN
-  udp_port: 3478
+  enabled: false
 
 # Лимиты комнат
 room:
