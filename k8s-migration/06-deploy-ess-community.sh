@@ -110,7 +110,6 @@ wellKnownDelegation:
   enabled: true
   
   ingress:
-    host: "$SERVER_NAME"
     tlsEnabled: false  # TLS terminates at NPM
 
 # HAProxy (internal routing)
