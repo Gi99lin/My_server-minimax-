@@ -14,10 +14,10 @@ echo "Директория: $BACKUP_DIR"
 # 1. Бэкап PostgreSQL баз данных
 echo ""
 echo "[1/5] Бэкап PostgreSQL - Synapse..."
-docker exec postgres pg_dump -U synapse_user synapse > "$BACKUP_DIR/synapse.sql"
+docker exec matrix-postgres pg_dump -U synapse_user synapse > "$BACKUP_DIR/synapse.sql"
 
 echo "[2/5] Бэкап PostgreSQL - MAS..."
-docker exec postgres pg_dump -U mas_user mas > "$BACKUP_DIR/mas.sql"
+docker exec matrix-postgres pg_dump -U mas_user mas > "$BACKUP_DIR/mas.sql"
 
 # 2. Бэкап конфигурационных файлов
 echo "[3/5] Бэкап конфигураций..."

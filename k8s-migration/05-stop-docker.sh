@@ -20,7 +20,7 @@ fi
 # Сервисы, которые ОСТАНОВИМ (Matrix stack)
 STOP_SERVICES=(
     "matrix-synapse"
-    "matrix-mas"
+    "mas"
     "livekit"
     "livekit-jwt-service"
     "redis"
@@ -28,9 +28,11 @@ STOP_SERVICES=(
 
 # Сервисы, которые ОСТАВИМ (инфраструктура)
 KEEP_SERVICES=(
-    "postgres"          # Общая БД, может использоваться K8s
+    "matrix-postgres"      # Общая БД, может использоваться K8s
     "nginx-proxy-manager"  # Reverse proxy
-    "3x-ui"            # VPN
+    "3x-ui"                # VPN
+    "telegram-bot"         # Telegram bot
+    "landing"              # Landing page
 )
 
 echo ""
