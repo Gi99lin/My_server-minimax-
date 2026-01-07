@@ -1,0 +1,80 @@
+# Helm values для Element Server Suite
+# https://github.com/element-hq/ess-helm
+
+global:
+  # Основной домен
+  domain: gigglin.tech
+  
+# Matrix Synapse
+synapse:
+  enabled: true
+  serverName: gigglin.tech
+  
+  # Использовать внешний PostgreSQL (текущий Docker)
+  postgresql:
+    enabled: false
+    host: host.docker.internal  # K3s может обращаться к Docker хосту
+    port: 5432
+    database: synapse
+    username: synapse_user
+    # password в Secret
+  
+  # Подключение к существующему MAS (если оставляем в Docker)
+  # или включаем встроенный MAS
+  config:
+    server_name: "gigglin.tech"
+    public_baseurl: "https://matrix.gigglin.tech"
+    
+    # Experimental features
+    experimental_features:
+      msc3861:
+        enabled: true
+        issuer: "https://auth.gigglin.tech/"
+        client_id: "0000000000000000000SYNAPSE"
+        client_auth_method: client_secret_basic
+        # client_secret в Secret
+        
+# Element Web
+elementWeb:
+  enabled: true
+  ingress:
+    enabled: true
+    hostname: app.gigglin.tech
+    # NPM будет проксировать, поэтому ingress optional
+    
+# Element Call (для видеозвонков)
+elementCall:
+  enabled: true
+  ingress:
+    enabled: true
+    hostname: call.gigglin.tech
+    
+  # Интеграция с LiveKit
+  livekit:
+    # Использовать текущий LiveKit из Docker
+    url: "wss://livekit.gigglin.tech"
+    # или развернуть в K8s
+    enabled: false
+    
+# PostgreSQL (отключаем, используем Docker)
+postgresql:
+  enabled: false
+
+# Redis (для Synapse worker'ов)
+redis:
+  enabled: true
+  
+# Coturn TURN server (опционально для WebRTC)
+coturn:
+  enabled: false  # Пока отключаем, можем добавить позже
+  
+# Ingress-nginx (если не используем NPM)
+ingress-nginx:
+  enabled: false  # Отключаем, используем NPM
+
+---
+# Secrets (создать отдельно)
+# kubectl create secret generic ess-secrets -n matrix \
+#   --from-literal=postgres-password='ВАШ_ПАРОЛЬ' \
+#   --from-literal=synapse-signing-key='ВАШ_КЛЮЧ' \
+#   --from-literal=mas-client-secret='SynapseClientSecret123!'
