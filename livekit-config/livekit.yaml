@@ -19,9 +19,9 @@ rtc:
 redis:
   address: redis:6379
 
-# API ключи будут переданы через переменные окружения
-# keys:
-#   your_api_key: your_api_secret
+# API ключи для аутентификации
+keys:
+  APIgiggl1n: T3st1ngS3cr3tK3yF0rL1v3K1tS3rv3r2024
 
 # Встроенный TURN сервер
 turn:
