@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Fetch the login page HTML and look for registration links
+set cmd "curl -s https://auth.gigglin.tech/ | grep -i -E '(register|регистр|sign.?up)'"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

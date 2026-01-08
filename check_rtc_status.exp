@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Check Matrix RTC pod status
+set cmd "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; kubectl get pods -n ess -l app.kubernetes.io/name=matrix-rtc-authorisation-service; kubectl logs -n ess -l app.kubernetes.io/name=matrix-rtc-authorisation-service --tail=50"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

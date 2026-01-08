@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Restart all Matrix-related pods
+set cmd "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; kubectl delete pod -n ess -l app.kubernetes.io/name=matrix-authentication-service; kubectl delete pod -n ess -l app.kubernetes.io/name=element-web; kubectl delete pod -n ess -l app.kubernetes.io/name=synapse-main"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Escape brackets for Tcl
+set cmd "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; POD=\$(kubectl get pods -n ess -l app.kubernetes.io/name=synapse -o jsonpath='{.items\[0\].metadata.name}'); echo \"Pod: \$POD\"; kubectl exec -n ess \$POD -- grep encryption_enabled_by_default_for_room_type /data/homeserver.yaml"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

@@ -1,0 +1,78 @@
+spawn ssh -o StrictHostKeyChecking=no root@37.60.251.4 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; kubectl get configmap -n ess ess-matrix-authentication-service -o yaml
+root@37.60.251.4's password: 
+apiVersion: v1
+data:
+  mas-config-overrides.yaml: |
+    http:
+      public_base: "https://auth.gigglin.tech"
+      listeners:
+      - name: web
+        binds:
+        - port: 8080
+        resources:
+        - name: human
+        - name: discovery
+        - name: oauth
+        - name: compat
+        - name: assets
+        - name: graphql
+          # This lets us use the GraphQL API with an OAuth 2.0 access token,
+          # which we currently use in the ansible modules and in synapse-admin
+          undocumented_oauth2_access: true
+        - name: adminapi
+      - name: internal
+        binds:
+        - port: 8081
+        resources:
+        - name: health
+        - name: prometheus
+        - name: connection-info
+
+
+    database:
+      uri: "postgresql://matrixauthenticationservice_user:${POSTGRES_PASSWORD}@ess-postgres.ess.svc.cluster.local.:5432/matrixauthenticationservice?sslmode=prefer&application_name=matrix-authentication-service"
+
+
+    telemetry:
+      metrics:
+        exporter: prometheus
+    matrix:
+      homeserver: "gigglin.tech"
+      secret_file: /secrets/ess-generated/MAS_SYNAPSE_SHARED_SECRET
+      endpoint: "http://ess-synapse-main.ess.svc.cluster.local.:8008"
+      kind: synapse_modern
+
+    secrets:
+      encryption_file: /secrets/ess-generated/MAS_ENCRYPTION_SECRET
+      keys:
+      - kid: rsa
+        key_file: /secrets/ess-generated/MAS_RSA_PRIVATE_KEY
+      - kid: prime256v1
+        key_file: /secrets/ess-generated/MAS_ECDSA_PRIME256V1_PRIVATE_KEY
+  mas-config-underrides.yaml: |2
+
+    policy:
+      data:
+        admin_clients: []
+        admin_users: []
+        client_registration:
+          allow_host_mismatch: false
+          allow_insecure_uris: false
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: ess
+    meta.helm.sh/release-namespace: ess
+  creationTimestamp: "2026-01-07T18:32:25Z"
+  labels:
+    app.kubernetes.io/component: matrix-authentication
+    app.kubernetes.io/instance: ess-matrix-authentication-service
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: matrix-authentication-service
+    app.kubernetes.io/part-of: matrix-stack
+    app.kubernetes.io/version: 1.8.0
+    helm.sh/chart: matrix-stack-25.12.2
+  name: ess-matrix-authentication-service
+  namespace: ess
+  resourceVersion: "4706"
+  uid: 0c626ffb-ed8b-4bc4-b09d-41e50989f8da

@@ -1,0 +1,34 @@
+spawn ssh -o StrictHostKeyChecking=no root@37.60.251.4 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; POD=$(kubectl get pods -n ess -l app.kubernetes.io/name=element-web -o jsonpath='{.items[0].metadata.name}'); kubectl exec -n ess $POD -- cat /app/config.json
+root@37.60.251.4's password: 
+{
+  "bug_report_endpoint_url": "https://rageshakes.element.io/api/submit",
+  "default_server_config": {
+    "m.homeserver": {
+      "base_url": "https://matrix.gigglin.tech",
+      "server_name": "gigglin.tech"
+    }
+  },
+  "element_call": {
+    "use_exclusively": true
+  },
+  "embedded_pages": {
+    "login_for_welcome": true
+  },
+  "features": {
+    "feature_element_call_video_rooms": true,
+    "feature_group_calls": true,
+    "feature_new_room_decoration_ui": true,
+    "feature_video_rooms": true
+  },
+  "map_style_url": "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx",
+  "mobile_guide_app_variant": "element",
+  "setting_defaults": {
+    "UIFeature.deactivate": false,
+    "UIFeature.passwordReset": false,
+    "UIFeature.registration": false,
+    "feature_group_calls": true
+  },
+  "sso_redirect_options": {
+    "immediate": false
+  }
+}

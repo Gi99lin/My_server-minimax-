@@ -1,0 +1,4 @@
+spawn ssh -o StrictHostKeyChecking=no root@37.60.251.4 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; POD=$(kubectl get pods -n ess -l app.kubernetes.io/name=matrix-authentication-service -o jsonpath='{.items[0].metadata.name}'); kubectl exec -n ess $POD -- cat /conf/mas-config.yaml
+root@37.60.251.4's password: 
+Defaulted container "matrix-authentication-service" out of: matrix-authentication-service, render-config (init), db-wait (init), database-migrate (init)
+error: Internal error occurred: Internal error occurred: error executing command in container: failed to exec in container: failed to start exec "a08e7ec8061f79ed5c26236c3fd7025289530ac370208eb72649c8b0096c9680": OCI runtime exec failed: exec failed: unable to start container process: exec: "cat": executable file not found in $PATH

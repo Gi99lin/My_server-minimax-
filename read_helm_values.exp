@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+set cmd "cat ~/ess-config-values/ess-values.yaml"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Check all RTC services and HAProxy
+set cmd "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; echo '=== RTC Services ==='; kubectl get svc -n ess | grep rtc; echo ''; echo '=== HAProxy Service ==='; kubectl get svc -n ess ess-haproxy -o wide"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

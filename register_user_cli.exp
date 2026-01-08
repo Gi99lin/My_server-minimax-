@@ -1,0 +1,15 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+set username [lindex $argv 2]
+
+# Register a user via MAS CLI
+set cmd "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; kubectl exec -n ess -it deployment/ess-matrix-authentication-service -- mas-cli manage register-user --username $username --password testpass123"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    "Password:" { send "testpass123\r"; exp_continue }
+    eof
+}

@@ -1,0 +1,123 @@
+spawn ssh -o StrictHostKeyChecking=no root@37.60.251.4 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; POD=$(kubectl get pods -n ess -l app.kubernetes.io/name=matrix-authentication-service -o jsonpath='{.items[0].metadata.name}'); kubectl logs -n ess $POD
+root@37.60.251.4's password: 
+Defaulted container "matrix-authentication-service" out of: matrix-authentication-service, render-config (init), db-wait (init), database-migrate (init)
+2026-01-08T13:54:54.529244Z  INFO mas_cli::commands::server:63 Starting up version="v1.8.0"
+2026-01-08T13:54:54.529280Z  INFO mas_cli::commands::server:72 Connecting to the database
+2026-01-08T13:54:54.549500Z  INFO mas_cli::sync:101 Acquiring configuration lock
+2026-01-08T13:54:54.550395Z  INFO mas_cli::sync:108 Syncing providers and clients defined in config to database prune=false dry_run=false
+2026-01-08T13:54:54.558182Z  INFO mas_cli::commands::server:134 Loading and compiling the policy module
+2026-01-08T13:54:54.682702Z  INFO mas_templates:242 Loading templates from filesystem root=/usr/local/share/mas-cli/templates
+2026-01-08T13:54:54.688635Z  INFO mas_cli::commands::server:186 Starting task worker
+2026-01-08T13:54:54.691608Z  INFO mas_tasks::new_queue:254 Registered worker worker.id=01KEEY73K18PPJJCDE65PHV0RK
+2026-01-08T13:54:54.702402Z  INFO mas_cli::commands::server:311 Listening on http://[::]:8080 with resources [Human, Discovery, OAuth, Compat, Assets { path: "/usr/local/share/mas-cli/assets/" }, GraphQL { playground: false, undocumented_oauth2_access: true }, AdminApi] 
+2026-01-08T13:54:54.702561Z  INFO mas_cli::commands::server:311 Listening on http://[::]:8081 with resources [Health, Prometheus, ConnectionInfo] 
+2026-01-08T13:54:55.650600Z  INFO mas_tasks::new_queue:580 worker-run-loop-1 - I'm the leader now
+2026-01-08T13:55:00.204451Z  INFO http.server.response GET-11 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 3, cpu: 0.2ms, elapsed: 0.7ms]
+2026-01-08T13:55:00.995538Z  INFO http.server.response GET-15 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:55:10.204993Z  INFO http.server.response GET-27 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T13:55:10.996199Z  INFO http.server.response GET-31 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.6ms]
+2026-01-08T13:55:20.204144Z  INFO http.server.response GET-43 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.7ms]
+2026-01-08T13:55:20.996764Z  INFO http.server.response GET-47 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T13:55:30.204901Z  INFO http.server.response GET-59 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.3ms, elapsed: 0.7ms]
+2026-01-08T13:55:30.995907Z  INFO http.server.response GET-63 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T13:55:34.560082Z  INFO http.server.response GET-69 - "GET / HTTP/1.1" 200 OK "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36" [polls: 2, cpu: 0.2ms, elapsed: 1.3ms]
+2026-01-08T13:55:40.203678Z  INFO http.server.response GET-78 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.3ms]
+2026-01-08T13:55:40.995575Z  INFO http.server.response GET-81 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T13:55:48.085750Z  INFO http.server.response GET-92 - "GET / HTTP/1.1" 200 OK "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36" [polls: 2, cpu: 0.3ms, elapsed: 1.6ms]
+2026-01-08T13:55:50.205861Z  INFO http.server.response GET-97 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.4ms, elapsed: 0.9ms]
+2026-01-08T13:55:50.996545Z  INFO http.server.response GET-100 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:55:54.767262Z  INFO mas_tasks::new_queue:507 worker-run-loop-104 - Sending heartbeat
+2026-01-08T13:56:00.205072Z  INFO http.server.response GET-113 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.3ms, elapsed: 0.7ms]
+2026-01-08T13:56:00.996175Z  INFO http.server.response GET-117 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.1ms, elapsed: 0.4ms]
+2026-01-08T13:56:10.204623Z  INFO http.server.response GET-129 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T13:56:10.996348Z  INFO http.server.response GET-133 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T13:56:20.204265Z  INFO http.server.response GET-145 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.6ms]
+2026-01-08T13:56:20.996610Z  INFO http.server.response GET-149 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T13:56:30.204286Z  INFO http.server.response GET-161 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:56:30.996137Z  INFO http.server.response GET-165 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 1.0ms]
+2026-01-08T13:56:40.204464Z  INFO http.server.response GET-177 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:56:40.995760Z  INFO http.server.response GET-181 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T13:56:50.205105Z  INFO http.server.response GET-193 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.3ms, elapsed: 0.9ms]
+2026-01-08T13:56:50.995992Z  INFO http.server.response GET-197 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T13:56:55.519297Z  INFO mas_tasks::new_queue:507 worker-run-loop-201 - Sending heartbeat
+2026-01-08T13:57:00.205240Z  INFO http.server.response GET-209 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 1.1ms]
+2026-01-08T13:57:00.996342Z  INFO http.server.response GET-213 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:57:10.204753Z  INFO http.server.response GET-225 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:57:10.995832Z  INFO http.server.response GET-229 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.1ms, elapsed: 0.3ms]
+2026-01-08T13:57:20.208238Z  INFO http.server.response GET-241 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.5ms, elapsed: 2.3ms]
+2026-01-08T13:57:20.996173Z  INFO http.server.response GET-245 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T13:57:30.204540Z  INFO http.server.response GET-257 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:57:30.995485Z  INFO http.server.response GET-261 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.1ms, elapsed: 0.3ms]
+2026-01-08T13:57:40.203790Z  INFO http.server.response GET-273 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T13:57:40.995990Z  INFO http.server.response GET-277 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.3ms, elapsed: 0.6ms]
+2026-01-08T13:57:42.963270Z  INFO http.server.response GET-282 - "GET /.well-known/openid-configuration HTTP/1.1" 200 OK "curl/8.5.0" [polls: 0, cpu: 0.0ms, elapsed: 0.1ms]
+2026-01-08T13:57:50.203945Z  INFO http.server.response GET-292 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:57:50.996744Z  INFO http.server.response GET-295 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.6ms, elapsed: 1.1ms]
+2026-01-08T13:57:55.950618Z  INFO mas_tasks::new_queue:507 worker-run-loop-300 - Sending heartbeat
+2026-01-08T13:58:00.205265Z  INFO http.server.response GET-308 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.7ms]
+2026-01-08T13:58:00.823997Z  WARN mas_handlers::oauth2::introspection:134 POST-311 - access token is not valid
+2026-01-08T13:58:00.824177Z  INFO http.server.response POST-311 - "POST /oauth2/introspect HTTP/1.1" 200 OK "Synapse/1.144.0+ess.2" [polls: 5, cpu: 0.5ms, elapsed: 3.6ms]
+2026-01-08T13:58:00.996163Z  INFO http.server.response GET-315 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T13:58:01.197998Z  INFO http.server.response POST-318 - "POST /oauth2/token HTTP/1.1" 200 OK "Element X/25.12.0 (iPhone 13 Pro Max; iOS 18.6.2; Scale/3.00)" [polls: 22, cpu: 4.6ms, elapsed: 34.0ms]
+2026-01-08T13:58:01.280499Z  INFO http.server.response POST-319 - "POST /oauth2/introspect HTTP/1.1" 200 OK "Synapse/1.144.0+ess.2" [polls: 10, cpu: 1.5ms, elapsed: 6.5ms]
+2026-01-08T13:58:06.081339Z  INFO http.server.response GET-327 - "GET /account/register HTTP/1.1" 303 See Other "curl/8.5.0" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T13:58:10.204076Z  INFO http.server.response GET-334 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:58:10.996059Z  INFO http.server.response GET-338 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.1ms, elapsed: 0.4ms]
+2026-01-08T13:58:20.204365Z  INFO http.server.response GET-350 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:58:20.996473Z  INFO http.server.response GET-354 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T13:58:30.203949Z  INFO http.server.response GET-366 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.1ms, elapsed: 0.4ms]
+2026-01-08T13:58:30.996050Z  INFO http.server.response GET-370 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.1ms, elapsed: 0.4ms]
+2026-01-08T13:58:40.204077Z  INFO http.server.response GET-382 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.1ms, elapsed: 0.4ms]
+2026-01-08T13:58:40.995857Z  INFO http.server.response GET-386 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:58:50.204726Z  INFO http.server.response GET-398 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:58:50.995787Z  INFO http.server.response GET-402 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:58:54.693402Z  INFO mas_handlers::activity_tracker::worker:246 Flushing 1 activity records to the database
+2026-01-08T13:58:56.581900Z  INFO mas_tasks::new_queue:507 worker-run-loop-407 - Sending heartbeat
+2026-01-08T13:59:00.204066Z  INFO http.server.response GET-414 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.7ms]
+2026-01-08T13:59:00.995656Z  INFO http.server.response GET-418 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:59:10.204964Z  INFO http.server.response GET-430 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:59:10.996437Z  INFO http.server.response GET-434 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:59:20.204298Z  INFO http.server.response GET-446 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:59:20.995828Z  INFO http.server.response GET-450 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.1ms, elapsed: 0.4ms]
+2026-01-08T13:59:30.204073Z  INFO http.server.response GET-462 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.1ms, elapsed: 0.4ms]
+2026-01-08T13:59:30.995257Z  INFO http.server.response GET-466 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:59:40.204547Z  INFO http.server.response GET-478 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.1ms, elapsed: 0.4ms]
+2026-01-08T13:59:40.995631Z  INFO http.server.response GET-482 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T13:59:50.204222Z  INFO http.server.response GET-494 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.3ms, elapsed: 0.6ms]
+2026-01-08T13:59:50.995933Z  INFO http.server.response GET-498 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.1ms, elapsed: 0.2ms]
+2026-01-08T13:59:56.790152Z  INFO mas_tasks::new_queue:507 worker-run-loop-503 - Sending heartbeat
+2026-01-08T14:00:00.204365Z  INFO http.server.response GET-510 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T14:00:00.914746Z  INFO mas_tasks::new_queue:700 worker-run-loop-507 - One scheduled job marked as available
+2026-01-08T14:00:00.917284Z  INFO mas_tasks::new_queue:852 job-cleanup-expired-tokens-512 - Running job job.id=01KEEV2J9FE2K4NYHB91YPVK72 job.queue.name=cleanup-expired-tokens job.attempt=0
+2026-01-08T14:00:00.920549Z  INFO mas_tasks::database:35 job-cleanup-expired-tokens-512 - cleaned up revoked tokens count=15
+2026-01-08T14:00:00.920591Z  INFO mas_tasks::new_queue:871 job-cleanup-expired-tokens-512 - Job completed [polls: 5, cpu: 0.3ms, elapsed: 3.4ms] job.id=01KEEV2J9FE2K4NYHB91YPVK72 job.queue.name=cleanup-expired-tokens job.attempt=0
+2026-01-08T14:00:00.923468Z  INFO mas_tasks::new_queue:669 worker-run-loop-513 - Scheduling job for cleanup-expired-tokens, next run at 2026-01-08 15:00:00 UTC
+2026-01-08T14:00:00.997316Z  INFO http.server.response GET-517 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.3ms, elapsed: 1.2ms]
+2026-01-08T14:00:10.204645Z  INFO http.server.response GET-529 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.8ms]
+2026-01-08T14:00:10.998406Z  INFO http.server.response GET-532 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.6ms]
+2026-01-08T14:00:20.205152Z  INFO http.server.response GET-545 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.3ms, elapsed: 0.7ms]
+2026-01-08T14:00:20.996243Z  INFO http.server.response GET-548 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.3ms, elapsed: 0.9ms]
+2026-01-08T14:00:30.015632Z  INFO mas_tasks::new_queue:700 worker-run-loop-557 - One scheduled job marked as available
+2026-01-08T14:00:30.018389Z  INFO mas_tasks::new_queue:852 job-expire-inactive-sessions-559 - Running job job.id=01KEEXNWRWPC6XE30QCJR9M6EF job.queue.name=expire-inactive-sessions job.attempt=0
+2026-01-08T14:00:30.018429Z  INFO mas_tasks::new_queue:871 job-expire-inactive-sessions-559 - Job completed [polls: 0, cpu: 0.0ms, elapsed: 0.1ms] job.id=01KEEXNWRWPC6XE30QCJR9M6EF job.queue.name=expire-inactive-sessions job.attempt=0
+2026-01-08T14:00:30.022028Z  INFO mas_tasks::new_queue:669 worker-run-loop-560 - Scheduling job for expire-inactive-sessions, next run at 2026-01-08 14:15:30 UTC
+2026-01-08T14:00:30.204140Z  INFO http.server.response GET-564 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T14:00:30.996456Z  INFO http.server.response GET-568 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T14:00:40.204903Z  INFO http.server.response GET-580 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.6ms]
+2026-01-08T14:00:40.995924Z  INFO http.server.response GET-584 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T14:00:50.204162Z  INFO http.server.response GET-596 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.1ms, elapsed: 0.4ms]
+2026-01-08T14:00:50.996432Z  INFO http.server.response GET-599 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.3ms, elapsed: 0.5ms]
+2026-01-08T14:00:57.085700Z  INFO mas_tasks::new_queue:507 worker-run-loop-605 - Sending heartbeat
+2026-01-08T14:01:00.204791Z  INFO http.server.response GET-612 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.7ms]
+2026-01-08T14:01:00.996588Z  INFO http.server.response GET-615 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.3ms, elapsed: 0.6ms]
+2026-01-08T14:01:10.204310Z  INFO http.server.response GET-628 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.3ms]
+2026-01-08T14:01:10.996587Z  INFO http.server.response GET-631 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T14:01:20.204511Z  INFO http.server.response GET-643 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T14:01:20.995456Z  INFO http.server.response GET-647 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.5ms]
+2026-01-08T14:01:21.764381Z  INFO http.server.response GET-651 - "GET / HTTP/1.1" 200 OK "curl/8.5.0" [polls: 2, cpu: 0.2ms, elapsed: 0.9ms]
+2026-01-08T14:01:25.437667Z  INFO http.server.response HEAD-658 - "HEAD / HTTP/1.1" 200 OK "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/5d7.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36" [polls: 2, cpu: 0.3ms, elapsed: 1.5ms]
+2026-01-08T14:01:26.712634Z  INFO http.server.response GET-662 - "GET / HTTP/1.1" 200 OK "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/138.0.7204.23 Safari/537.36" [polls: 2, cpu: 0.3ms, elapsed: 1.0ms]
+2026-01-08T14:01:30.204914Z  INFO http.server.response GET-668 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.3ms, elapsed: 0.5ms]
+2026-01-08T14:01:30.996182Z  INFO http.server.response GET-672 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T14:01:40.204479Z  INFO http.server.response GET-684 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.4ms]
+2026-01-08T14:01:40.995548Z  INFO http.server.response GET-688 - "GET /health HTTP/1.1" 200 OK "kube-probe/1.34" [polls: 2, cpu: 0.2ms, elapsed: 0.3ms]

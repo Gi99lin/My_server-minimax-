@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Cat the rendered config from the pod (escaped)
+set cmd "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; POD=\$(kubectl get pods -n ess -l app.kubernetes.io/name=matrix-authentication-service -o jsonpath='{.items\[0\].metadata.name}'); kubectl exec -n ess \$POD -- cat /conf/mas-config.yaml"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

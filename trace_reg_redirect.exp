@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Follow redirects and see where registration URL goes
+set cmd "curl -sL -w '\\nFinal URL: %{url_effective}\\nHTTP Code: %{http_code}\\n' https://auth.gigglin.tech/account/register | tail -20"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
