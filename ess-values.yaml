@@ -1,0 +1,55 @@
+elementAdmin:
+  enabled: true
+  ingress:
+    host: admin.gigglin.tech
+    tlsEnabled: false
+elementWeb:
+  additional:
+    setting_defaults: '{"UIFeature.registration": true}'
+  enabled: true
+  ingress:
+    host: app.gigglin.tech
+    tlsEnabled: false
+haproxy:
+  replicas: 1
+ingress:
+  service:
+    type: NodePort
+  tlsEnabled: false
+matrixAuthenticationService:
+  additional:
+    enable-registration:
+      config: |
+        passwords:
+          enabled: true
+        account:
+          password_registration_enabled: true
+          password_registration_email_required: false
+  enabled: true
+  ingress:
+    host: auth.gigglin.tech
+    tlsEnabled: false
+matrixRTC:
+  enabled: true
+  ingress:
+    host: mrtc.gigglin.tech
+    tlsEnabled: false
+  sfu:
+    enabled: true
+    useStunToDiscoverPublicIP: true
+postgres:
+  enabled: true
+serverName: gigglin.tech
+synapse:
+  additional:
+    disable-encryption:
+      config: |
+        encryption_enabled_by_default_for_room_type: "off"
+  enabled: true
+  ingress:
+    host: matrix.gigglin.tech
+    tlsEnabled: false
+wellKnownDelegation:
+  enabled: true
+  ingress:
+    tlsEnabled: false
