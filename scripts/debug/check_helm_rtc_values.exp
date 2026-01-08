@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Check Helm values for RTC
+set cmd "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; helm get values ess -n ess | grep -A20 'rtc'"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Restart kube-proxy
+set cmd "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; echo '=== Restarting kube-proxy ==='; kubectl delete pod -n kube-system -l k8s-app=kube-proxy; echo ''; echo 'Waiting for kube-proxy to restart...'; sleep 10; echo ''; echo '=== Checking listening ports ==='; ss -tlnp | grep -E ':(30780|30880)'; echo ''; echo '=== Testing localhost:30880 ==='; curl -v http://localhost:30880/sfu/get -X POST -H 'Content-Type: application/json' -d '{}' 2>&1 | head -15"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

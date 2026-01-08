@@ -1,343 +1,154 @@
-# Element Server Suite на K3s - Итоговая Документация
+# Element Server Suite на K3s - Итоговая Документация (v2.0)
 
-## 🎯 Финальный Статус
+## 🎯 Статус Системы (2026-01-08)
 
-**✅ Element Server Suite Community полностью функционален на gigglin.tech**
-
-- Сервер: 37.60.251.4
-- K3s версия: v1.31.4+k3s1
-- ESS версия: Helm chart oci://ghcr.io/element-hq/ess-helm/matrix-stack
-
-### Работающие Компоненты
-
-- ✅ Matrix Synapse homeserver (matrix.gigglin.tech)
-- ✅ Matrix Authentication Service OAuth2 (auth.gigglin.tech)
-- ✅ Element Web client (app.gigglin.tech)
-- ✅ Element Admin console (admin.gigglin.tech)
-- ✅ .well-known delegation (gigglin.tech)
-- ✅ LiveKit SFU для звонков (sfu.gigglin.tech)
-- ✅ RTC Authorization Service (mrtc.gigglin.tech)
-- ✅ PostgreSQL база данных (встроенная)
-- ✅ HAProxy internal routing
-
-### Проверенная Функциональность
-
-- ✅ Регистрация и аутентификация пользователей
-- ✅ E2E зашифрованные сообщения
-- ✅ Создание комнат и приглашения
-- ✅ **Голосовые звонки (1:1 и групповые)**
-- ✅ **Видео звонки (1:1 и групповые)**
-- ✅ Federation discovery (.well-known)
+**✅ Все компоненты полностью функциональны:**
+- **Регистрация пользователей:** Работает (через Element Web и MAS)
+- **Звонки (RTC):** Работают (1:1 и конференц-звонки)
+- **Федерация:** Работает (.well-known настроен)
 
 ---
 
-## 📋 Архитектура
+## 🛠 Критические Настройки (Как это работает)
 
-### Сетевая Топология
+### 1. Архитектура Сети (Network Topology)
 
-```
-Internet (HTTPS)
-      ↓
-Nginx Proxy Manager (Docker: 172.18.0.1)
-      ↓
-K3s NodePorts (Host Network)
-      ↓
-K8s Services (ClusterIP)
-      ↓
-Pods (ess namespace)
+Это самый важный аспект. Из-за того, что NPM работает в Docker, а K3s на хосте, маршрутизация устроена так:
+
+```mermaid
+graph TD
+    Client[Client] -->|HTTPS/WSS| NPM[Nginx Proxy Manager <br> (Docker: Public IP)]
+    NPM -->|Bridge IP: 172.18.0.1| K3s[K3s NodePorts <br> (Host Interface)]
+    K3s -->|Service Selector| Pods[Matrix Pods]
 ```
 
-### Критичные Детали
+**КЛЮЧЕВОЕ ПРАВИЛО:** NPM должен проксировать на **`172.18.0.1`**, а не на `localhost` или публичный IP.
 
-**NPM Proxy Hosts ОБЯЗАТЕЛЬНО используют `172.18.0.1`**
+### 2. Настройка Звонков (RTC / LiveKit)
 
-Причина: NPM в Docker, K3s на хосте - разные network namespaces.
-`localhost` в NPM резолвится в NPM контейнер, а не в K3s хост.
+Для работы звонков необходимы **NodePort сервисы** с правильными селекторами.
 
-### Домены и Маршрутизация
+#### NodePort Конфигурация
+| Сервис | Порт (Internal) | NodePort (External) | Selector (Критично!) |
+|--------|-----------------|---------------------|----------------------|
+| **Authorization** | 8080 | **30880** | `app.kubernetes.io/name: your_livekit_api_key_here-authorisation-service` |
+| **LiveKit SFU** | 7880 | **30780** | `app.kubernetes.io/name: your_livekit_api_key_here-sfu` |
 
-| Домен | NPM → | K3s NodePort | K8s Service | Назначение |
-|-------|-------|--------------|-------------|-----------|
-| matrix.gigglin.tech | 172.18.0.1:31435 | 31435 | ess-synapse-main | Homeserver API |
-| auth.gigglin.tech | 172.18.0.1:32534 | 32534 | ess-matrix-authentication-service | OAuth2/OIDC |
-| app.gigglin.tech | 172.18.0.1:31056 | 31056 | ess-element-web | Web Client |
-| admin.gigglin.tech | 172.18.0.1:31419 | 31419 | ess-element-admin | Admin Console |
-| gigglin.tech | 172.18.0.1:32393 | 32393 | ess-haproxy | .well-known |
-| mrtc.gigglin.tech | 172.18.0.1:30880 | 30880 | ess-your_livekit_api_key_here-authorisation-service | RTC JWT |
-| sfu.gigglin.tech | 172.18.0.1:30780 | 30780 | ess-your_livekit_api_key_here-sfu | LiveKit Media |
+#### NPM Прокси Хосты
+*   **mrtc.gigglin.tech** (Auth Service)
+    *   Forward Host: `172.18.0.1`
+    *   Forward Port: `30880`
+    *   Schemes: HTTP, WS Support: On
+*   **sfu.gigglin.tech** (Media/SFU)
+    *   Forward Host: `172.18.0.1`
+    *   Forward Port: **`30780`**
+    *   Schemes: HTTP, **WS Support: ON (Обязательно!)**
 
-### SSL/TLS
+> ⚠️ **Важно:** Если селекторы сервиса не совпадают с лейблами подов, endpoints будут пустыми, и iptables правила не создадутся (ошибка Connection Refused).
 
-- **Внешний слой (NPM)**: Полный SSL/TLS с Let's Encrypt, Force SSL enabled
-- **Внутренний слой (K8s)**: HTTP без TLS (TLS termination на NPM)
-- WebSockets: Enabled на всех proxy hosts (особенно критично для `sfu.gigglin.tech`)
+### 3. Настройка Регистрации
+
+Регистрация требует двух изменений в `ess-values.yaml`:
+
+1. **Включить в MAS (Authentication Service):**
+   ```yaml
+   matrixAuthenticationService:
+     additional:
+       enable-registration:
+         config: |
+           passwords:
+             enabled: true
+           account:
+             password_registration_enabled: true  # <--- ВКЛЮЧИТЬ ЭТО
+   ```
+
+2. **Включить кнопку в Element Web:**
+   ```yaml
+   elementWeb:
+     additional:
+       setting_defaults: '{"UIFeature.registration": true}'
+   ```
 
 ---
 
-## 🔧 RTC Calling - Критичное Решение
+## 📝 Инструкция по Восстановлению (Если всё сломалось)
 
-### Проблема
+Если вам придется переустанавливать сервер, следуйте этим шагам, чтобы сразу получить рабочий результат.
 
-Authorization Service не поддерживает отдельный `LIVEKIT_PUBLIC_URL`. Он возвращает клиентам тот же URL что использует сам (`LIVEKIT_URL`).
+### Шаг 1: Установка K3s и ESS
+Используйте стандартные скрипты установки.
 
-Первоначально Authorization Service использовал внутренний URL:
-```
-LIVEKIT_URL=ws://ess-your_livekit_api_key_here-sfu.ess.svc.cluster.local:7880
-```
+### Шаг 2: Создание NodePort для RTC
+Helm chart не создает нужные NodePort'ы по умолчанию (или создает на случайных портах). Создайте их вручную скриптом:
 
-Возвращал клиентам:
-```json
-{
-  "url": "ws://ess-your_livekit_api_key_here-sfu.ess.svc.cluster.local:7880",
-  "jwt": "..."
-}
-```
-
-Браузер блокировал: `Mixed Content Error - insecure WebSocket from HTTPS page`
-
-### Решение
-
-**Использовать публичный URL (`wss://sfu.gigglin.tech`) как для Authorization Service, так и для клиентов.**
-
-1. Создан ExternalName Service для резолва `sfu.gigglin.tech` внутри K8s
-2. Authorization Service подключается к SFU через NPM: `wss://sfu.gigglin.tech`
-3. Возвращает клиентам тот же публичный URL: `wss://sfu.gigglin.tech`
-
-### Реализация
-
-Файл: [`k8s-migration/17-create-external-sfu-service.sh`](17-create-external-sfu-service.sh)
-
-```bash
-# ExternalName Service
+```yaml
+# auth-nodeport.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: sfu-external
+  name: ess-your_livekit_api_key_here-authorisation-service-nodeport
   namespace: ess
 spec:
-  type: ExternalName
-  externalName: sfu.gigglin.tech
+  type: NodePort
   ports:
-  - port: 443
-    protocol: TCP
-    name: https
-
-# Authorization Service Environment
-LIVEKIT_URL=wss://sfu.gigglin.tech
-```
-
-### Поток Данных RTC Звонка
-
-1. **Client → Authorization Service**
-   ```
-   POST https://mrtc.gigglin.tech/sfu/get
-   Headers: Authorization: Bearer <matrix_openid_token>
-   ```
-
-2. **Authorization Service → SFU (room creation)**
-   ```
-   POST wss://sfu.gigglin.tech
-   → NPM (TLS termination)
-   → 172.18.0.1:30780
-   → K3s NodePort
-   → LiveKit SFU pod
-   ```
-
-3. **Authorization Service → Client (response)**
-   ```json
-   {
-     "url": "wss://sfu.gigglin.tech",
-     "jwt": "eyJhbGc..."
-   }
-   ```
-
-4. **Client → SFU (media connection)**
-   ```
-   WebSocket wss://sfu.gigglin.tech/rtc?access_token=<jwt>
-   → NPM
-   → SFU pod
-   → WebRTC media streams (UDP)
-   ```
-
+  - name: http
+    port: 8080
+    targetPort: 8080
+    nodePort: 30880
+  selector:
+    app.kubernetes.io/instance: ess-your_livekit_api_key_here-authorisation-service
+    app.kubernetes.io/name: your_livekit_api_key_here-authorisation-service
 ---
-
-## 📦 Установка с Нуля
-
-### 1. Подготовка Сервера
-
-```bash
-# K3s
-curl -sfL https://get.k3s.io | sh -
-
-# Helm
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-
-# kubectl config
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> ~/.bashrc
+# sfu-nodeport.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ess-your_livekit_api_key_here-sfu-nodeport-http
+  namespace: ess
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 7880
+    targetPort: 7880
+    nodePort: 30780
+  selector:
+    app.kubernetes.io/instance: ess-your_livekit_api_key_here-sfu
+    app.kubernetes.io/name: your_livekit_api_key_here-sfu
 ```
 
-### 2. Развертывание ESS
+### Шаг 3: Настройка NPM
+Настройте все домены (`matrix`, `auth`, `app`, `mrtc`, `sfu`) на IP **`172.18.0.1`**.
 
+| Домен | Порт | Заметки |
+|-------|------|---------|
+| matrix | 31435 | Synapse |
+| auth | 32534 | MAS |
+| app | 31056 | Element Web |
+| mrtc | 30880 | Auth Service (CORS OK) |
+| sfu | 30780 | SFU (WebSockets Critical) |
+
+### Шаг 4: Проверка
 ```bash
-git clone <repo>
-cd My_server/k8s-migration
+# Проверка mrtc (должен 405)
+curl -I https://mrtc.gigglin.tech/sfu/get
 
-chmod +x 06-deploy-ess-community.sh
-./06-deploy-ess-community.sh
-```
-
-### 3. Настройка NPM Proxy Hosts
-
-**КРИТИЧНО**: Все upstream hosts = `172.18.0.1`, а НЕ `localhost`
-
-Для каждого домена:
-- SSL: ✅ Force SSL, HTTP/2, HSTS
-- WebSockets: ✅ (для matrix, mrtc, sfu)
-- Блокировка эксплойтов: ✅
-
-### 4. Исправление RTC
-
-```bash
-chmod +x 17-create-external-sfu-service.sh
-./17-create-external-sfu-service.sh
-```
-
-### 5. Создание Пользователей
-
-```bash
-kubectl exec -n ess deployment/ess-matrix-authentication-service -- \
-  mas-cli manage register-user --yes -p 'Password123' -a admin
-
-kubectl exec -n ess deployment/ess-matrix-authentication-service -- \
-  mas-cli manage register-user --yes -p 'Password123' username
+# Проверка sfu (должен 200)
+curl -I https://sfu.gigglin.tech
 ```
 
 ---
 
-## 🐛 Траблшутинг
+## 🐛 Известные Проблемы и Решения
 
-### Проверка Здоровья Системы
+**1. 502 Bad Gateway на RTC доменах**
+*   **Причина:** NPM ломится на внешний IP, или нет iptables правил.
+*   **Решение:** Поменять IP в NPM на `172.18.0.1`. Проверить NodePort сервисы и их селекторы.
 
-```bash
-# Поды
-kubectl get pods -n ess
-# Все должны быть Running
+**2. Connection Refused на 172.18.0.1:30880**
+*   **Причина:** Неверные селекторы в Service. Endpoints пусты.
+*   **Решение:** Проверить `kubectl get endpoints -n ess`. Если пусто — исправить селектор в yaml сервиса.
 
-# Сервисы
-kubectl get svc -n ess
-# Проверить NodePort маппинг
-
-# Логи Synapse
-kubectl logs -n ess -l app.kubernetes.io/name=synapse-main -f
-
-# Логи RTC
-kubectl logs -n ess -l app.kubernetes.io/name=your_livekit_api_key_here-sfu -f
-kubectl logs -n ess -l app.kubernetes.io/name=your_livekit_api_key_here-authorisation-service -f
-```
-
-### .well-known Валидация
-
-```bash
-curl https://gigglin.tech/.well-known/matrix/client
-```
-
-Должен вернуть:
-```json
-{
-  "m.homeserver": {"base_url": "https://matrix.gigglin.tech"},
-  "org.matrix.msc2965.authentication": {
-    "account": "https://auth.gigglin.tech/account",
-    "issuer": "https://auth.gigglin.tech/"
-  },
-  "org.matrix.msc4143.rtc_foci": [{
-    "livekit_service_url": "https://mrtc.gigglin.tech",
-    "type": "livekit"
-  }]
-}
-```
-
-### NPM 502 Bad Gateway
-
-Причина: Upstream host = `localhost` вместо `172.18.0.1`
-
-Решение: Изменить все NPM proxy hosts на Docker bridge IP
-
-### RTC Mixed Content Error
-
-Браузер блокирует `ws://` с HTTPS страницы.
-
-**НЕ РЕШЕНИЕ**: Добавлять переменную `LIVEKIT_PUBLIC_URL` (игнорируется)
-
-**РЕШЕНИЕ**: Изменить `LIVEKIT_URL` на публичный `wss://` URL
-
-### Звонки не соединяются
-
-```bash
-# Проверить SFU логи
-kubectl logs -n ess -l app.kubernetes.io/name=your_livekit_api_key_here-sfu -f
-
-# Во время звонка должны появиться:
-# - CreateRoom
-# - ParticipantJoined
-# - TrackPublished
-```
-
-Если CreateRoom есть, но TrackPublished нет - firewall блокирует UDP порты.
-
----
-
-## 🚀 Производственная Настройка
-
-### UDP Buffer для LiveKit
-
-```bash
-sudo sysctl -w net.core.rmem_max=5000000
-echo "net.core.rmem_max=5000000" | sudo tee -a /etc/sysctl.conf
-```
-
-### Resource Limits (рекомендуется)
-
-```yaml
-resources:
-  requests:
-    memory: "512Mi"
-    cpu: "250m"
-  limits:
-    memory: "2Gi"
-    cpu: "1000m"
-```
-
-### Backup PostgreSQL
-
-```bash
-kubectl exec -n ess ess-postgres-0 -c postgres -- \
-  pg_dump -U synapse synapse > backup-$(date +%Y%m%d).sql
-```
-
----
-
-## 📌 Важные Ссылки
-
-- ESS Helm Chart: https://github.com/element-hq/ess-helm
-- K3s Docs: https://docs.k3s.io
-- Matrix Spec: https://spec.matrix.org
-- LiveKit Docs: https://docs.livekit.io
-- MSC4143 (Native RTC): https://github.com/matrix-org/matrix-spec-proposals/pull/4143
-
----
-
-## 🎓 Уроки
-
-1. **Network Namespace Isolation**: Docker и K3s имеют разные сетевые стеки
-2. **Authorization Service Limitation**: Не поддерживает separate public URL
-3. **ExternalName Services**: Позволяют K8s подам резолвить внешние домены
-4. **TLS Termination**: NPM = HTTPS, K8s internal = HTTP
-5. **WebSocket Support**: Критично для Matrix и RTC
-6. **Mixed Content Policy**: Браузер блокирует ws:// с https://
-
----
-
-Создано: 2026-01-08  
-Автор: Claude 4 Sonnet (Kilo Code)  
-VPS: 37.60.251.4 (gigglin.tech)
+**3. Кнопка регистрации не работает / "Registration disabled"**
+*   **Причина:** MAS config не применился.
+*   **Решение:** Проверить `ess-values.yaml`, применить `helm upgrade`, перезапустить MAS pod (`kubectl delete pod ...`).

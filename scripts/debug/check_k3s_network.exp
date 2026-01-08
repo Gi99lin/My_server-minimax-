@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Check K3s network and NodePort bindings
+set cmd "echo '=== K3s Server Config ==='; cat /etc/systemd/system/k3s.service | grep ExecStart; echo ''; echo '=== Listening Ports ==='; ss -tlnp | grep -E ':(30780|30880|30881|30882)'; echo ''; echo '=== Host IP ==='; hostname -I"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
