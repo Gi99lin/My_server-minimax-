@@ -1,167 +1,64 @@
 version: '3.8'
 
 services:
-  # Nginx Proxy Manager - управление SSL и реверс-прокси
+  # ==================== Nginx Proxy Manager ====================
   nginx-proxy-manager:
     image: jc21/nginx-proxy-manager:latest
     container_name: nginx-proxy-manager
     restart: unless-stopped
     ports:
       - "80:80"      # HTTP
+      - "127.0.0.1:81:81"      # Admin panel (Hiding from public)
       - "443:443"    # HTTPS
-      - "81:81"      # Admin UI
     volumes:
-      - nginx-data:/data
-      - nginx-letsencrypt:/etc/letsencrypt
+      - vps-server_nginx-data:/data
+      - vps-server_nginx-letsencrypt:/etc/letsencrypt
     networks:
-      - app-network
-    environment:
-      - DB_SQLITE_FILE=/data/database.sqlite
-      - DISABLE_IPV6=true
+      - proxy_network
 
-  # Landing page - главная страница "В разработке"
-  landing:
-    build:
-      context: ./nginx-landing
-      dockerfile: Dockerfile
-    container_name: landing
-    restart: unless-stopped
-    expose:
-      - "80"
-    volumes:
-      - landing-data:/usr/share/nginx/html
-    networks:
-      - app-network
-
-  # 3x-ui панель для Xray (VPN)
+  # ==================== 3X-UI VPN Panel ====================
   3x-ui:
     image: ghcr.io/mhsanaei/3x-ui:latest
     container_name: 3x-ui
     restart: unless-stopped
-    volumes:
-      - 3x-ui-data:/etc/x-ui
-      - 3x-ui-cert:/root/cert
-    environment:
-      - XRAY_VMESS_AEAD_FORCED=false
-      - XUI_ENABLE_FAIL2BAN=true
-    tty: true
-    network_mode: host
-
-  # Matrix Synapse сервер
-  matrix-synapse:
-    image: matrixdotorg/synapse:latest
-    container_name: matrix-synapse
-    restart: unless-stopped
-    expose:
-      - "8008"   # Client API
-      - "8448"   # Federation API
-    volumes:
-      - matrix-data:/data
-    environment:
-      - SYNAPSE_SERVER_NAME=${MATRIX_DOMAIN}
-      - SYNAPSE_REPORT_STATS=no
-      - SYNAPSE_LOG_LEVEL=INFO
-    networks:
-      - app-network
-    depends_on:
-      - matrix-postgres
-
-  # PostgreSQL для Matrix и MAS
-  matrix-postgres:
-    image: postgres:15-alpine
-    container_name: matrix-postgres
-    restart: unless-stopped
-    network_mode: "host"
-    environment:
-      - POSTGRES_USER=matrix
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=synapse
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./postgres-init:/docker-entrypoint-initdb.d
-
-  # Matrix Authentication Service (для iOS клиентов)
-  mas:
-    image: ghcr.io/matrix-org/matrix-authentication-service:latest
-    container_name: mas
-    restart: unless-stopped
-    command: ["server", "--config", "/config/config.yaml"]
-    expose:
-      - "8080"
-    volumes:
-      - ./mas-config:/config:ro
-    environment:
-      - MAS_SERVER_NAME=${MATRIX_DOMAIN}
-    depends_on:
-      - matrix-postgres
-    networks:
-      - app-network
-
-  # Redis для LiveKit
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    restart: unless-stopped
-    expose:
-      - "6379"
-    volumes:
-      - redis-data:/data
-    networks:
-      - app-network
-
-  # LiveKit Server для Matrix RTC звонков
-  livekit:
-    image: livekit/livekit-server:latest
-    container_name: livekit
-    restart: unless-stopped
     ports:
-      - "7880:7880"     # HTTP API / WebSocket
-      - "7881:7881"     # WebRTC TCP
-      - "50000-50100:50000-50100/udp"  # WebRTC UDP (уменьшен диапазон для Docker)
-    volumes:
-      - ./livekit-config:/config:ro
-    command: ["--config", "/config/livekit.yaml"]
-    depends_on:
-      - redis
-    networks:
-      - app-network
-
-  # LiveKit JWT Service для Matrix (опционально)
-  livekit-jwt-service:
-    image: ghcr.io/element-hq/lk-jwt-service:latest
-    container_name: livekit-jwt-service
-    restart: unless-stopped
-    expose:
-      - "8080"
+      - "2053:2053"  # VLESS/VMess/VLESS-TCP-Vision
+      - "2083:2083"  # VMess-WS
+      - "2019:2019"  # Shadowsocks
+      - "11688:11688" # Detected VPN Port
+      - "8443:8443"
     environment:
-      - LIVEKIT_URL=wss://livekit.${MATRIX_DOMAIN}
-      - LIVEKIT_KEY=${LIVEKIT_API_KEY}
-      - LIVEKIT_SECRET=${LIVEKIT_API_SECRET}
-      - LIVEKIT_INSECURE_SKIP_VERIFY_TLS=false
-    depends_on:
-      - livekit
+      - XUI_V2RAY_LICENSE_KEY=${XUI_LICENSE_KEY:-}
+    volumes:
+      - 3x-ui_data:/etc/x-ui
+      - 3x-ui_certs:/etc/certs
     networks:
-      - app-network
+      - proxy_network
 
+  # ==================== Landing Page ====================
+  landing:
+    build:
+      context: ./nginx-landing
+      dockerfile: Dockerfile
+    image: vps-server-landing
+    container_name: landing
+    restart: unless-stopped
+    networks:
+      - proxy_network
+
+# ==================== Networks & Volumes ====================
 networks:
-  app-network:
+  proxy_network:
     driver: bridge
 
 volumes:
-  # Nginx Proxy Manager
-  nginx-data:
-  nginx-letsencrypt:
-
-  # Landing
-  landing-data:
-
-  # 3x-ui
-  3x-ui-data:
-  3x-ui-cert:
-
-  # Matrix
-  matrix-data:
-  postgres-data:
-
-  # LiveKit
-  redis-data:
+  vps-server_nginx-data:
+    external: true
+  vps-server_nginx-letsencrypt:
+    external: true
+  3x-ui_data:
+    external: true
+    name: vps-server_3x-ui-data
+  3x-ui_certs:
+    external: true
+    name: vps-server_3x-ui-cert
