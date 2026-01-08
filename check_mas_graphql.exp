@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Query MAS GraphQL API for site configuration
+set cmd "curl -s -X POST https://auth.gigglin.tech/graphql -H 'Content-Type: application/json' -d '{\"query\":\"{siteConfig{passwordRegistrationEnabled}}\"}'"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

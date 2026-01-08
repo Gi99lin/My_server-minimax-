@@ -1,0 +1,21 @@
+#!/usr/bin/expect -f
+set timeout 900
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+set file [lindex $argv 2]
+
+# Upload the new values file
+spawn scp -o StrictHostKeyChecking=no $file root@$ip:~/ess-config-values/ess-values.yaml
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
+
+# Run helm upgrade with KUBECONFIG
+set cmd "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml && helm upgrade --install --namespace ess --create-namespace ess oci://ghcr.io/element-hq/ess-helm/matrix-stack -f ~/ess-config-values/ess-values.yaml --wait --timeout 15m"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

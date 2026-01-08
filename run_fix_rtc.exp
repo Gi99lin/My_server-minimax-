@@ -1,0 +1,15 @@
+#!/usr/bin/expect -f
+set timeout 120
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Copy and run fix-rtc.sh
+spawn scp -o StrictHostKeyChecking=no fix-rtc.sh root@$ip:~/
+expect "password:" { send "$password\r" }
+expect eof
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip "chmod +x ~/fix-rtc.sh && ~/fix-rtc.sh"
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Check NPM proxy host configuration
+set cmd "docker exec nginx-proxy-manager sqlite3 /data/database.sqlite 'SELECT * FROM proxy_host WHERE domain_names LIKE \"%mrtc%\";'"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

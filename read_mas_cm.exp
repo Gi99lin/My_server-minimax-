@@ -1,0 +1,18 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+set cm_name [lindex $argv 2]
+
+if {$cm_name == ""} {
+    set cm_name "ess-matrix-authentication-service"
+}
+
+# Get the ConfigMap content
+set cmd "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; kubectl get configmap -n ess $cm_name -o yaml"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

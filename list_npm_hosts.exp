@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# List all NPM proxy hosts
+set cmd "docker exec nginx-proxy-manager cat /data/nginx/proxy_host/*.conf | grep -E '(server_name|proxy_pass)' | head -50"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

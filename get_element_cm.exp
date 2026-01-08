@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Get Element Web ConfigMap
+set cmd "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; kubectl get configmap -n ess -l app.kubernetes.io/name=element-web -o yaml"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}

@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Check LiveKit SFU service port
+set cmd "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; kubectl get svc -n ess | grep livekit"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
