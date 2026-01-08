@@ -32,6 +32,57 @@ EOF
 echo "✅ ExternalName Service создан"
 echo ""
 
+echo "=== Создание/Исправление NodePort сервисов для RTC ==="
+echo ""
+echo "Удаление старых сервисов (для безопасности)..."
+kubectl delete svc -n ess ess-matrix-rtc-authorisation-service-nodeport --ignore-not-found
+kubectl delete svc -n ess ess-matrix-rtc-sfu-nodeport-http --ignore-not-found
+
+echo ""
+echo "Creating NodePort for Authorization Service (30880)..."
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Service
+metadata:
+  name: ess-matrix-rtc-authorisation-service-nodeport
+  namespace: ess
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    nodePort: 30880
+    protocol: TCP
+  selector:
+    app.kubernetes.io/instance: ess-matrix-rtc-authorisation-service
+    app.kubernetes.io/name: matrix-rtc-authorisation-service
+EOF
+
+echo ""
+echo "Creating NodePort for SFU (30780)..."
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Service
+metadata:
+  name: ess-matrix-rtc-sfu-nodeport-http
+  namespace: ess
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 7880
+    targetPort: 7880
+    nodePort: 30780
+    protocol: TCP
+  selector:
+    app.kubernetes.io/instance: ess-matrix-rtc-sfu
+    app.kubernetes.io/name: matrix-rtc-sfu
+EOF
+
+echo "✅ NodePort сервисы обновлены"
+echo ""
+
 # Теперь изменить LIVEKIT_URL на wss://sfu.gigglin.tech
 echo "Патчинг Authorization Service..."
 cat > /tmp/livekit-external-url-patch.yaml <<EOF

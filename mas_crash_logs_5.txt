@@ -1,4 +1,0 @@
-spawn ssh -o StrictHostKeyChecking=no root@37.60.251.4 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml; POD=$(kubectl get pods -n ess -l app.kubernetes.io/name=matrix-authentication-service -o jsonpath='{.items[0].metadata.name}'); kubectl logs -n ess $POD
-root@37.60.251.4's password: 
-Defaulted container "matrix-authentication-service" out of: matrix-authentication-service, render-config (init), db-wait (init), database-migrate (init)
-Error: missing field `mode` for key "default.email.mode" in conf/mas-config.yaml YAML file

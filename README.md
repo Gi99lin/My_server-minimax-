@@ -19,12 +19,16 @@ A hybrid **K3s (Matrix/Element)** + **Docker (Utils)** setup for a VPS server.
 │
 ├── install-k3s.sh         # Step 1: Install K3s cluster
 ├── install-matrix.sh      # Step 2: Deploy Matrix (ESS)
-├── fix-rtc.sh             # Step 3: Fix RTC Calling (LiveKit)
+├── fix-rtc.sh             # Step 3: Fix RTC Calling (NodePorts + Selectors + CORS)
+│
+├── scripts/               # Maintenance & Debug scripts
+│   ├── debug/             # Diagnostic tools
+│   └── maintenance/       # Restart/Update scripts
 │
 ├── nginx-landing/         # Static website files
 └── docs/                  # Documentation
     ├── NPM-CONFIG.md      # NPM Proxy Hosts guide
-    └── K3S-SUMMARY.md     # Detailed K3s architecture docs
+    └── K3S-SUMMARY.md     # Detailed K3s architecture & troubleshooting
 ```
 
 ## 🚀 Quick Start (Fresh Server)
@@ -72,6 +76,15 @@ chmod +x setup.sh
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 kubectl get pods -n ess
 kubectl logs -n ess -l app.kubernetes.io/name=synapse-main -f
+```
+
+### Helper Scripts
+```bash
+# Restart everything
+./scripts/maintenance/restart_all_matrix.exp <IP> <PASSWORD>
+
+# Check services
+./scripts/debug/check_rtc_services.exp <IP> <PASSWORD>
 ```
 
 ### Docker (Utils)

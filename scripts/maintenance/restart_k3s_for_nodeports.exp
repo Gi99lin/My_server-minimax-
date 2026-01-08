@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+set timeout 120
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Check iptables and restart K3s
+set cmd "echo '=== Current iptables rules for 30880 ==='; iptables -t nat -L -n -v | grep 30880; echo ''; echo '=== Current iptables rules for 30881 ==='; iptables -t nat -L -n -v | grep 30881; echo ''; echo '=== Restarting K3s ==='; systemctl restart k3s; echo 'Waiting for K3s to restart...'; sleep 15; echo ''; echo '=== Checking iptables after restart ==='; iptables -t nat -L -n -v | grep -E '(30880|30881)'; echo ''; echo '=== Testing NodePorts ==='; curl -I http://172.18.0.1:30880 2>&1 | head -5; echo ''; curl -I http://172.18.0.1:30881 2>&1 | head -5"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip $cmd
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    timeout { puts "Timeout waiting for K3s restart"; exit 1 }
+    eof
+}
