@@ -1,0 +1,67 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Stop NPM to free port 80 ==='\r"
+expect "#"
+send "cd /root && docker-compose stop npm\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Get SSL certificate ==='\r"
+expect "#"
+send "certbot certonly --standalone -d vpn.gigglin.tech --non-interactive --agree-tos --email admin@gigglin.tech 2>&1\r"
+expect {
+    "Successfully received certificate" {
+        send_user "\n\n=== SSL CERTIFICATE OBTAINED! ===\n"
+        exp_continue
+    }
+    "Certificate not yet due for renewal" {
+        send_user "\n\n=== CERTIFICATE ALREADY EXISTS ===\n"
+        exp_continue
+    }
+    timeout {
+        send_user "\nCertbot timeout\n"
+    }
+    "#"
+}
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Copy certificates ==='\r"
+expect "#"
+send "cp /etc/letsencrypt/live/vpn.gigglin.tech/fullchain.pem /root/xray-config/cert.pem\r"
+expect "#"
+send "cp /etc/letsencrypt/live/vpn.gigglin.tech/privkey.pem /root/xray-config/key.pem\r"
+expect "#"
+send "chmod 644 /root/xray-config/*.pem\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Restart NPM ==='\r"
+expect "#"
+send "docker-compose up -d npm\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verify certificates ==='\r"
+expect "#"
+send "ls -lh /root/xray-config/*.pem\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== SSL CERTIFICATES READY! ==='\r"
+expect "#"
+
+send "exit\r"
+expect eof

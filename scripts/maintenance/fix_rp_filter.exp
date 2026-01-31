@@ -1,0 +1,48 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking reverse path filtering ==='\r"
+expect "#"
+send "sysctl net.ipv4.conf.all.rp_filter\r"
+expect "#"
+send "sysctl net.ipv4.conf.default.rp_filter\r"
+expect "#"
+send "sysctl net.ipv4.conf.eth0.rp_filter\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Disabling strict reverse path filtering ==='\r"
+expect "#"
+send "sysctl -w net.ipv4.conf.all.rp_filter=0\r"
+expect "#"
+send "sysctl -w net.ipv4.conf.default.rp_filter=0\r"
+expect "#"
+send "sysctl -w net.ipv4.conf.eth0.rp_filter=0\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Making changes persistent ==='\r"
+expect "#"
+send "echo 'net.ipv4.conf.all.rp_filter=0' >> /etc/sysctl.conf\r"
+expect "#"
+send "echo 'net.ipv4.conf.default.rp_filter=0' >> /etc/sysctl.conf\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== NOW TRY VPN AGAIN ==='\r"
+expect "#"
+send "echo 'This should fix asymmetric routing issues'\r"
+expect "#"
+
+send "exit\r"
+expect eof

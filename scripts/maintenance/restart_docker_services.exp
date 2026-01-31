@@ -1,0 +1,48 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "cd /root\r"
+expect "#"
+
+send "echo '=== Stopping problematic telegram bot ==='\r"
+expect "#"
+send "docker stop telegram-bot\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Restarting Nginx Proxy Manager ==='\r"
+expect "#"
+send "docker restart nginx-proxy-manager\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Restarting 3x-ui VPN ==='\r"
+expect "#"
+send "docker restart 3x-ui\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Waiting 10 seconds for services to start ==='\r"
+expect "#"
+send "sleep 10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking container status ==='\r"
+expect "#"
+send "docker ps\r"
+expect "#"
+
+send "exit\r"
+expect eof

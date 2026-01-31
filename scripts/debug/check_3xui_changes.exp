@@ -1,0 +1,45 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking 3x-ui database modification time ==='\r"
+expect "#"
+send "docker exec 3x-ui ls -lh /etc/x-ui/x-ui.db\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking 3x-ui config.json modification time ==='\r"
+expect "#"
+send "docker exec 3x-ui ls -lh /etc/x-ui/config.json 2>&1 || echo 'config.json not found'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking Xray version ==='\r"
+expect "#"
+send "docker exec 3x-ui /app/bin/xray-linux-amd64 version 2>&1 | head -5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking if 3x-ui auto-updated ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /etc/x-ui/config.json 2>&1 | grep -i 'update\\|version' | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking 3x-ui container image ==='\r"
+expect "#"
+send "docker inspect 3x-ui | grep -i 'Image\\|Created' | head -10\r"
+expect "#"
+
+send "exit\r"
+expect eof

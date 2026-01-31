@@ -1,0 +1,45 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Testing internet from 3x-ui container ==='\r"
+expect "#"
+send "docker exec 3x-ui ping -c 3 8.8.8.8\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing DNS from 3x-ui container ==='\r"
+expect "#"
+send "docker exec 3x-ui ping -c 3 google.com\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing HTTPS from 3x-ui container ==='\r"
+expect "#"
+send "docker exec 3x-ui wget -O /dev/null --timeout=5 https://www.google.com 2>&1 | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking 3x-ui container network interfaces ==='\r"
+expect "#"
+send "docker exec 3x-ui ip addr show\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking 3x-ui container routing table ==='\r"
+expect "#"
+send "docker exec 3x-ui ip route\r"
+expect "#"
+
+send "exit\r"
+expect eof

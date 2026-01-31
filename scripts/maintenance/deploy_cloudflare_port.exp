@@ -1,0 +1,43 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn scp -o StrictHostKeyChecking=no docker-compose.yml root@$ip:/root/
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Updating 3x-ui to port 2096 for Cloudflare ==='\r"
+expect "#"
+send "cd /root && docker-compose up -d 3x-ui\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verifying port 2096 ==='\r"
+expect "#"
+send "ss -tlnp | grep 2096\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Port 2096 is ready for Cloudflare! ==='\r"
+expect "#"
+send "echo 'Next steps:'\r"
+expect "#"
+send "echo '1. Enable Cloudflare proxy (orange cloud) for vpn.gigglin.tech'\r"
+expect "#"
+send "echo '2. Change port to 2096 in 3x-ui panel'\r"
+expect "#"
+send "echo '3. Update iPhone VPN profile'\r"
+expect "#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Monitoring VPN traffic (30 seconds) ==='\r"
+expect "#"
+send "echo 'Try to open http://neverssl.com on iPhone NOW!'\r"
+expect "#"
+send "docker logs 3x-ui --tail 0 --follow 2>&1 &\r"
+expect "#"
+send "sleep 30\r"
+expect "#"
+send "pkill -f 'docker logs'\r"
+expect "#"
+
+send "exit\r"
+expect eof

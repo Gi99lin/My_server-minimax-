@@ -1,0 +1,77 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== VPN ROUTING DIAGNOSTIC ==='\r"
+expect "#"
+send "echo 'VPN is connected. Now checking why internet does not work.'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 1. Check active VPN connection ==='\r"
+expect "#"
+send "ss -tn | grep ':54321.*128.0.130'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 2. Check 3x-ui/Xray logs ==='\r"
+expect "#"
+send "docker logs 3x-ui --tail 50 2>&1 | tail -20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 3. Check if DNS queries are coming through VPN ==='\r"
+expect "#"
+send "echo 'Capturing for 15 seconds. Try to open google.com on iPhone NOW!'\r"
+expect "#"
+send "timeout 15 tcpdump -i any -nn 'host 8.8.8.8 or host 1.1.1.1' -c 20 2>&1\r"
+expect {
+    timeout { send "\003"; exp_continue }
+    "#"
+}
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 4. Check MASQUERADE counters ==='\r"
+expect "#"
+send "iptables -t nat -L POSTROUTING -n -v | grep 172.20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 5. Check if packets are being forwarded ==='\r"
+expect "#"
+send "iptables -L FORWARD -n -v | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 6. Test DNS from inside 3x-ui container ==='\r"
+expect "#"
+send "docker exec 3x-ui nslookup google.com 8.8.8.8 2>&1 || docker exec 3x-ui ping -c 2 8.8.8.8 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== DIAGNOSIS ==='\r"
+expect "#"
+send "echo 'Look for:'\r"
+expect "#"
+send "echo '- DNS queries to 8.8.8.8 (if none, DNS issue)'\r"
+expect "#"
+send "echo '- MASQUERADE counter increasing (if not, NAT issue)'\r"
+expect "#"
+send "echo '- FORWARD chain accepting packets'\r"
+expect "#"
+
+send "exit\r"
+expect eof

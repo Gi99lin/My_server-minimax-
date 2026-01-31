@@ -1,0 +1,57 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== CRITICAL: Checking if server can route packets back to clients ==='\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 1. Check conntrack (connection tracking) ==='\r"
+expect "#"
+send "conntrack -L | grep -E '55646|10443|8443' | head -20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 2. Check if MASQUERADE is actually working ==='\r"
+expect "#"
+send "iptables -t nat -L POSTROUTING -n -v\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 3. Test ICMP (ping) from container to internet ==='\r"
+expect "#"
+send "docker exec shadowbox ping -c 3 8.8.8.8\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 4. Check if there are any DROP rules blocking return traffic ==='\r"
+expect "#"
+send "iptables -L -n -v | grep DROP | head -20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 5. Check kernel parameters that might block VPN ==='\r"
+expect "#"
+send "sysctl -a | grep -E 'rp_filter|ip_forward|accept_redirects' 2>&1 | grep -v 'ipv6'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 6. CRITICAL: Check if provider is doing transparent proxy ==='\r"
+expect "#"
+send "traceroute -n -m 5 8.8.8.8 2>&1 | head -10\r"
+expect "#"
+
+send "exit\r"
+expect eof

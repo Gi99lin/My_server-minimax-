@@ -1,0 +1,47 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Temporarily disabling IPv6 ==='\r"
+expect "#"
+send "sysctl -w net.ipv6.conf.all.disable_ipv6=1\r"
+expect "#"
+send "sysctl -w net.ipv6.conf.default.disable_ipv6=1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Restarting 3x-ui to rebind on IPv4 ==='\r"
+expect "#"
+send "docker restart 3x-ui\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Waiting for 3x-ui to start ==='\r"
+expect "#"
+send "sleep 10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking if Xray now listens on IPv4 ==='\r"
+expect "#"
+send "docker exec 3x-ui netstat -tlnp | grep 8443\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== PLEASE TEST VPN NOW ==='\r"
+expect "#"
+send "echo 'If it works, we will re-enable IPv6 and find a permanent solution'\r"
+expect "#"
+
+send "exit\r"
+expect eof

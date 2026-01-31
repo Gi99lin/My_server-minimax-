@@ -1,0 +1,34 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Testing 3x-ui paths ==='\r"
+expect "#"
+send "curl -I http://localhost:2053/ 2>&1 | head -5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "curl -I http://localhost:2053/panel 2>&1 | head -5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "curl -I http://localhost:2053/xui 2>&1 | head -5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking 3x-ui container logs for path info ==='\r"
+expect "#"
+send "docker logs 3x-ui 2>&1 | grep -i 'panel\\|path\\|url' | tail -10\r"
+expect "#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,59 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== xray-vpn container status ==='\r"
+expect "#"
+send "docker ps | grep xray-vpn\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== xray-vpn logs (last 100 lines) ==='\r"
+expect "#"
+send "docker logs xray-vpn --tail 100\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking active connections ==='\r"
+expect "#"
+send "ss -tn | grep ':10443'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing DNS from container ==='\r"
+expect "#"
+send "docker exec xray-vpn nslookup google.com 2>&1 || echo 'nslookup not available'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing internet from container ==='\r"
+expect "#"
+send "docker exec xray-vpn ping -c 2 8.8.8.8 2>&1 || echo 'ping not available'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking container network mode ==='\r"
+expect "#"
+send "docker inspect xray-vpn | grep NetworkMode\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking iptables FORWARD rules ==='\r"
+expect "#"
+send "iptables -L FORWARD -n -v | head -20\r"
+expect "#"
+
+send "exit\r"
+expect eof

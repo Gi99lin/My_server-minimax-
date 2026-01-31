@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Capturing RAW data on port 10443 ==='\r"
+expect "#"
+send "echo 'CONNECT FROM IPHONE NOW AND TRY TO OPEN A PAGE'\r"
+expect "#"
+send "timeout 20 tcpdump -i any -nn -X 'port 10443' -c 10 2>&1\r"
+expect {
+    timeout { send "\003"; exp_continue }
+    "#"
+}
+
+send "echo ''\r"
+expect "#"
+send "echo 'If you see data above, check if it looks like VLESS protocol'\r"
+expect "#"
+
+send "exit\r"
+expect eof

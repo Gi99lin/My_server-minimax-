@@ -1,0 +1,53 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Completely recreating xray-vpn container ==='\r"
+expect "#"
+send "cd /root && docker-compose stop xray-vpn\r"
+expect "#"
+
+send "docker-compose rm -f xray-vpn\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Starting fresh container ==='\r"
+expect "#"
+send "docker-compose up -d xray-vpn\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Waiting for startup ==='\r"
+expect "#"
+send "sleep 5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking new logs ==='\r"
+expect "#"
+send "docker logs xray-vpn 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing local connection ==='\r"
+expect "#"
+send "timeout 5 nc -zv 127.0.0.1 10443 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== NOW TRY VPN FROM IPHONE ==='\r"
+expect "#"
+
+send "exit\r"
+expect eof

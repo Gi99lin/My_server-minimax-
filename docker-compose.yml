@@ -1,4 +1,4 @@
-version: '3.8'
+
 
 services:
   # ==================== Nginx Proxy Manager ====================
@@ -8,32 +8,37 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"      # HTTP
-      - "127.0.0.1:81:81"      # Admin panel (Hiding from public)
-      - "443:443"    # HTTPS
+      - "81:81"        # Admin panel (Accessible from LAN)
+      - "443:443"    # HTTPS (Standard port)
+    environment:
+      - DB_MYSQL_HOST=db
+      - DB_MYSQL_PORT=3306
+      - DB_MYSQL_USER=npm
+      - DB_MYSQL_PASSWORD=npm_password
+      - DB_MYSQL_NAME=npm
     volumes:
       - vps-server_nginx-data:/data
       - vps-server_nginx-letsencrypt:/etc/letsencrypt
+    depends_on:
+      - db
     networks:
       - proxy_network
 
-  # ==================== 3X-UI VPN Panel ====================
-  3x-ui:
-    image: ghcr.io/mhsanaei/3x-ui:latest
-    container_name: 3x-ui
+  # ==================== MariaDB for NPM ====================
+  db:
+    image: jc21/mariadb-aria:latest
+    container_name: nginx-proxy-manager-db
     restart: unless-stopped
-    ports:
-      - "2053:2053"  # VLESS/VMess/VLESS-TCP-Vision
-      - "2083:2083"  # VMess-WS
-      - "2019:2019"  # Shadowsocks
-      - "11688:11688" # Detected VPN Port
-      - "8443:8443"
     environment:
-      - XUI_V2RAY_LICENSE_KEY=${XUI_LICENSE_KEY:-}
+      MYSQL_ROOT_PASSWORD: npm_root_password
+      MYSQL_DATABASE: npm
+      MYSQL_USER: npm
+      MYSQL_PASSWORD: npm_password
     volumes:
-      - 3x-ui_data:/etc/x-ui
-      - 3x-ui_certs:/etc/certs
+      - vps-server_nginx-db:/var/lib/mysql
     networks:
       - proxy_network
+
 
   # ==================== Landing Page ====================
   landing:
@@ -53,12 +58,5 @@ networks:
 
 volumes:
   vps-server_nginx-data:
-    external: true
   vps-server_nginx-letsencrypt:
-    external: true
-  3x-ui_data:
-    external: true
-    name: vps-server_3x-ui-data
-  3x-ui_certs:
-    external: true
-    name: vps-server_3x-ui-cert
+  vps-server_nginx-db:

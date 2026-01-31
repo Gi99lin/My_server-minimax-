@@ -1,0 +1,69 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+set client_ip [lindex $argv 2]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== TEST 1: Simple ping to iPhone ==='\r"
+expect "#"
+send "ping -c 5 $client_ip\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== TEST 2: TCP connection test to iPhone (if port open) ==='\r"
+expect "#"
+send "nc -zv -w 3 $client_ip 80 2>&1 || echo 'Port 80 closed (expected)'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== TEST 3: Send UDP packet to iPhone ==='\r"
+expect "#"
+send "echo 'test packet' | nc -u -w 1 $client_ip 12345 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== TEST 4: Traceroute to iPhone ==='\r"
+expect "#"
+send "apt-get install -y traceroute 2>&1 | tail -5\r"
+expect "#"
+send "traceroute -n -m 10 $client_ip 2>&1 | head -15\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== TEST 5: Check if packets leave the server ==='\r"
+expect "#"
+send "echo 'Starting tcpdump for 10 seconds...'\r"
+expect "#"
+send "timeout 10 tcpdump -i eth0 -nn host $client_ip -c 20 2>&1 &\r"
+expect "#"
+send "TCPDUMP_PID=\$!\r"
+expect "#"
+send "sleep 2\r"
+expect "#"
+send "ping -c 3 $client_ip >/dev/null 2>&1\r"
+expect "#"
+send "wait \$TCPDUMP_PID 2>/dev/null\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== INTERPRETATION ==='\r"
+expect "#"
+send "echo 'If ping works: Packets reach iPhone'\r"
+expect "#"
+send "echo 'If ping fails but tcpdump shows packets: Contabo blocks return traffic'\r"
+expect "#"
+send "echo 'If tcpdump shows nothing: Server cannot send to iPhone'\r"
+expect "#"
+
+send "exit\r"
+expect eof

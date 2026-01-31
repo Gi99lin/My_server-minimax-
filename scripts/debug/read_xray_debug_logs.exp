@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Xray access log (last 100 lines) ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /var/log/xray/access.log 2>&1 | tail -100\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Xray error log (last 100 lines) ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /var/log/xray/error.log 2>&1 | tail -100\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Recent 3x-ui container logs ==='\r"
+expect "#"
+send "docker logs 3x-ui --tail 100 2>&1\r"
+expect "#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,56 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Copy docker-compose.yml to server
+spawn scp -o StrictHostKeyChecking=no docker-compose.yml root@$ip:/root/docker-compose.yml
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
+
+# Recreate 3x-ui with correct config
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "cd /root\r"
+expect "#"
+
+send "echo '=== Stopping all Docker services ==='\r"
+expect "#"
+send "docker-compose down\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Starting all services with correct config ==='\r"
+expect "#"
+send "docker-compose up -d\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Waiting for services to start ==='\r"
+expect "#"
+send "sleep 10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verifying 3x-ui network mode ==='\r"
+expect "#"
+send "docker inspect 3x-ui | grep NetworkMode\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing vpn.gigglin.tech ==='\r"
+expect "#"
+send "curl -I https://vpn.gigglin.tech/xui 2>&1 | head -10\r"
+expect "#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,45 @@
+#!/usr/bin/expect -f
+set timeout 120
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Starting packet capture on port 8443 ==='\r"
+expect "#"
+send "echo 'PLEASE CONNECT TO VPN NOW FROM YOUR IPHONE'\r"
+expect "#"
+send "echo 'Capturing for 30 seconds...'\r"
+expect "#"
+send "timeout 30 tcpdump -i any -nn 'port 8443' -v 2>&1 | head -100\r"
+expect {
+    timeout { send "\003"; exp_continue }
+    "#"
+}
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking if any packets arrived on port 8443 ==='\r"
+expect "#"
+send "ss -tan | grep :8443\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking iptables counters for port 8443 ==='\r"
+expect "#"
+send "iptables -L -n -v | grep 8443\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking if Xray received any connections ==='\r"
+expect "#"
+send "docker logs 3x-ui --tail 50 2>&1 | grep -i 'accept\\|connection\\|client'\r"
+expect "#"
+
+send "exit\r"
+expect eof

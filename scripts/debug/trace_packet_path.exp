@@ -1,0 +1,59 @@
+#!/usr/bin/expect -f
+set timeout 120
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Step 1: Checking if Xray receives connections ==='\r"
+expect "#"
+send "docker logs xray-vpn --tail 50 2>&1 | grep -i 'accepted\\|connection\\|client'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Step 2: Starting packet capture on ALL interfaces ==='\r"
+expect "#"
+send "echo 'PLEASE CONNECT VPN AND TRY TO OPEN GOOGLE.COM NOW'\r"
+expect "#"
+send "echo 'Capturing for 30 seconds...'\r"
+expect "#"
+send "timeout 30 tcpdump -i any -nn 'host 8.8.8.8 or host 142.250.74.206' -v 2>&1 | head -100\r"
+expect {
+    timeout { send "\003"; exp_continue }
+    "#"
+}
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Step 3: Checking NAT/MASQUERADE rules ==='\r"
+expect "#"
+send "iptables -t nat -L POSTROUTING -n -v | grep -E 'MASQUERADE|172.20'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Step 4: Checking FORWARD chain ==='\r"
+expect "#"
+send "iptables -L FORWARD -n -v | head -15\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Step 5: Testing from inside xray-vpn container ==='\r"
+expect "#"
+send "docker exec xray-vpn ping -c 2 8.8.8.8\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Step 6: Checking container routing ==='\r"
+expect "#"
+send "docker exec xray-vpn ip route\r"
+expect "#"
+
+send "exit\r"
+expect eof

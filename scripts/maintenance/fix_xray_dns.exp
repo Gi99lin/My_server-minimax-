@@ -1,0 +1,37 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn scp -o StrictHostKeyChecking=no xray-config/config.json root@$ip:/root/xray-config/
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== CRITICAL FIX: Adding DNS to Xray ==='\r"
+expect "#"
+send "docker restart xray-vpn\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Waiting for restart ==='\r"
+expect "#"
+send "sleep 5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== DNS servers added: 8.8.8.8, 8.8.4.4, 1.1.1.1 ==='\r"
+expect "#"
+send "echo 'NOW TRY VPN AGAIN - IT SHOULD WORK!'\r"
+expect "#"
+
+send "exit\r"
+expect eof

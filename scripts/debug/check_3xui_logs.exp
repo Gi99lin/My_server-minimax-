@@ -1,0 +1,15 @@
+#!/usr/bin/expect -f
+set timeout 15
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "docker logs 3x-ui --tail 100 2>&1 | grep -E 'accepted|rejected|email|error' || docker logs 3x-ui --tail 50\r"
+expect "#"
+
+send "exit\r"
+expect eof

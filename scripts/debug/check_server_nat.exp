@@ -1,0 +1,52 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking IP forwarding ==='\r"
+expect "#"
+send "sysctl net.ipv4.ip_forward\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking NAT/MASQUERADE rules ==='\r"
+expect "#"
+send "iptables -t nat -L POSTROUTING -n -v | grep -v '^0 ' | head -20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking if there are DROP rules blocking VPN ==='\r"
+expect "#"
+send "iptables -L FORWARD -n -v | head -20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking active connections from 3x-ui ==='\r"
+expect "#"
+send "docker exec 3x-ui netstat -an | grep ESTABLISHED | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing if server can route traffic ==='\r"
+expect "#"
+send "ping -c 2 8.8.8.8\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking if UFW or firewalld is blocking ==='\r"
+expect "#"
+send "ufw status 2>&1 || systemctl status firewalld 2>&1 | head -5\r"
+expect "#"
+
+send "exit\r"
+expect eof

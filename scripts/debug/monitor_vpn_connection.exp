@@ -1,0 +1,70 @@
+#!/usr/bin/expect -f
+set timeout 90
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== VPN CONNECTION DIAGNOSTIC ==='\r"
+expect "#"
+send "echo 'VPN should be connected now. Try to open google.com on iPhone.'\r"
+expect "#"
+send "echo ''\r"
+expect "#"
+
+send "echo '=== 1. Checking active VPN connections ==='\r"
+expect "#"
+send "ss -tn | grep -E ':(443|2096|10443|55646).*128.0.130.144'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 2. Checking 3x-ui logs ==='\r"
+expect "#"
+send "docker logs 3x-ui --tail 30 2>&1 | grep -E 'accepted|rejected|128.0.130|email' || echo 'No connection logs'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 3. Starting packet capture for 30 seconds ==='\r"
+expect "#"
+send "echo 'NOW: Try to open google.com or any website on iPhone!'\r"
+expect "#"
+send "timeout 30 tcpdump -i any -nn '(host 128.0.130.144 and (port 443 or port 2096)) or (host 8.8.8.8)' -v 2>&1 | head -100\r"
+expect {
+    timeout { send "\003"; exp_continue }
+    "#"
+}
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 4. Checking if Xray in 3x-ui sees the connection ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /var/log/xray/access.log 2>&1 | tail -20 || echo 'No access log'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 5. Checking NAT/MASQUERADE counters ==='\r"
+expect "#"
+send "iptables -t nat -L POSTROUTING -n -v | grep 172.20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== ANALYSIS ==='\r"
+expect "#"
+send "echo 'Look for:'\r"
+expect "#"
+send "echo '- Active connection on port 443 from 128.0.130.144'\r"
+expect "#"
+send "echo '- Packets to/from 8.8.8.8 (DNS queries)'\r"
+expect "#"
+send "echo '- Xray access logs showing your connection'\r"
+expect "#"
+
+send "exit\r"
+expect eof

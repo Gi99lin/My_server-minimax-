@@ -1,0 +1,47 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Backing up current config ==='\r"
+expect "#"
+send "docker exec 3x-ui cp /app/bin/config.json /app/bin/config.json.before-routing-fix\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Removing geoip:private blocking rule ==='\r"
+expect "#"
+send "docker exec 3x-ui sh -c 'cat /app/bin/config.json | jq \".routing.rules = \[.routing.rules\[\] | select(.ip\[0\] != \\\"geoip:private\\\")\]\" > /tmp/config.json && mv /tmp/config.json /app/bin/config.json'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verifying new routing rules ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /app/bin/config.json | jq '.routing.rules'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Restarting Xray ==='\r"
+expect "#"
+send "docker exec 3x-ui pkill xray\r"
+expect "#"
+send "sleep 5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== VPN SHOULD WORK NOW! ==='\r"
+expect "#"
+send "echo 'Please test on your iPhone'\r"
+expect "#"
+
+send "exit\r"
+expect eof

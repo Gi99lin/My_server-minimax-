@@ -1,0 +1,105 @@
+#!/usr/bin/expect -f
+set timeout 120
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== COMPLETE VPN CHAIN DIAGNOSTIC ==='\r"
+expect "#"
+send "echo 'Checking every link in the chain: iPhone -> VPN -> Container -> NAT -> Internet'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 1. VPN Connection (Port 54321) ==='\r"
+expect "#"
+send "ss -tlnp | grep 54321\r"
+expect "#"
+send "ss -tn | grep 54321 | head -5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 2. Container Network ==='\r"
+expect "#"
+send "docker network inspect proxy_network | grep -A 5 '3x-ui'\r"
+expect "#"
+send "docker exec 3x-ui ip addr show\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 3. iptables - All Chains ==='\r"
+expect "#"
+send "echo 'INPUT chain:'\r"
+expect "#"
+send "iptables -L INPUT -n -v | head -15\r"
+expect "#"
+send "echo 'FORWARD chain:'\r"
+expect "#"
+send "iptables -L FORWARD -n -v | head -15\r"
+expect "#"
+send "echo 'OUTPUT chain:'\r"
+expect "#"
+send "iptables -L OUTPUT -n -v | head -15\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 4. NAT Table ==='\r"
+expect "#"
+send "iptables -t nat -L -n -v | head -30\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 5. Routing Table ==='\r"
+expect "#"
+send "ip route show\r"
+expect "#"
+send "ip rule show\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 6. Test from Container ==='\r"
+expect "#"
+send "docker exec 3x-ui ping -c 2 8.8.8.8\r"
+expect "#"
+send "docker exec 3x-ui curl -I http://example.com --max-time 5 2>&1 | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 7. Check Xray Config in 3x-ui ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /app/bin/config.json | python3 -m json.tool 2>&1 | head -50\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 8. Live Traffic Test ==='\r"
+expect "#"
+send "echo 'Starting capture for 20 seconds...'\r"
+expect "#"
+send "echo 'NOW: Try to open http://93.184.216.34 on iPhone!'\r"
+expect "#"
+send "timeout 20 tcpdump -i any -nn '(port 54321) or (host 93.184.216.34)' -v 2>&1 | head -50\r"
+expect {
+    timeout { send "\003"; exp_continue }
+    "#"
+}
+
+send "echo ''\r"
+expect "#"
+send "echo '=== SUMMARY ==='\r"
+expect "#"
+send "echo 'Check above for broken links in the chain'\r"
+expect "#"
+
+send "exit\r"
+expect eof

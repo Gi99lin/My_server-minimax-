@@ -1,0 +1,29 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Starting tcpdump on port 10443 ==='\r"
+expect "#"
+send "echo 'PLEASE TRY TO CONNECT FROM IPHONE NOW'\r"
+expect "#"
+send "timeout 20 tcpdump -i any -nn 'port 10443' -c 20 2>&1\r"
+expect {
+    timeout { send "\003" }
+    "#"
+}
+
+send "echo ''\r"
+expect "#"
+send "echo '=== If you see packets above, connection reaches server ==='\r"
+expect "#"
+send "echo '=== If empty, provider is blocking the connection ==='\r"
+expect "#"
+
+send "exit\r"
+expect eof

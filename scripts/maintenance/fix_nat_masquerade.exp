@@ -1,0 +1,43 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip "5.189.179.202"
+set password "hk61Sjgh849nPmi1GiYEp"
+
+spawn ssh root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Adding MASQUERADE rule ==='\r"
+expect "#"
+send "iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verifying NAT rules ==='\r"
+expect "#"
+send "iptables -t nat -L POSTROUTING -n -v\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Making iptables persistent ==='\r"
+expect "#"
+send "apt-get install -y iptables-persistent\r"
+expect {
+    "Do you want to continue" { send "y\r"; exp_continue }
+    "Save current IPv4 rules" { send "y\r"; exp_continue }
+    "Save current IPv6 rules" { send "y\r"; exp_continue }
+    "#"
+}
+
+send "echo ''\r"
+expect "#"
+send "echo '=== MASQUERADE configured! ==='\r"
+expect "#"
+send "echo 'Try connecting VPN again'\r"
+expect "#"
+
+send "exit\r"
+expect eof

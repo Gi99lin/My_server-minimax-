@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Waiting for Xray to start ==='\r"
+expect "#"
+send "sleep 5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking Xray listening ports (should be IPv4 now) ==='\r"
+expect "#"
+send "docker exec 3x-ui netstat -tlnp | grep xray\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing if VPN works now ==='\r"
+expect "#"
+send "echo 'Please try connecting to VPN on your iPhone and test browsing'\r"
+expect "#"
+
+send "exit\r"
+expect eof

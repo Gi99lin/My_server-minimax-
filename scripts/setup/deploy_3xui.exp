@@ -1,0 +1,34 @@
+#!/usr/bin/expect -f
+set timeout 300
+set ip "5.189.179.202"
+set password "hk61Sjgh849nPmi1GiYEp"
+
+# Upload script
+spawn scp /Users/ivanakimkin/Projects/My_server\(minimax\)/scripts/setup/install_3xui_fresh.sh root@$ip:/root/
+expect {
+    "yes/no" { send "yes\r"; exp_continue }
+    "password:" { send "$password\r" }
+}
+expect eof
+
+# Execute script
+spawn ssh root@$ip
+expect {
+    "yes/no" { send "yes\r"; exp_continue }
+    "password:" { send "$password\r" }
+}
+
+expect "#"
+send "chmod +x /root/install_3xui_fresh.sh\r"
+expect "#"
+send "/root/install_3xui_fresh.sh\r"
+
+# Wait for installation to complete
+expect {
+    "Installation Complete" { }
+    timeout { puts "Installation timed out" }
+}
+
+expect "#"
+send "exit\r"
+expect eof

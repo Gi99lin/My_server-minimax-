@@ -1,0 +1,32 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking what ports are currently listening ==='\r"
+expect "#"
+send "ss -tlnp | grep -E ':(80|443|2053|2083|2019|8443|11688)'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Available ports for new VPN inbound ==='\r"
+expect "#"
+send "echo 'Port 2053: Used by 3x-ui panel'\r"
+expect "#"
+send "echo 'Port 2083: Should be available for VPN'\r"
+expect "#"
+send "echo 'Port 2019: Should be available for VPN'\r"
+expect "#"
+send "echo 'Port 11688: Should be available for VPN'\r"
+expect "#"
+send "echo 'Port 8443: Currently used by existing VPN inbound'\r"
+expect "#"
+
+send "exit\r"
+expect eof

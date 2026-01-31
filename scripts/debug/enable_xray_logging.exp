@@ -1,0 +1,40 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Enabling Xray access logging ==='\r"
+expect "#"
+send "docker exec 3x-ui sh -c 'cat /app/bin/config.json | python3 -c \"import sys, json; c=json.load(sys.stdin); c[\\\"log\\\"]={\\\"loglevel\\\":\\\"debug\\\",\\\"access\\\":\\\"/var/log/xray/access.log\\\",\\\"error\\\":\\\"/var/log/xray/error.log\\\"}; json.dump(c, sys.stdout, indent=2)\" > /tmp/config.json && mv /tmp/config.json /app/bin/config.json'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Creating log directory ==='\r"
+expect "#"
+send "docker exec 3x-ui mkdir -p /var/log/xray\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Restarting Xray ==='\r"
+expect "#"
+send "docker exec 3x-ui pkill xray\r"
+expect "#"
+send "sleep 5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== NOW TRY TO BROWSE ON IPHONE, THEN CHECK LOGS ==='\r"
+expect "#"
+send "echo 'After browsing, run: docker exec 3x-ui tail -50 /var/log/xray/access.log'\r"
+expect "#"
+
+send "exit\r"
+expect eof

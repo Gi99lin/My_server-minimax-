@@ -1,0 +1,38 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Testing from NPM container ==='\r"
+expect "#"
+send "docker exec nginx-proxy-manager curl -I http://172.18.0.1:2053/xui 2>&1 | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking NPM network ==='\r"
+expect "#"
+send "docker inspect nginx-proxy-manager | grep -A 10 Networks\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking 3x-ui network mode ==='\r"
+expect "#"
+send "docker inspect 3x-ui | grep -i 'NetworkMode\\|HostConfig' -A 5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing if NPM can ping host ==='\r"
+expect "#"
+send "docker exec nginx-proxy-manager ping -c 2 172.18.0.1 2>&1\r"
+expect "#"
+
+send "exit\r"
+expect eof

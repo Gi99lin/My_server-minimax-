@@ -1,0 +1,65 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== FINAL TEST: Check if Contabo blocks VPN at network level ==='\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 1. Test if server can send packets to YOUR IP ==='\r"
+expect "#"
+send "echo 'Your IP is likely: 128.0.130.144 (from tcpdump earlier)'\r"
+expect "#"
+send "ping -c 3 128.0.130.144 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 2. Check Outline server logs ==='\r"
+expect "#"
+send "docker logs shadowbox --tail 50 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 3. Test from inside Outline container ==='\r"
+expect "#"
+send "docker exec shadowbox sh -c 'apk add curl 2>/dev/null; curl -I http://google.com' 2>&1 | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 4. Check if Contabo has anti-VPN measures ==='\r"
+expect "#"
+send "curl -s https://ipinfo.io/37.60.251.4 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 5. CRITICAL: Test UDP (Outline uses UDP) ==='\r"
+expect "#"
+send "ss -ulnp | grep 55646\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== DIAGNOSIS ==='\r"
+expect "#"
+send "echo 'If all tests pass but VPN still does not work:'\r"
+expect "#"
+send "echo '1. Contabo may be blocking VPN at their network edge'\r"
+expect "#"
+send "echo '2. OR there is a firewall rule we have not found yet'\r"
+expect "#"
+send "echo '3. OR the client (iPhone) has issues'\r"
+expect "#"
+
+send "exit\r"
+expect eof

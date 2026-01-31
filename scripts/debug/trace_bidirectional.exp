@@ -1,0 +1,54 @@
+#!/usr/bin/expect -f
+set timeout 90
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== BIDIRECTIONAL PACKET TRACE ==='\r"
+expect "#"
+send "echo 'This will trace packets from server to iPhone and back'\r"
+expect "#"
+send "echo 'Keep VPN connected and try to open http://neverssl.com'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Starting 30-second capture ==='\r"
+expect "#"
+send "echo 'Capturing ALL traffic to/from 128.0.130.144...'\r"
+expect "#"
+send "timeout 30 tcpdump -i any -nn 'host 128.0.130.144' -v -c 100 2>&1\r"
+expect {
+    timeout { send "\003"; exp_continue }
+    "#"
+}
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Analysis ==='\r"
+expect "#"
+send "echo 'Look for:'\r"
+expect "#"
+send "echo '1. Outgoing packets (eth0 Out): Server sending to iPhone'\r"
+expect "#"
+send "echo '2. Incoming packets (eth0 In): iPhone responding to server'\r"
+expect "#"
+send "echo ''\r"
+expect "#"
+send "echo 'If you see ONLY outgoing (Out) packets:'\r"
+expect "#"
+send "echo '  -> Provider BLOCKS return traffic from server to iPhone'\r"
+expect "#"
+send "echo ''\r"
+expect "#"
+send "echo 'If you see BOTH directions:'\r"
+expect "#"
+send "echo '  -> Network is fine, issue is in VPN configuration'\r"
+expect "#"
+
+send "exit\r"
+expect eof

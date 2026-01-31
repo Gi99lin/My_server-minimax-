@@ -5,8 +5,12 @@
 
 set -e
 
+if [ -f ".env" ]; then
+    source .env
+fi
+
 NAMESPACE="ess"
-SERVER_NAME="gigglin.tech"
+SERVER_NAME="${SERVER_NAME:-gigglin.tech}"
 
 echo "=== Развёртывание Element Server Suite Community ==="
 
@@ -67,6 +71,12 @@ postgres:
 synapse:
   enabled: true
   
+  # Отключение шифрования по умолчанию для новых комнат (опционально, как на старом сервере)
+  additional:
+    disable-encryption:
+      config: |
+         encryption_enabled_by_default_for_room_type: "off"
+  
   ingress:
     host: "matrix.$SERVER_NAME"
     tlsEnabled: false  # TLS terminates at NPM
@@ -74,6 +84,16 @@ synapse:
 # Matrix Authentication Service
 matrixAuthenticationService:
   enabled: true
+  
+  # Enable Public Registration (without SMTP for now due to MAS bug)
+  additional:
+    enable-registration:
+      config: |
+        passwords:
+          enabled: true
+        account:
+          password_registration_enabled: true
+          password_registration_email_required: false
   
   ingress:
     host: "auth.$SERVER_NAME"
@@ -83,9 +103,11 @@ matrixAuthenticationService:
 matrixRTC:
   enabled: true
   
-  # URL для внутренней коммуникации Authorization Service -> SFU
-  # ВАЖНО: должен быть ВНУТРЕННИЙ адрес, не внешний HTTPS
-  livekit_url: "ws://ess-matrix-rtc-sfu.ess.svc.cluster.local:7880"
+  # Force clients to connect to the external SFU URL
+  # "sfu.$SERVER_NAME" should be proxied to the SFU NodePort (TCP)
+  extraEnv:
+    - name: LIVEKIT_URL
+      value: "wss://sfu.$SERVER_NAME"
   
   ingress:
     host: "mrtc.$SERVER_NAME"
@@ -95,10 +117,37 @@ matrixRTC:
   sfu:
     enabled: true
     useStunToDiscoverPublicIP: true
+    
+    # Fix NodePorts for easier NPM configuration
+    exposedServices:
+      rtcTcp:
+        enabled: true
+        portType: NodePort
+        port: 30881
+      rtcMuxedUdp:
+        enabled: true
+        portType: NodePort
+        port: 30882
+
+  # NAT Loopback Fix: Force all domains to resolve to local IP
+  hostAliases:
+    - ip: "192.168.1.11"
+      hostnames:
+        - "$SERVER_NAME"
+        - "matrix.$SERVER_NAME"
+        - "auth.$SERVER_NAME"
+        - "mrtc.$SERVER_NAME"
+        - "sfu.$SERVER_NAME"
+        - "app.$SERVER_NAME"
+        - "admin.$SERVER_NAME"
 
 # Element Web
 elementWeb:
   enabled: true
+  
+  # Enable registration UI
+  additional:
+    setting_defaults: '{"UIFeature.registration": true}'
   
   ingress:
     host: "app.$SERVER_NAME"
@@ -147,6 +196,30 @@ helm upgrade --install \
   --wait \
   --timeout 15m
 
+# 5. Fix SFU Signaling Port (7880)
+echo "[5/5] Patching existing Service to use fixed NodePort (30880)..."
+
+# ВАЖНО: Удаляем старый ручной сервис, если он остался от прошлых попыток,
+# иначе он держит порт 30880 и не дает его присвоить основному сервису.
+kubectl delete svc -n $NAMESPACE ess-sfu-signaling-nodeport --ignore-not-found
+
+# Создаем патч для существующего сервиса, чтобы зафиксировать порт 30880
+cat > /tmp/sfu-nodeport-patch.yaml <<EOF
+spec:
+  ports:
+  - name: http
+    port: 7880
+    targetPort: 7880
+    nodePort: 30880
+    protocol: TCP
+EOF
+
+kubectl patch svc -n $NAMESPACE ess-matrix-rtc-sfu --patch-file /tmp/sfu-nodeport-patch.yaml
+
+# 6. Force Valid LIVEKIT_URL (Fix for 404/Bad Route)
+echo "[6/6] Enforcing correct LIVEKIT_URL for Auth Service..."
+kubectl set env deployment/ess-matrix-rtc-authorisation-service -n $NAMESPACE LIVEKIT_URL="wss://sfu.$SERVER_NAME"
+
 echo ""
 echo "=== Развёртывание завершено! ==="
 echo ""
@@ -162,15 +235,21 @@ echo ""
 echo "2. Получите NodePorts сервисов:"
 echo "   kubectl get svc -n $NAMESPACE"
 echo ""
-echo "3. Настройте NPM Proxy Hosts для каждого сервиса:"
+echo "3. Настройте NPM Proxy Hosts:"
 echo "   - matrix.$SERVER_NAME -> localhost:[synapse-nodeport]"
 echo "   - auth.$SERVER_NAME -> localhost:[mas-nodeport]"
 echo "   - app.$SERVER_NAME -> localhost:[element-web-nodeport]"
 echo "   - admin.$SERVER_NAME -> localhost:[element-admin-nodeport]"
 echo "   - mrtc.$SERVER_NAME -> localhost:[mrtc-nodeport]"
-echo "   - $SERVER_NAME -> localhost:[wellknown-nodeport]"
 echo ""
-echo "4. Создание первого пользователя (admin):"
+echo "   >>> ВАЖНО ДЛЯ ЗВОНКОВ <<<"
+echo "   - sfu.$SERVER_NAME -> localhost:30880 (Websockets ON)"
+echo ""
+echo "4. Настройте РОУТЕР (Port Forwarding) для медиа:"
+echo "   - UDP 30882 -> 192.168.1.11:30882 (Обязательно для голоса/видео)"
+echo "   - TCP 30881 -> 192.168.1.11:30881 (Резерв)"
+echo ""
+echo "5. Создание первого пользователя (admin):"
 echo "   Попытка автоматического создания пользователя admin..."
     
 # Ожидание готовности MAS

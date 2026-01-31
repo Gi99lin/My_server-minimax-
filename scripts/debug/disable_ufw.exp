@@ -1,0 +1,29 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking UFW status ==='\r"
+expect "#"
+send "ufw status verbose\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== If UFW is active, DISABLE it temporarily ==='\r"
+expect "#"
+send "ufw disable\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== UFW disabled - TRY VPN NOW! ==='\r"
+expect "#"
+
+send "exit\r"
+expect eof

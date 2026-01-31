@@ -1,0 +1,52 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip "5.189.179.202"
+set password "hk61Sjgh849nPmi1GiYEp"
+
+spawn ssh root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== 1. Listening Ports ==='\r"
+expect "#"
+send "ss -tlnp | grep x-ui\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 2. Active Connections ==='\r"
+expect "#"
+send "ss -tn | grep 443\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 3. Xray Logs (last 30 lines) ==='\r"
+expect "#"
+send "docker logs 3x-ui --tail 30 2>&1 | grep -E '(proxy|XRAY|ERROR|WARNING)'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 4. IP Forwarding ==='\r"
+expect "#"
+send "sysctl net.ipv4.ip_forward\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 5. NAT/MASQUERADE ==='\r"
+expect "#"
+send "iptables -t nat -L POSTROUTING -n -v | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 6. Container Internet Test ==='\r"
+expect "#"
+send "docker exec 3x-ui ping -c 2 8.8.8.8\r"
+expect "#"
+
+send "exit\r"
+expect eof

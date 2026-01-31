@@ -1,0 +1,51 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Fixing 3x-ui TLS certificate error ==='\r"
+expect "#"
+send "echo 'Backing up current config...'\r"
+expect "#"
+send "docker exec 3x-ui cp /etc/x-ui/x-ui.db /etc/x-ui/x-ui.db.backup\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Restarting 3x-ui to reset Xray ==='\r"
+expect "#"
+send "docker restart 3x-ui\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Waiting for restart ==='\r"
+expect "#"
+send "sleep 10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking 3x-ui logs ==='\r"
+expect "#"
+send "docker logs 3x-ui --tail 30 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== If error persists, we need to delete inbound-8443 ==='\r"
+expect "#"
+send "echo 'Access panel at http://localhost:2053/panel'\r"
+expect "#"
+send "echo 'Go to Inbounds, find inbound-8443, and DELETE it'\r"
+expect "#"
+send "echo 'Then create a new one without TLS'\r"
+expect "#"
+
+send "exit\r"
+expect eof
