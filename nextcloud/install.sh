@@ -30,28 +30,7 @@ echo "Installing/Updating Nextcloud (this may take a few minutes)..."
 
 helm upgrade --install nextcloud nextcloud/nextcloud \
   --namespace $NAMESPACE \
-  --set nextcloud.host=$SERVER_NAME \
-  --set nextcloud.username=$ADMIN_USER \
-  --set nextcloud.password=$ADMIN_PASS \
-  --set ingress.enabled=false \
-  --set service.type=NodePort \
-  --set mariadb.enabled=true \
-  --set mariadb.auth.postgresPassword=nextcloud \
-  --set mariadb.auth.username=nextcloud \
-  --set mariadb.auth.password=nextcloud \
-  --set mariadb.auth.rootPassword=mariadbroot \
-  --set externalDatabase.enabled=false \
-  --set persistence.enabled=true \
-  --set persistence.size=10Gi \
-  --set redis.enabled=true \
-  --set redis.auth.password=redispassword \
-  --set phpClientConfig.uploadLimit=16G \
-  --set nextcloud.extraEnv[0].name=OVERWRITEPROTOCOL \
-  --set nextcloud.extraEnv[0].value=https \
-  --set nextcloud.extraEnv[1].name=TRUSTED_PROXIES \
-  --set nextcloud.extraEnv[1].value="10.42.0.0/16 10.43.0.0/16 192.168.0.0/16 127.0.0.1" \
-  --set nextcloud.extraEnv[2].name=OVERWRITECLIURL \
-  --set nextcloud.extraEnv[2].value="https://$SERVER_NAME" \
+  -f ./values.yaml \
   --wait
 
 echo ""
