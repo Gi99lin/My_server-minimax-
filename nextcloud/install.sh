@@ -33,6 +33,33 @@ helm upgrade --install nextcloud nextcloud/nextcloud \
   -f ./values.yaml \
   --wait
 
+echo "Verifying Database Type..."
+# Check if we accidentally got SQLite
+# We use the temporary kubeconfig env var set at the top of the script
+DB_TYPE=$(kubectl exec -n $NAMESPACE deployment/nextcloud -- php -r "include 'config/config.php'; echo \$CONFIG['dbtype'];")
+
+if [ "$DB_TYPE" == "sqlite3" ]; then
+  echo "⚠️  WARNING: Nextcloud installed with SQLite! Forcing switch to MariaDB..."
+  
+  # 1. Delete the incorrect config
+  kubectl exec -n $NAMESPACE deployment/nextcloud -- rm /var/www/html/config/config.php
+  
+  # 2. Re-install manually using occ, pointing to the internal MariaDB
+  echo "Running manual installation via OCC..."
+  kubectl exec -n $NAMESPACE deployment/nextcloud -- su -s /bin/sh www-data -c "php occ maintenance:install \
+    --database 'mysql' \
+    --database-host 'nextcloud-mariadb' \
+    --database-name 'nextcloud' \
+    --database-user 'nextcloud' \
+    --database-pass 'nextcloud' \
+    --admin-user '$ADMIN_USER' \
+    --admin-pass '$ADMIN_PASS'"
+    
+  echo "✅  Manual installation complete. Database is now MariaDB."
+else
+  echo "✅  Database is correct ($DB_TYPE)."
+fi
+
 echo ""
 echo "=== Deployment Complete ==="
 echo ""
