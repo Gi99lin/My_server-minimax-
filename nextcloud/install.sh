@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Configuration
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 NAMESPACE="nextcloud"
 SERVER_NAME="cloud.gigglin.tech"
 # Initial admin password (change after login!)
