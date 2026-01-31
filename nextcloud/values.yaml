@@ -5,10 +5,19 @@ nextcloud:
   password: ChangeMe123!
   
   # Ensure we point to the internal MariaDB explicitly
-  # This sets MYSQL_HOST etc in the container
   datadir: /var/www/html/data
 
-  # Extra Env Vars for Proxy Fixes
+# Explicitly configure 'external' DB to point to the internal MariaDB service
+# This prevents the chart from defaulting to SQLite
+externalDatabase:
+  enabled: true
+  type: mysql
+  host: nextcloud-mariadb
+  database: nextcloud
+  user: nextcloud
+  password: nextcloud
+
+# Extra Env Vars for Proxy Fixes
   extraEnv:
     - name: OVERWRITEPROTOCOL
       value: "https"
