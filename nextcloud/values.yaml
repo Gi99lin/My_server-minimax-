@@ -7,17 +7,7 @@ nextcloud:
   # Ensure we point to the internal MariaDB explicitly
   datadir: /var/www/html/data
 
-# Explicitly configure 'external' DB to point to the internal MariaDB service
-# This prevents the chart from defaulting to SQLite
-externalDatabase:
-  enabled: true
-  type: mysql
-  host: nextcloud-mariadb
-  database: nextcloud
-  user: nextcloud
-  password: nextcloud
-
-# Extra Env Vars for Proxy Fixes
+  # Extra Env Vars for Proxy Fixes & Force MySQL
   extraEnv:
     - name: OVERWRITEPROTOCOL
       value: "https"
@@ -25,6 +15,10 @@ externalDatabase:
       value: "10.42.0.0/16 10.43.0.0/16 192.168.0.0/16 127.0.0.1"
     - name: OVERWRITECLIURL
       value: "https://cloud.gigglin.tech"
+    # IMPORTANT: Kill SQLite fallback logic in entrypoint
+    - name: SQLITE_DATABASE
+      value: ""
+    # Redundant but safe env vars for DB
     - name: MYSQL_HOST
       value: "nextcloud-mariadb"
     - name: MYSQL_DATABASE
@@ -33,6 +27,16 @@ externalDatabase:
       value: "nextcloud"
     - name: MYSQL_PASSWORD
       value: "nextcloud"
+
+# External Database Configuration (MUST BE AT ROOT LEVEL)
+# This overrides the chart's SQLite default
+externalDatabase:
+  enabled: true
+  type: mysql
+  host: nextcloud-mariadb
+  database: nextcloud
+  user: nextcloud
+  password: nextcloud
 
 # Ingress (Disabled, we use external NPM)
 ingress:
@@ -43,6 +47,7 @@ service:
   type: NodePort
 
 # Internal MariaDB (Bitnami Chart)
+# Installs the DB pod
 mariadb:
   enabled: true
   auth:
