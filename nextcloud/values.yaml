@@ -1,0 +1,62 @@
+# Nextcloud Configuration
+nextcloud:
+  host: cloud.gigglin.tech
+  username: admin
+  password: ChangeMe123!
+  
+  # Ensure we point to the internal MariaDB explicitly
+  # This sets MYSQL_HOST etc in the container
+  datadir: /var/www/html/data
+
+  # Extra Env Vars for Proxy Fixes
+  extraEnv:
+    - name: OVERWRITEPROTOCOL
+      value: "https"
+    - name: TRUSTED_PROXIES
+      value: "10.42.0.0/16 10.43.0.0/16 192.168.0.0/16 127.0.0.1"
+    - name: OVERWRITECLIURL
+      value: "https://cloud.gigglin.tech"
+    - name: MYSQL_HOST
+      value: "nextcloud-mariadb"
+    - name: MYSQL_DATABASE
+      value: "nextcloud"
+    - name: MYSQL_USER
+      value: "nextcloud"
+    - name: MYSQL_PASSWORD
+      value: "nextcloud"
+
+# Ingress (Disabled, we use external NPM)
+ingress:
+  enabled: false
+
+# Service (NodePort for NPM access)
+service:
+  type: NodePort
+
+# Internal MariaDB (Bitnami Chart)
+mariadb:
+  enabled: true
+  auth:
+    username: nextcloud
+    password: nextcloud
+    rootPassword: mariadbroot
+    database: nextcloud
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+
+# Internal Redis
+redis:
+  enabled: true
+  auth:
+    password: redispassword
+
+# Persistence for Nextcloud Data
+persistence:
+  enabled: true
+  size: 10Gi
+
+# PHP Config
+phpClientConfig:
+  uploadLimit: 16G
