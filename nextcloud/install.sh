@@ -1,7 +1,11 @@
 #!/bin/bash
 
 # Configuration
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+# Copy kubeconfig to tmp to avoid permission/snap issues
+cp /etc/rancher/k3s/k3s.yaml /tmp/k3s.yaml
+chmod 644 /tmp/k3s.yaml
+export KUBECONFIG=/tmp/k3s.yaml
+
 NAMESPACE="nextcloud"
 SERVER_NAME="cloud.gigglin.tech"
 # Initial admin password (change after login!)
@@ -13,18 +17,18 @@ echo "Domain: $SERVER_NAME"
 echo "Namespace: $NAMESPACE"
 
 # 1. Setup Namespace
-kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml create namespace $NAMESPACE --dry-run=client -o yaml | kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml apply -f -
+kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
 
 # 2. Add Helm Repo
-helm --kubeconfig /etc/rancher/k3s/k3s.yaml repo add nextcloud https://nextcloud.github.io/helm/
-helm --kubeconfig /etc/rancher/k3s/k3s.yaml repo update
+helm repo add nextcloud https://nextcloud.github.io/helm/
+helm repo update
 
 # 3. Deploy Nextcloud
 # We use the official chart. We disable internal ingress because we use external NPM.
 # We enable MariaDB (default) for better performance than SQLite.
 echo "Installing/Updating Nextcloud (this may take a few minutes)..."
 
-helm --kubeconfig /etc/rancher/k3s/k3s.yaml upgrade --install nextcloud nextcloud/nextcloud \
+helm upgrade --install nextcloud nextcloud/nextcloud \
   --namespace $NAMESPACE \
   --set nextcloud.host=$SERVER_NAME \
   --set nextcloud.username=$ADMIN_USER \
@@ -47,7 +51,7 @@ echo ""
 echo "=== Deployment Complete ==="
 echo ""
 echo "1. Get NodePort:"
-PORT=$(kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get svc -n $NAMESPACE nextcloud -o jsonpath='{.spec.ports[0].nodePort}')
+PORT=$(kubectl get svc -n $NAMESPACE nextcloud -o jsonpath='{.spec.ports[0].nodePort}')
 echo "   Nextcloud HTTP Port: $PORT"
 echo ""
 echo "2. Configure Nginx Proxy Manager (NPM):"
