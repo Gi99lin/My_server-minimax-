@@ -1,0 +1,86 @@
+#!/usr/bin/expect -f
+set timeout 120
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Getting Let's Encrypt certificate for vpn2.gigglin.tech ==='\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '1. Stopping all containers to free port 80...'\r"
+expect "#"
+send "docker-compose stop\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '2. Installing certbot if needed...'\r"
+expect "#"
+send "which certbot || (apt-get update && apt-get install -y certbot)\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '3. Getting certificate for vpn2.gigglin.tech...'\r"
+expect "#"
+send "certbot certonly --standalone --non-interactive --agree-tos --email admin@gigglin.tech -d vpn2.gigglin.tech --force-renewal\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '4. Copying certificates to 3x-ui directory...'\r"
+expect "#"
+send "mkdir -p /var/lib/docker/volumes/3x-ui_certs/_data\r"
+expect "#"
+send "cp /etc/letsencrypt/live/vpn2.gigglin.tech/fullchain.pem /var/lib/docker/volumes/3x-ui_certs/_data/vpn2.gigglin.tech.crt\r"
+expect "#"
+send "cp /etc/letsencrypt/live/vpn2.gigglin.tech/privkey.pem /var/lib/docker/volumes/3x-ui_certs/_data/vpn2.gigglin.tech.key\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '5. Setting permissions...'\r"
+expect "#"
+send "chmod 644 /var/lib/docker/volumes/3x-ui_certs/_data/vpn2.gigglin.tech.crt\r"
+expect "#"
+send "chmod 600 /var/lib/docker/volumes/3x-ui_certs/_data/vpn2.gigglin.tech.key\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '6. Restarting containers...'\r"
+expect "#"
+send "docker-compose up -d\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Certificate installed! ==='\r"
+expect "#"
+send "echo 'Certificate path: /etc/certs/vpn2.gigglin.tech.crt'\r"
+expect "#"
+send "echo 'Key path: /etc/certs/vpn2.gigglin.tech.key'\r"
+expect "#"
+send "echo ''\r"
+expect "#"
+send "echo 'Next steps:'\r"
+expect "#"
+send "echo '1. Edit Inbound #8 in 3x-ui panel'\r"
+expect "#"
+send "echo '2. Enable TLS'\r"
+expect "#"
+send "echo '3. Certificate: /etc/certs/vpn2.gigglin.tech.crt'\r"
+expect "#"
+send "echo '4. Key: /etc/certs/vpn2.gigglin.tech.key'\r"
+expect "#"
+send "echo '5. SNI: vpn2.gigglin.tech'\r"
+expect "#"
+
+send "exit\r"
+expect eof

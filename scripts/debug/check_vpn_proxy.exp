@@ -1,0 +1,38 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking NPM proxy hosts for vpn.gigglin.tech ==='\r"
+expect "#"
+send "docker exec nginx-proxy-manager cat /data/nginx/proxy_host/*.conf | grep -A 20 'vpn.gigglin.tech'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking 3x-ui container status and ports ==='\r"
+expect "#"
+send "docker ps | grep 3x-ui\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing direct connection to 3x-ui port ==='\r"
+expect "#"
+send "curl -I http://localhost:2053 2>&1 | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking NPM logs for errors ==='\r"
+expect "#"
+send "docker logs nginx-proxy-manager --tail 50 2>&1 | grep -i error\r"
+expect "#"
+
+send "exit\r"
+expect eof

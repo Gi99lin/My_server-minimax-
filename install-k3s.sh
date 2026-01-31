@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Скрипт установки K3s на VPS для Element Server Suite
-# Выполнять на сервере 37.60.251.4
+# Скрипт установки K3s для Element Server Suite
+# Предназначен для Ubuntu Server 22.04+
 
 set -e
 
@@ -22,8 +22,12 @@ if [ "$FREE_MEM" -lt 1024 ]; then
 fi
 
 # Установка K3s с отключением Traefik (используем NPM)
-echo "Устанавливаем K3s..."
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable=traefik" sh -
+if command -v k3s &> /dev/null; then
+    echo "K3s уже установлен, пропускаем скачивание..."
+else
+    echo "Устанавливаем K3s..."
+    curl -fL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_EXEC="--disable=traefik" sh -
+fi
 
 # Ожидание запуска
 echo "Ожидание запуска K3s..."
@@ -48,7 +52,7 @@ fi
 # Проверка установки
 echo ""
 echo "=== Проверка K3s ==="
-kubectl version --short
+kubectl version
 kubectl get nodes
 
 # Установка Helm
@@ -63,8 +67,8 @@ fi
 # Добавление Element Server Suite репозитория
 echo ""
 echo "=== Добавление Helm репозитория ESS ==="
-helm repo add ess https://element-hq.github.io/ess-helm 2>/dev/null || true
-helm repo update
+# helm repo add ess https://element-hq.github.io/ess-helm 2>/dev/null || true
+# helm repo update
 
 echo ""
 echo "=== Установка завершена! ==="

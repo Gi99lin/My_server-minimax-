@@ -1,0 +1,43 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Adding iptables rules to allow VPN forwarding ==='\r"
+expect "#"
+send "iptables -I FORWARD 1 -s 172.20.0.0/16 -j ACCEPT\r"
+expect "#"
+
+send "iptables -I FORWARD 1 -d 172.20.0.0/16 -j ACCEPT\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verifying new rules ==='\r"
+expect "#"
+send "iptables -L FORWARD -n -v | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Making rules persistent ==='\r"
+expect "#"
+send "mkdir -p /etc/iptables\r"
+expect "#"
+send "iptables-save > /etc/iptables/rules.v4\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Installing iptables-persistent to auto-restore on reboot ==='\r"
+expect "#"
+send "DEBIAN_FRONTEND=noninteractive apt-get install -y iptables-persistent 2>&1 | tail -5\r"
+expect "#"
+
+send "exit\r"
+expect eof

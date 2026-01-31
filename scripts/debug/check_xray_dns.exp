@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking if Xray has DNS configured ==='\r"
+expect "#"
+send "docker exec xray-vpn cat /etc/xray/config.json | grep -A 10 '\"dns\"'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Xray config does NOT have DNS section! ==='\r"
+expect "#"
+send "echo 'This means Xray cannot resolve domains for VPN clients'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking current full config ==='\r"
+expect "#"
+send "docker exec xray-vpn cat /etc/xray/config.json\r"
+expect "#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,36 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip "5.189.179.202"
+set password "hk61Sjgh849nPmi1GiYEp"
+
+spawn ssh root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "cd /root/3x-ui && docker compose up -d\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Container Status ==='\r"
+expect "#"
+send "docker ps\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== BBR Status ==='\r"
+expect "#"
+send "sysctl net.ipv4.tcp_congestion_control\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 3x-ui Logs ==='\r"
+expect "#"
+send "docker logs 3x-ui --tail 20\r"
+expect "#"
+
+send "exit\r"
+expect eof

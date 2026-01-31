@@ -1,0 +1,45 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking if packets are going through ACCEPT rules ==='\r"
+expect "#"
+send "iptables -L FORWARD -n -v | head -5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking for any DROP rules affecting VPN ==='\r"
+expect "#"
+send "iptables -L FORWARD -n -v | grep -i drop\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing connectivity FROM 3x-ui container ==='\r"
+expect "#"
+send "docker exec 3x-ui ping -c 2 8.8.8.8\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking if there are active VPN connections ==='\r"
+expect "#"
+send "docker exec 3x-ui netstat -an | grep ESTABLISHED | grep -E '2053|2083|2019' | wc -l\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing if 3x-ui can reach external sites ==='\r"
+expect "#"
+send "docker exec 3x-ui wget -O /dev/null --timeout=3 http://example.com 2>&1 | grep -E 'saved|failed|error'\r"
+expect "#"
+
+send "exit\r"
+expect eof

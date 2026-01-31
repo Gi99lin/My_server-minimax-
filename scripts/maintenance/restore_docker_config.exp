@@ -1,0 +1,54 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+# Copy reverted docker-compose.yml back to server
+spawn scp -o StrictHostKeyChecking=no docker-compose.yml root@$ip:/root/docker-compose.yml
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
+
+# Restore original configuration
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "cd /root\r"
+expect "#"
+
+send "echo '=== Restoring original Docker configuration ==='\r"
+expect "#"
+send "docker-compose down\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "docker-compose up -d\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Waiting for services ==='\r"
+expect "#"
+send "sleep 10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking 3x-ui network ==='\r"
+expect "#"
+send "docker inspect 3x-ui | grep NetworkMode\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing VPN ports ==='\r"
+expect "#"
+send "netstat -tulpn | grep -E '2053|2083|2019'\r"
+expect "#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,51 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn scp -o StrictHostKeyChecking=no scripts/maintenance/remove_geoip_rule.py root@$ip:/tmp/
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Removing geoip:private rule with Python ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /app/bin/config.json | python3 /tmp/remove_geoip_rule.py > /tmp/config_fixed.json\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Copying fixed config back ==='\r"
+expect "#"
+send "docker cp /tmp/config_fixed.json 3x-ui:/app/bin/config.json\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verifying rule is removed ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /app/bin/config.json | grep -A 3 'geoip:private'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Restarting 3x-ui ==='\r"
+expect "#"
+send "docker restart 3x-ui\r"
+expect "#"
+send "sleep 10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== TEST VPN NOW ==='\r"
+expect "#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Finding NPM config files ==='\r"
+expect "#"
+send "docker exec nginx-proxy-manager find /data -name '*.conf' -type f 2>/dev/null | head -20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking NPM database for vpn.gigglin.tech ==='\r"
+expect "#"
+send "docker exec nginx-proxy-manager sqlite3 /data/database.sqlite \"SELECT id, domain_names, forward_host, forward_port, enabled FROM proxy_host WHERE domain_names LIKE '%vpn%';\"\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing external access to vpn.gigglin.tech ==='\r"
+expect "#"
+send "curl -I https://vpn.gigglin.tech 2>&1 | head -10\r"
+expect "#"
+
+send "exit\r"
+expect eof

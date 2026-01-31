@@ -1,0 +1,45 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking Xray process in 3x-ui ==='\r"
+expect "#"
+send "docker exec 3x-ui ps aux | grep xray\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking Xray logs for errors ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /var/log/xray/error.log 2>&1 | tail -20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking if Xray is listening on ports ==='\r"
+expect "#"
+send "docker exec 3x-ui netstat -tlnp | grep xray\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing if 3x-ui can act as gateway ==='\r"
+expect "#"
+send "docker exec 3x-ui sysctl net.ipv4.ip_forward 2>&1 || echo 'sysctl not available in container'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking routing inside 3x-ui container ==='\r"
+expect "#"
+send "docker exec 3x-ui ip route\r"
+expect "#"
+
+send "exit\r"
+expect eof

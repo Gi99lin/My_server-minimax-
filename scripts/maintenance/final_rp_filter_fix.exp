@@ -1,0 +1,48 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== FINAL FIX: Disable rp_filter for ALL interfaces ==='\r"
+expect "#"
+send "for i in /proc/sys/net/ipv4/conf/*/rp_filter; do echo 0 > \$i; done\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verify rp_filter is 0 everywhere ==='\r"
+expect "#"
+send "sysctl -a 2>/dev/null | grep 'ipv4.*rp_filter' | grep -v ipv6 | head -20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Make persistent ==='\r"
+expect "#"
+send "cat > /etc/sysctl.d/99-disable-rp-filter.conf << 'EOF'\r"
+expect "#"
+send "net.ipv4.conf.all.rp_filter = 0\r"
+expect "#"
+send "net.ipv4.conf.default.rp_filter = 0\r"
+expect "#"
+send "EOF\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== CRITICAL FIX APPLIED ==='\r"
+expect "#"
+send "echo 'rp_filter disabled for ALL interfaces (including Docker bridges)'\r"
+expect "#"
+send "echo ''\r"
+expect "#"
+send "echo 'NOW TRY OUTLINE VPN AGAIN!'\r"
+expect "#"
+
+send "exit\r"
+expect eof

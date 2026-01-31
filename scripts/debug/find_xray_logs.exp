@@ -1,0 +1,38 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Finding Xray log files ==='\r"
+expect "#"
+send "docker exec 3x-ui find / -name 'access.log' -o -name 'error.log' 2>/dev/null\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking working directory of Xray process ==='\r"
+expect "#"
+send "docker exec 3x-ui ps aux | grep xray\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Trying to read logs from /app directory ==='\r"
+expect "#"
+send "docker exec 3x-ui ls -la /app/*.log 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Reading access.log if exists ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /app/access.log 2>&1 | tail -50\r"
+expect "#"
+
+send "exit\r"
+expect eof

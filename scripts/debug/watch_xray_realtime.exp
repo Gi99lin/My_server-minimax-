@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip "5.189.179.202"
+set password "hk61Sjgh849nPmi1GiYEp"
+
+spawn ssh root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Real-time Xray Logs ==='\r"
+expect "#"
+send "echo 'Connect VPN and try to browse now...'\r"
+expect "#"
+send "timeout 20 docker logs 3x-ui --follow 2>&1 | grep -v 'WebSocket' || true\r"
+expect {
+    timeout { send "\003" }
+    "#"
+}
+
+send "exit\r"
+expect eof

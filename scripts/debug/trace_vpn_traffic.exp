@@ -1,0 +1,40 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Starting packet capture on port 8443 ==='\r"
+expect "#"
+send "echo 'Please connect to VPN now and try to browse a website...'\r"
+expect "#"
+send "timeout 15 tcpdump -i any -n 'port 8443' -c 20 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking conntrack for VPN connections ==='\r"
+expect "#"
+send "conntrack -L 2>&1 | grep -E '8443|2053' | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking if packets are being dropped ==='\r"
+expect "#"
+send "iptables -L -n -v | grep DROP | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking NAT table for port 8443 ==='\r"
+expect "#"
+send "iptables -t nat -L -n -v | grep 8443\r"
+expect "#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,44 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn scp -o StrictHostKeyChecking=no docker-compose.yml root@$ip:/root/
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Deploying port 54321 for 3x-ui ==='\r"
+expect "#"
+send "cd /root && docker-compose up -d 3x-ui\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verifying port 54321 is open ==='\r"
+expect "#"
+send "ss -tlnp | grep 54321\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing if port is accessible ==='\r"
+expect "#"
+send "nc -zv localhost 54321 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Port 54321 is now exposed! ==='\r"
+expect "#"
+send "echo 'Try connecting VPN from iPhone now'\r"
+expect "#"
+
+send "exit\r"
+expect eof

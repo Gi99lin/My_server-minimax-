@@ -1,0 +1,45 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking Xray config for inbounds ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /app/bin/config.json | grep -A 5 '\"inbounds\"' | head -30\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking all listening ports in 3x-ui ==='\r"
+expect "#"
+send "docker exec 3x-ui netstat -tlnp\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Restarting 3x-ui to reload config ==='\r"
+expect "#"
+send "docker restart 3x-ui\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Waiting for 3x-ui to start ==='\r"
+expect "#"
+send "sleep 10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking ports after restart ==='\r"
+expect "#"
+send "docker exec 3x-ui netstat -tlnp | grep xray\r"
+expect "#"
+
+send "exit\r"
+expect eof

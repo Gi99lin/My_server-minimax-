@@ -1,0 +1,50 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Finding your external IP from server logs ==='\r"
+expect "#"
+send "echo 'Checking recent connections to VPN ports...'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Connections to port 2096 (Cloudflare VPN) ==='\r"
+expect "#"
+send "ss -tn | grep ':2096' | awk '{print \$5}' | cut -d: -f1 | sort -u\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Connections to port 10443 (Xray VPN) ==='\r"
+expect "#"
+send "ss -tn | grep ':10443' | awk '{print \$5}' | cut -d: -f1 | sort -u\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Connections to port 55646 (Outline VPN) ==='\r"
+expect "#"
+send "ss -tn | grep ':55646' | awk '{print \$5}' | cut -d: -f1 | sort -u\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Recent SSH connections (your IP should be here) ==='\r"
+expect "#"
+send "last -i | grep 'still logged in' | head -5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Your external IP is likely one of the IPs above ==='\r"
+expect "#"
+
+send "exit\r"
+expect eof

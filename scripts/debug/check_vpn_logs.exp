@@ -1,0 +1,76 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== CHECKING VPN LOGS AND CONNECTIONS ==='\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 1. Active connections on port 54321 ==='\r"
+expect "#"
+send "ss -tn | grep 54321\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 2. 3x-ui container logs (last 50 lines) ==='\r"
+expect "#"
+send "docker logs 3x-ui --tail 50 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 3. Check if Xray access log exists ==='\r"
+expect "#"
+send "docker exec 3x-ui ls -la /var/log/xray/ 2>&1 || echo 'Log directory does not exist'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 4. Xray access log (if exists) ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /var/log/xray/access.log 2>&1 | tail -30 || echo 'No access log'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 5. Xray error log (if exists) ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /var/log/xray/error.log 2>&1 | tail -30 || echo 'No error log'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 6. Current Xray config (log section) ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /app/bin/config.json | python3 -c 'import sys,json; c=json.load(sys.stdin); print(json.dumps(c.get(\"log\", {}), indent=2))' 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 7. Live packet capture (15 seconds) ==='\r"
+expect "#"
+send "echo 'Keep VPN connected and try to browse NOW!'\r"
+expect "#"
+send "timeout 15 tcpdump -i any -nn 'port 54321' -c 30 2>&1\r"
+expect {
+    timeout { send "\003"; exp_continue }
+    "#"
+}
+
+send "echo ''\r"
+expect "#"
+send "echo '=== 8. Check container network ==='\r"
+expect "#"
+send "docker exec 3x-ui ip addr show eth0 2>&1\r"
+expect "#"
+
+send "exit\r"
+expect eof

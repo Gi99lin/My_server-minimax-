@@ -1,0 +1,47 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking current Xray config ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /app/bin/config.json | jq '.inbounds\[\] | select(.port == 8443)'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Backing up config ==='\r"
+expect "#"
+send "docker exec 3x-ui cp /app/bin/config.json /app/bin/config.json.backup\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Updating listen address to 0.0.0.0 ==='\r"
+expect "#"
+send "docker exec 3x-ui sh -c 'cat /app/bin/config.json | jq \"(.inbounds\[\] | select(.port == 8443) | .listen) = \\\"0.0.0.0\\\"\" > /tmp/config.json && mv /tmp/config.json /app/bin/config.json'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Restarting Xray ==='\r"
+expect "#"
+send "docker exec 3x-ui pkill xray\r"
+expect "#"
+send "sleep 3\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking if Xray now listens on IPv4 ==='\r"
+expect "#"
+send "docker exec 3x-ui netstat -tlnp | grep 8443\r"
+expect "#"
+
+send "exit\r"
+expect eof

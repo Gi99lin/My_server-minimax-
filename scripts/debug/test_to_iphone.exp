@@ -1,0 +1,56 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== TEST 1: Ping to iPhone (128.0.130.144) ==='\r"
+expect "#"
+send "ping -c 5 128.0.130.144\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== TEST 2: Traceroute to iPhone ==='\r"
+expect "#"
+send "traceroute -n -m 10 128.0.130.144 2>&1 | head -15\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== TEST 3: tcpdump - watching packets to/from iPhone ==='\r"
+expect "#"
+send "echo 'Starting 15-second capture...'\r"
+expect "#"
+send "timeout 15 tcpdump -i eth0 -nn host 128.0.130.144 -c 30 2>&1\r"
+expect {
+    timeout { send "\003"; exp_continue }
+    "#"
+}
+
+send "echo ''\r"
+expect "#"
+send "echo '=== TEST 4: Try to send TCP SYN to common ports ==='\r"
+expect "#"
+send "hping3 -S -p 80 -c 3 128.0.130.144 2>&1 || echo 'hping3 not installed'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== RESULTS INTERPRETATION ==='\r"
+expect "#"
+send "echo 'Check above for:'\r"
+expect "#"
+send "echo '1. Ping replies - if yes, basic connectivity works'\r"
+expect "#"
+send "echo '2. Traceroute - where packets stop'\r"
+expect "#"
+send "echo '3. tcpdump - do you see packets leaving (OUT) and returning (IN)?'\r"
+expect "#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,42 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Removing old rules ==='\r"
+expect "#"
+send "iptables -D FORWARD -s 172.20.0.0/16 -j ACCEPT 2>&1 || echo 'Rule not found'\r"
+expect "#"
+send "iptables -D FORWARD -d 172.20.0.0/16 -j ACCEPT 2>&1 || echo 'Rule not found'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Adding rules at position 1 (before Kubernetes) ==='\r"
+expect "#"
+send "iptables -I FORWARD 1 -d 172.20.0.0/16 -j ACCEPT\r"
+expect "#"
+send "iptables -I FORWARD 1 -s 172.20.0.0/16 -j ACCEPT\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verifying rules are FIRST ==='\r"
+expect "#"
+send "iptables -L FORWARD -n -v --line-numbers | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Saving rules ==='\r"
+expect "#"
+send "iptables-save > /etc/iptables/rules.v4\r"
+expect "#"
+
+send "exit\r"
+expect eof

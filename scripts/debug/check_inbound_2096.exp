@@ -1,0 +1,15 @@
+#!/usr/bin/expect -f
+set timeout 15
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "docker exec 3x-ui cat /app/bin/config.json | python3 -c 'import sys,json; c=json.load(sys.stdin); inbounds=[i for i in c.get(\"inbounds\",[]) if i.get(\"port\")==2096]; print(json.dumps(inbounds, indent=2) if inbounds else \"No inbound on port 2096\")' 2>&1\r"
+expect "#"
+
+send "exit\r"
+expect eof

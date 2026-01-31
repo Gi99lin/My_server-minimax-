@@ -1,0 +1,44 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn scp -o StrictHostKeyChecking=no docker-compose.yml root@$ip:/root/
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "cd /root && docker-compose down && docker-compose up -d\r"
+expect "#"
+send "sleep 15\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verifying 3x-ui is in bridge network ==='\r"
+expect "#"
+send "docker inspect 3x-ui | grep NetworkMode\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking port 443 ==='\r"
+expect "#"
+send "ss -tlnp | grep ':443'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== NOW CREATE NEW INBOUND ON PORT 443 IN 3X-UI PANEL ==='\r"
+expect "#"
+send "echo 'Then test VPN from iPhone'\r"
+expect "#"
+
+send "exit\r"
+expect eof

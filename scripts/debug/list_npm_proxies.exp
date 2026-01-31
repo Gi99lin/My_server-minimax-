@@ -1,0 +1,24 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking all NPM proxy host configs ==='\r"
+expect "#"
+send "docker exec nginx-proxy-manager sh -c 'for f in /data/nginx/proxy_host/*.conf; do echo \"=== File: \\$f ===\"; grep -E \"server_name|proxy_pass\" \\$f; done'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Listing all proxy hosts from NPM ==='\r"
+expect "#"
+send "docker exec nginx-proxy-manager cat /data/nginx/proxy_host/*.conf | grep server_name\r"
+expect "#"
+
+send "exit\r"
+expect eof

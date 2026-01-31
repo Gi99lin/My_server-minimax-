@@ -1,0 +1,38 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Testing VLESS connection from server to itself ==='\r"
+expect "#"
+send "curl -x socks5h://127.0.0.1:10443 http://google.com 2>&1 | head -20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking if Xray logged anything ==='\r"
+expect "#"
+send "docker logs xray-vpn --tail 20 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking Xray process ==='\r"
+expect "#"
+send "docker exec xray-vpn ps aux | grep xray\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verifying config is loaded ==='\r"
+expect "#"
+send "docker exec xray-vpn cat /etc/xray/config.json | grep -A 3 'port.*10443'\r"
+expect "#"
+
+send "exit\r"
+expect eof

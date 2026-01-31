@@ -1,0 +1,45 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking iptables NAT rules ==='\r"
+expect "#"
+send "iptables -t nat -L POSTROUTING -n -v | head -20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking IP forwarding ==='\r"
+expect "#"
+send "sysctl net.ipv4.ip_forward\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking 3x-ui logs for errors ==='\r"
+expect "#"
+send "docker logs 3x-ui --tail 50 2>&1 | grep -i 'error\\|fail\\|warn'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking DNS resolution from 3x-ui container ==='\r"
+expect "#"
+send "docker exec 3x-ui nslookup google.com 2>&1 || echo 'nslookup not available'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking default route ==='\r"
+expect "#"
+send "ip route show default\r"
+expect "#"
+
+send "exit\r"
+expect eof

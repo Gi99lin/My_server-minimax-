@@ -1,0 +1,34 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn scp -o StrictHostKeyChecking=no xray-config/config.json root@$ip:/root/xray-config/
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "docker restart xray-vpn\r"
+expect "#"
+send "sleep 3\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Changed to TCP transport (no WebSocket) ==='\r"
+expect "#"
+send "echo 'Update your FoXray config:'\r"
+expect "#"
+send "echo '- Transport: TCP (not WebSocket)'\r"
+expect "#"
+send "echo '- Remove Path field'\r"
+expect "#"
+
+send "exit\r"
+expect eof

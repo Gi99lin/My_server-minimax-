@@ -1,0 +1,37 @@
+#!/usr/bin/expect -f
+set timeout 120
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Installing Outline VPN Server ==='\r"
+expect "#"
+send "curl -sSL https://raw.githubusercontent.com/Jigsaw-Code/outline-server/master/src/server_manager/install_scripts/install_server.sh | bash\r"
+expect {
+    "API URL:" {
+        send_user "\n\n=== SAVE THIS API URL! ===\n"
+        exp_continue
+    }
+    "API certificate fingerprint:" {
+        send_user "\n\n=== SAVE THIS FINGERPRINT! ===\n"
+        exp_continue
+    }
+    timeout {
+        send_user "\nInstallation timeout\n"
+    }
+    "#"
+}
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Installation complete! ==='\r"
+expect "#"
+send "echo 'Copy the API URL and certificate from above'\r"
+expect "#"
+
+send "exit\r"
+expect eof

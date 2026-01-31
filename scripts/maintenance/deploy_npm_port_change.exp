@@ -1,0 +1,58 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn scp -o StrictHostKeyChecking=no docker-compose.yml root@$ip:/root/
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Stopping Docker services ==='\r"
+expect "#"
+send "cd /root && docker-compose down\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Starting services with new port configuration ==='\r"
+expect "#"
+send "docker-compose up -d\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Waiting for services to start ==='\r"
+expect "#"
+send "sleep 10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verifying NPM is on port 8443 ==='\r"
+expect "#"
+send "ss -tlnp | grep ':8443'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verifying port 443 is free ==='\r"
+expect "#"
+send "ss -tlnp | grep ':443'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing NPM on port 8443 ==='\r"
+expect "#"
+send "curl -I https://app.gigglin.tech:8443 2>&1 | head -5\r"
+expect "#"
+
+send "exit\r"
+expect eof

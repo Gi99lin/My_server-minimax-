@@ -1,0 +1,77 @@
+#!/usr/bin/expect -f
+set timeout 120
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+set uuid [lindex $argv 2]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Step 1: Install Certbot ==='\r"
+expect "#"
+send "apt-get update && apt-get install -y certbot 2>&1 | tail -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Step 2: Stop services on port 443 ==='\r"
+expect "#"
+send "docker-compose stop 3x-ui xray-vpn 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Step 3: Get SSL certificate for vpn.gigglin.tech ==='\r"
+expect "#"
+send "certbot certonly --standalone -d vpn.gigglin.tech --non-interactive --agree-tos --email admin@gigglin.tech 2>&1\r"
+expect {
+    "Successfully received certificate" {
+        send_user "\n\n=== SSL CERTIFICATE OBTAINED! ===\n"
+        exp_continue
+    }
+    "Certificate not yet due for renewal" {
+        send_user "\n\n=== CERTIFICATE ALREADY EXISTS ===\n"
+        exp_continue
+    }
+    timeout {
+        send_user "\nCertbot timeout\n"
+    }
+    "#"
+}
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Step 4: Copy certificates to xray-config ==='\r"
+expect "#"
+send "cp /etc/letsencrypt/live/vpn.gigglin.tech/fullchain.pem /root/xray-config/cert.pem\r"
+expect "#"
+send "cp /etc/letsencrypt/live/vpn.gigglin.tech/privkey.pem /root/xray-config/key.pem\r"
+expect "#"
+send "chmod 644 /root/xray-config/cert.pem /root/xray-config/key.pem\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Step 5: Update Xray config with UUID ==='\r"
+expect "#"
+send "sed -i 's/PLACEHOLDER_UUID/$uuid/g' /root/xray-config/config.json\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Step 6: Verify certificate files ==='\r"
+expect "#"
+send "ls -lh /root/xray-config/*.pem\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== CERTIFICATES READY! ==='\r"
+expect "#"
+send "echo 'Next: Update docker-compose.yml and start xray-vpn'\r"
+expect "#"
+
+send "exit\r"
+expect eof

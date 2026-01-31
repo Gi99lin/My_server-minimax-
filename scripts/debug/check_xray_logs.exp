@@ -1,0 +1,45 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Xray access logs (last 50 lines) ==='\r"
+expect "#"
+send "docker logs 3x-ui 2>&1 | grep -i 'accepted\\|rejected\\|11688' | tail -50\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Xray error logs ==='\r"
+expect "#"
+send "docker logs 3x-ui 2>&1 | grep -i 'error\\|failed\\|denied' | tail -30\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking DNS resolution from 3x-ui ==='\r"
+expect "#"
+send "docker exec 3x-ui nslookup google.com\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing outbound connectivity from 3x-ui ==='\r"
+expect "#"
+send "docker exec 3x-ui ping -c 2 8.8.8.8\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking routing table in 3x-ui container ==='\r"
+expect "#"
+send "docker exec 3x-ui ip route\r"
+expect "#"
+
+send "exit\r"
+expect eof

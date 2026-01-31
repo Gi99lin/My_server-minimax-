@@ -1,0 +1,76 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn scp -r -o StrictHostKeyChecking=no xray-config root@$ip:/root/
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
+
+spawn scp -o StrictHostKeyChecking=no docker-compose.yml root@$ip:/root/
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Starting xray-vpn container ==='\r"
+expect "#"
+send "cd /root && docker-compose up -d xray-vpn\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Waiting for container to start ==='\r"
+expect "#"
+send "sleep 5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking xray-vpn status ==='\r"
+expect "#"
+send "docker ps | grep xray-vpn\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking port 10443 ==='\r"
+expect "#"
+send "ss -tlnp | grep ':10443'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking xray-vpn logs ==='\r"
+expect "#"
+send "docker logs xray-vpn --tail 20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== VPN Connection Details ==='\r"
+expect "#"
+send "echo 'Server: 37.60.251.4'\r"
+expect "#"
+send "echo 'Port: 10443'\r"
+expect "#"
+send "echo 'Protocol: VLESS'\r"
+expect "#"
+send "echo 'UUID: f9ec037e-e96b-4e0e-bbd2-e9c0af1bd452'\r"
+expect "#"
+send "echo 'Transport: WebSocket'\r"
+expect "#"
+send "echo 'Path: /ws-data'\r"
+expect "#"
+send "echo 'Security: none'\r"
+expect "#"
+
+send "exit\r"
+expect eof

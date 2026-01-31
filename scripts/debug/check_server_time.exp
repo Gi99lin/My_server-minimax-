@@ -1,0 +1,36 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Current server time ==='\r"
+expect "#"
+send "date\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Timezone and NTP status ==='\r"
+expect "#"
+send "timedatectl status\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Current time in UTC ==='\r"
+expect "#"
+send "date -u\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Your local time should be around: 2026-01-14 15:24 MSK ==='\r"
+expect "#"
+
+send "exit\r"
+expect eof

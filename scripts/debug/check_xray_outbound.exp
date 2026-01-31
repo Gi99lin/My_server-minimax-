@@ -1,0 +1,33 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Re-enabling IPv6 ==='\r"
+expect "#"
+send "sysctl -w net.ipv6.conf.all.disable_ipv6=0\r"
+expect "#"
+send "sysctl -w net.ipv6.conf.default.disable_ipv6=0\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking Xray outbound configuration ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /app/bin/config.json | jq '.outbounds'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking Xray routing rules ==='\r"
+expect "#"
+send "docker exec 3x-ui cat /app/bin/config.json | jq '.routing'\r"
+expect "#"
+
+send "exit\r"
+expect eof

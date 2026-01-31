@@ -1,0 +1,55 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "cd /root\r"
+expect "#"
+
+send "echo '=== Stopping 3x-ui ==='\r"
+expect "#"
+send "docker-compose stop 3x-ui\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Removing 3x-ui container ==='\r"
+expect "#"
+send "docker-compose rm -f 3x-ui\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Recreating 3x-ui with host network ==='\r"
+expect "#"
+send "docker-compose up -d 3x-ui\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Waiting for 3x-ui to start ==='\r"
+expect "#"
+send "sleep 5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verifying network mode ==='\r"
+expect "#"
+send "docker inspect 3x-ui | grep NetworkMode\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing vpn.gigglin.tech ==='\r"
+expect "#"
+send "curl -I https://vpn.gigglin.tech/xui 2>&1 | head -10\r"
+expect "#"
+
+send "exit\r"
+expect eof

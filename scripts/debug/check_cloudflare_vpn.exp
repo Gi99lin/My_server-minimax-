@@ -1,0 +1,43 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking VPN connection status ==='\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '1. Active connections on port 2096:'\r"
+expect "#"
+send "ss -tn | grep 2096\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '2. 3x-ui logs (last 30 lines):'\r"
+expect "#"
+send "docker logs 3x-ui --tail 30 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '3. Check if port 2096 is listening:'\r"
+expect "#"
+send "ss -tlnp | grep 2096\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '4. Test WebSocket connection:'\r"
+expect "#"
+send "curl -i -N -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H 'Host: vpn2.gigglin.tech' http://localhost:2096/vpnws 2>&1 | head -20\r"
+expect "#"
+
+send "exit\r"
+expect eof

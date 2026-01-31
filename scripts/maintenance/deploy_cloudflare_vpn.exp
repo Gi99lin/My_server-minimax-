@@ -1,0 +1,55 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn scp -o StrictHostKeyChecking=no xray-config/config.json docker-compose.yml root@$ip:/root/
+expect {
+    "password:" { send "$password\r"; exp_continue }
+    eof
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Deploying Cloudflare VPN configuration ==='\r"
+expect "#"
+send "cd /root && docker-compose up -d xray-vpn\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Waiting for startup ==='\r"
+expect "#"
+send "sleep 5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking xray-vpn logs ==='\r"
+expect "#"
+send "docker logs xray-vpn --tail 20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Verifying port 2096 is listening ==='\r"
+expect "#"
+send "ss -tlnp | grep 2096\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== CLOUDFLARE VPN DEPLOYED! ==='\r"
+expect "#"
+send "echo 'Server: vpn.gigglin.tech'\r"
+expect "#"
+send "echo 'Port: 2096'\r"
+expect "#"
+send "echo 'UUID: b71069d9-d73f-47a9-9786-f70b7da3a8b8'\r"
+expect "#"
+
+send "exit\r"
+expect eof

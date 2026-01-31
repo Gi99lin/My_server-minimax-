@@ -1,0 +1,33 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect {
+    "password:" { send "$password\r" }
+    timeout { puts "Connection timeout"; exit 1 }
+}
+
+expect "#"
+send "echo '=== Docker Status ==='\r"
+expect "#"
+send "docker ps -a\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== K3s Status ==='\r"
+expect "#"
+send "systemctl status k3s --no-pager | head -20\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== K3s Pods ==='\r"
+expect "#"
+send "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml && kubectl get pods -n ess\r"
+expect "#"
+
+send "exit\r"
+expect eof

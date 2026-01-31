@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip "5.189.179.202"
+set password "hk61Sjgh849nPmi1GiYEp"
+
+spawn ssh root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Firewall Status ==='\r"
+expect "#"
+send "ufw status | grep 443\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Docker Network Mode ==='\r"
+expect "#"
+send "docker inspect 3x-ui | grep -A 5 NetworkMode\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Listening Ports ==='\r"
+expect "#"
+send "ss -tlnp | grep -E ':(443|2053|2096)'\r"
+expect "#"
+
+send "exit\r"
+expect eof

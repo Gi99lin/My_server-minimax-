@@ -1,0 +1,38 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking if 3x-ui is responding ==='\r"
+expect "#"
+send "curl -I http://localhost:2053/panel 2>&1 | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking 3x-ui container status ==='\r"
+expect "#"
+send "docker ps | grep 3x-ui\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Testing from NPM container to 3x-ui ==='\r"
+expect "#"
+send "docker exec nginx-proxy-manager curl -I http://172.18.0.1:2053/panel 2>&1 | head -10\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking NPM error logs ==='\r"
+expect "#"
+send "docker logs nginx-proxy-manager --tail 20 2>&1 | grep -i 'vpn\\|2053\\|error'\r"
+expect "#"
+
+send "exit\r"
+expect eof

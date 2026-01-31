@@ -1,0 +1,108 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '========== 1. FIREWALL RULES =========='\r"
+expect "#"
+send "echo '=== UFW Status ==='\r"
+expect "#"
+send "ufw status verbose 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== nftables (if active) ==='\r"
+expect "#"
+send "nft list ruleset 2>&1 | head -50\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== iptables INPUT chain ==='\r"
+expect "#"
+send "iptables -L INPUT -n -v --line-numbers | head -30\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== iptables OUTPUT chain ==='\r"
+expect "#"
+send "iptables -L OUTPUT -n -v --line-numbers | head -30\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== iptables FORWARD chain (full) ==='\r"
+expect "#"
+send "iptables -L FORWARD -n -v --line-numbers\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '========== 2. KERNEL PARAMETERS =========='\r"
+expect "#"
+send "echo '=== IP Forwarding ==='\r"
+expect "#"
+send "sysctl net.ipv4.ip_forward\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Reverse Path Filtering ==='\r"
+expect "#"
+send "sysctl net.ipv4.conf.all.rp_filter\r"
+expect "#"
+send "sysctl net.ipv4.conf.default.rp_filter\r"
+expect "#"
+send "sysctl net.ipv4.conf.eth0.rp_filter\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Connection Tracking ==='\r"
+expect "#"
+send "sysctl net.netfilter.nf_conntrack_max 2>&1\r"
+expect "#"
+send "cat /proc/sys/net/netfilter/nf_conntrack_count 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '========== 3. ROUTING =========='\r"
+expect "#"
+send "echo '=== Main routing table ==='\r"
+expect "#"
+send "ip route show\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Policy routing tables ==='\r"
+expect "#"
+send "ip rule show\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '========== 4. ACTIVE CONNECTIONS =========='\r"
+expect "#"
+send "echo '=== Connections to port 10443 ==='\r"
+expect "#"
+send "ss -tnp | grep ':10443'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Connection states ==='\r"
+expect "#"
+send "ss -s\r"
+expect "#"
+
+send "exit\r"
+expect eof

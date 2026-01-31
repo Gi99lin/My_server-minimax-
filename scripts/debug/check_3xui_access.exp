@@ -1,0 +1,46 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== Checking 3x-ui status ==='\r"
+expect "#"
+send "docker ps | grep 3x-ui\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Getting 3x-ui admin credentials ==='\r"
+expect "#"
+send "docker exec 3x-ui x-ui setting -show 2>&1 | grep -E 'username|password|port' || echo 'Use default: admin/admin'\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking if port 2053 is accessible ==='\r"
+expect "#"
+send "curl -I http://localhost:2053 2>&1 | head -5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Instructions ==='\r"
+expect "#"
+send "echo '1. On your Mac, run: ssh -L 2053:localhost:2053 root@37.60.251.4'\r"
+expect "#"
+send "echo '2. Open browser: http://localhost:2053/panel'\r"
+expect "#"
+send "echo '3. Login with credentials shown above'\r"
+expect "#"
+send "echo '4. Create new VLESS inbound on port 443 or 10443'\r"
+expect "#"
+send "echo '5. Export QR code and scan in FoXray'\r"
+expect "#"
+
+send "exit\r"
+expect eof

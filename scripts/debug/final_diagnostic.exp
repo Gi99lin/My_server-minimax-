@@ -1,0 +1,59 @@
+#!/usr/bin/expect -f
+set timeout 90
+set ip [lindex $argv 0]
+set password [lindex $argv 1]
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "password:"
+send "$password\r"
+
+expect "#"
+send "echo '=== FINAL DIAGNOSTIC ==='\r"
+expect "#"
+send "echo 'I will capture packets for 30 seconds'\r"
+expect "#"
+send "echo 'PLEASE CONNECT VPN AND TRY TO OPEN A PAGE NOW'\r"
+expect "#"
+send "echo ''\r"
+expect "#"
+
+send "echo '=== Starting simultaneous capture ==='\r"
+expect "#"
+send "(timeout 30 tcpdump -i any -nn 'port 10443' -A 2>&1 | head -200) &\r"
+expect "#"
+send "TCPDUMP_PID=\$!\r"
+expect "#"
+
+send "sleep 5\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Checking Xray logs during capture ==='\r"
+expect "#"
+send "for i in {1..5}; do sleep 5; echo \"--- Check \$i ---\"; docker logs xray-vpn --tail 10 2>&1 | grep -v 'Reading config'; done\r"
+expect "#"
+
+send "wait \$TCPDUMP_PID 2>/dev/null\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== Final Xray logs ==='\r"
+expect "#"
+send "docker logs xray-vpn 2>&1\r"
+expect "#"
+
+send "echo ''\r"
+expect "#"
+send "echo '=== If Xray logs are STILL empty, the problem is:==='\r"
+expect "#"
+send "echo '1. FoXray is not sending VLESS protocol correctly'\r"
+expect "#"
+send "echo '2. OR Xray version incompatibility'\r"
+expect "#"
+send "echo '3. OR we need to try a completely different VPN solution'\r"
+expect "#"
+
+send "exit\r"
+expect eof
