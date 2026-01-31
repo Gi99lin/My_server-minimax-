@@ -1,94 +1,45 @@
-# My Personal Server Utils
+# My HomeLab Server
 
-A hybrid **K3s (Matrix/Element)** + **Docker (Utils)** setup for a VPS server.
+This repository contains the configuration and deployment scripts for a personal HomeLab server running on **K3s (Kubernetes)** and **Docker**.
 
-## 🏗 Architecture
+## 🏗 Infrastructure
+- **Base OS**: Ubuntu (Orange Pi / VPS)
+- **CRI**: K3s (Lightweight Kubernetes)
+- **Ingress/Proxy**: Nginx Proxy Manager (Docker) - Handles SSL and external access for all services.
+- **VPN**: 3X-UI / Xray (Managed via scripts in `_archive` or manual setup).
 
-| Component | Platform | Port | Description |
-|-----------|----------|------|-------------|
-| **Element Server Suite (ESS)** | K3s | - | Matrix homeserver, MAS (Auth), Element Web/Call |
-| **Nginx Proxy Manager** | Docker | 80, 443, 81 | Reverse proxy, SSL termination |
-| **3x-ui** | Docker | 2053, 2083, 2019, 11688 | VPN Panel and V2Ray/Xray protocols |
-| **Landing** | Docker | 80 (internal) | Static landing page |
+### Quick Start
+1. **Setup Host**: Run `./infrastructure/setup.sh` (installs Docker, UFW).
+2. **Install K3s**: Run `./infrastructure/install-k3s.sh`.
+3. **Start NPM**: `docker-compose up -d` (in root).
 
-## 📁 Project Structure
+---
 
-```
-├── docker-compose.yml     # Docker utilities (NPM, 3x-ui, Landing)
-├── setup.sh               # Quick start for Docker utils
-│
-├── install-k3s.sh         # Step 1: Install K3s cluster
-├── install-matrix.sh      # Step 2: Deploy Matrix (ESS)
-├── fix-rtc.sh             # Step 3: Fix RTC Calling (NodePorts + Selectors + CORS)
-│
-├── scripts/               # Maintenance & Debug scripts
-│   ├── debug/             # Diagnostic tools
-│   └── maintenance/       # Restart/Update scripts
-│
-├── nginx-landing/         # Static website files
-└── docs/                  # Documentation
-    ├── NPM-CONFIG.md      # NPM Proxy Hosts guide
-    └── K3S-SUMMARY.md     # Detailed K3s architecture & troubleshooting
-```
+## 💬 Matrix Server (Element Server Suite)
+A complete Matrix stack with built-in VoIP (LiveKit).
 
-## 🚀 Quick Start (Fresh Server)
+- **Location**: [`matrix/`](./matrix)
+- **Deployment**: `cd matrix && ./install.sh`
+- **Diagnose**: `cd matrix && ./diagnose.sh`
+- **Docs**: [Deployment Walkthrough](./matrix/WALKTHROUGH.md)
 
-### 1. Install K3s & Matrix (Element)
+---
 
-```bash
-# 1. Install K3s
-chmod +x install-k3s.sh
-./install-k3s.sh
+## ☁️ Nextcloud
+Personal cloud storage with Talk (Video Calls).
 
-# 2. Deploy Matrix Stack
-chmod +x install-matrix.sh
-./install-matrix.sh
+- **Location**: [`nextcloud/`](./nextcloud)
+- **Deployment**: `cd nextcloud && ./install.sh`
+- **Features**:
+    - File Storage (10Gi+ PVC)
+    - Talk (P2P Calls enabled)
+    - Redis & MariaDB optimizations
 
-# 3. Create Admin User
-kubectl exec -n ess deployment/ess-matrix-authentication-service -- \
-  mas-cli manage register-user --yes -p 'PASSWORD' -a admin
-```
+---
 
-### 2. Install Docker Utils
-
-```bash
-# Installs Docker & Starts NPM, 3x-ui, Landing
-chmod +x setup.sh
-./setup.sh
-```
-
-### 3. Configure Network
-
-1. **Open Nginx Proxy Manager**: `http://<YOUR_IP>:81`
-   - Login: `admin@example.com` / `changeme`
-2. **Setup Proxy Hosts**:
-   - Follow the guide in: [docs/NPM-CONFIG.md](docs/NPM-CONFIG.md)
-3. **Fix RTC Calling**:
-   ```bash
-   chmod +x fix-rtc.sh
-   ./fix-rtc.sh
-   ```
-
-## 🔧 Management
-
-### K3s (Matrix)
-```bash
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-kubectl get pods -n ess
-kubectl logs -n ess -l app.kubernetes.io/name=synapse-main -f
-```
-
-### Helper Scripts
-```bash
-# Restart everything
-./scripts/maintenance/restart_all_matrix.exp <IP> <PASSWORD>
-
-# Check services
-./scripts/debug/check_rtc_services.exp <IP> <PASSWORD>
-```
-
-### Docker (Utils)
-```bash
-docker compose logs -f
-docker compose restart
-```
+## 📂 Directory Structure
+- `infrastructure/` - Core setup scripts.
+- `matrix/` - Matrix-specific scripts and docs.
+- `nextcloud/` - Nextcloud-specific scripts.
+- `scripts/` - Maintenance and debug utilities.
+- `_archive/` - Old configs and temporary files.
