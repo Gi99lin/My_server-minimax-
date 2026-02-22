@@ -30,3 +30,9 @@ telegram-bot/data/
 
 # MAS secrets
 mas-config/
+
+# Marzneshin sensitive files
+marzneshin/.env
+marzneshin/marznode/client_cert.pem
+marzneshin/marznode/hysteria.key
+marzneshin/marznode/hysteria.cert

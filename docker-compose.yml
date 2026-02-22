@@ -9,7 +9,7 @@ services:
     ports:
       - "80:80"      # HTTP
       - "81:81"        # Admin panel (Accessible from LAN)
-      - "443:443"    # HTTPS (Standard port)
+      - "8443:443"   # Xray Fallback TARGET (Xray listens on 443 and passes unrecognized HTTPS here)
     environment:
       - DB_MYSQL_HOST=db
       - DB_MYSQL_PORT=3306
