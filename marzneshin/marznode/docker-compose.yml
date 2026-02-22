@@ -1,0 +1,25 @@
+services:
+  marznode:
+    image: dawsh/marznode:latest
+    container_name: marznode
+    restart: always
+    network_mode: host
+    environment:
+      SERVICE_ADDRESS: "0.0.0.0"
+      SERVICE_PORT: "62050"
+      XRAY_EXECUTABLE_PATH: "/usr/local/bin/xray"
+      XRAY_ASSETS_PATH: "/usr/local/lib/xray"
+      XRAY_CONFIG_PATH: "/var/lib/marznode/xray_config.json"       
+      
+      SING_BOX_ENABLED: "True"
+      SING_BOX_EXECUTABLE_PATH: "/usr/local/bin/sing-box"
+      SING_BOX_CONFIG_PATH: "/var/lib/marznode/singbox_config.json"
+      
+      # Отдаем скрипту только Клиентский сертификат из Панели. 
+      # Свои собственные ключи он сгенерирует сам!
+      SSL_CLIENT_CERT_FILE: "/var/lib/marznode/client_cert.pem"
+    volumes:
+      - /var/lib/marznode:/var/lib/marznode
+      - ./client_cert.pem:/var/lib/marznode/client_cert.pem
+      - ./singbox_config.json:/var/lib/marznode/singbox_config.json
+      - ./xray_config.json:/var/lib/marznode/xray_config.json

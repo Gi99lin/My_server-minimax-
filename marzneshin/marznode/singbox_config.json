@@ -1,0 +1,31 @@
+{
+    "log": {
+        "level": "warn"
+    },
+    "inbounds": [
+        {
+            "type": "hysteria2",
+            "tag": "Hysteria 2 UDP",
+            "listen": "::",
+            "listen_port": 10443,
+            "up_mbps": 1000,
+            "down_mbps": 1000,
+            "tls": {
+                "enabled": true,
+                "server_name": "nl2.gigglin.tech",
+                "certificate_path": "/var/lib/marznode/hysteria.cert",
+                "key_path": "/var/lib/marznode/hysteria.key"
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "direct",
+            "tag": "direct"
+        },
+        {
+            "type": "block",
+            "tag": "block"
+        }
+    ]
+}

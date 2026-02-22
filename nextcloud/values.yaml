@@ -2,7 +2,7 @@
 nextcloud:
   host: cloud.gigglin.tech
   username: admin
-  password: ChangeMe123!
+  password: admin123
   
   # Ensure we point to the internal MariaDB explicitly
   datadir: /var/www/html/data

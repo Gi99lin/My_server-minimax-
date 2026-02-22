@@ -1,0 +1,61 @@
+services:
+  marzneshin:
+    image: dawsh/marzneshin:latest
+    restart: always
+    env_file: .env
+    network_mode: host
+    volumes:
+      - ./data:/var/lib/marzneshin
+      - ./xray_config.json:/etc/marzneshin/xray_config.json
+    environment:
+      - XRAY_CONFIG_FILE=/etc/marzneshin/xray_config.json
+      - TZ=Europe/Moscow
+    logging:
+      driver: "json-file"
+    depends_on:
+      - marzneshin-db
+      - marznode
+
+  marznode:
+    image: dawsh/marznode:latest
+    restart: always
+    network_mode: host
+    environment:
+      SERVICE_ADDRESS: "127.0.0.1"
+      INSECURE: "True"
+      XRAY_EXECUTABLE_PATH: "/usr/local/bin/xray"
+      XRAY_ASSETS_PATH: "/usr/local/lib/xray"
+      XRAY_CONFIG_PATH: "/var/lib/marznode/xray_config.json"
+      SSL_KEY_FILE: "./server.key"
+      SSL_CERT_FILE: "./server.cert"
+    volumes:
+      - /var/lib/marznode:/var/lib/marznode
+      - ./xray_config.json:/var/lib/marznode/xray_config.json
+
+  marzneshin-db:
+    image: mariadb:10.11
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-marzneshin_root_pass}
+      MYSQL_DATABASE: marzneshin
+      MYSQL_USER: marzneshin
+      MYSQL_PASSWORD: ${DB_PASSWORD:-marzneshin_secure_pass}
+    ports:
+      - "127.0.0.1:33060:3306" # Пробрасываем только на локалхост, т.к. панель в режиме host
+    volumes:
+      - ./db-data:/var/lib/mysql
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Camouflage (Decoy Website)
+  camouflage:
+    image: nginx:alpine
+    container_name: marzneshin-camouflage
+    restart: always
+    volumes:
+      - ./camouflage:/usr/share/nginx/html:ro
+    ports:
+      - "127.0.0.1:8080:80" # Спрятано на локалхосте (отдает сайт-заглушку)
