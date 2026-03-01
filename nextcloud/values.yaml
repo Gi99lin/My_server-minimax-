@@ -7,7 +7,7 @@ nextcloud:
   # Ensure we point to the internal MariaDB explicitly
   datadir: /var/www/html/data
 
-  # Extra Env Vars for Proxy Fixes & Force MySQL
+  # Extra Env Vars for Proxy & Trusted Domains
   extraEnv:
     - name: OVERWRITEPROTOCOL
       value: "https"
@@ -18,18 +18,6 @@ nextcloud:
     # Allow K3s probes to reach the pod via IP (Fixes 400 Bad Request on /status.php)
     - name: NEXTCLOUD_TRUSTED_DOMAINS
       value: "*"
-    # IMPORTANT: Kill SQLite fallback logic in entrypoint
-    - name: SQLITE_DATABASE
-      value: ""
-    # Redundant but safe env vars for DB
-    - name: MYSQL_HOST
-      value: "nextcloud-mariadb"
-    - name: MYSQL_DATABASE
-      value: "nextcloud"
-    - name: MYSQL_USER
-      value: "nextcloud"
-    - name: MYSQL_PASSWORD
-      value: "nextcloud"
 
 # External Database Configuration (MUST BE AT ROOT LEVEL)
 # This overrides the chart's SQLite default
@@ -69,10 +57,10 @@ redis:
   auth:
     password: redispassword
 
-# Persistence for Nextcloud Data
+# Persistence for Nextcloud Data (4TB HDD at /srv/nextcloud-data)
 persistence:
   enabled: true
-  size: 10Gi
+  existingClaim: nextcloud-hdd-pvc
 
 # PHP Config
 phpClientConfig:
