@@ -36,3 +36,5 @@ marzneshin/.env
 marzneshin/marznode/client_cert.pem
 marzneshin/marznode/hysteria.key
 marzneshin/marznode/hysteria.cert
+marzneshin/marznode/KEYS.md
+marzneshin/marznode/*/client_cert.pem

@@ -16,21 +16,28 @@ services:
       - marzneshin-db
       - marznode
 
+  # Домашняя VPN-нода для доступа к локальной сети
+  # Порт 443 остаётся свободным для nginx
   marznode:
     image: dawsh/marznode:latest
+    container_name: marznode-home
     restart: always
     network_mode: host
     environment:
-      SERVICE_ADDRESS: "127.0.0.1"
-      INSECURE: "True"
+      SERVICE_ADDRESS: "0.0.0.0"
+      SERVICE_PORT: "62050"
       XRAY_EXECUTABLE_PATH: "/usr/local/bin/xray"
       XRAY_ASSETS_PATH: "/usr/local/lib/xray"
       XRAY_CONFIG_PATH: "/var/lib/marznode/xray_config.json"
-      SSL_KEY_FILE: "./server.key"
-      SSL_CERT_FILE: "./server.cert"
+      SING_BOX_ENABLED: "True"
+      SING_BOX_EXECUTABLE_PATH: "/usr/local/bin/sing-box"
+      SING_BOX_CONFIG_PATH: "/var/lib/marznode/singbox_config.json"
+      SSL_CLIENT_CERT_FILE: "/var/lib/marznode/client_cert.pem"
     volumes:
       - /var/lib/marznode:/var/lib/marznode
-      - ./xray_config.json:/var/lib/marznode/xray_config.json
+      - ./marznode/home/xray_config.json:/var/lib/marznode/xray_config.json
+      - ./marznode/home/singbox_config.json:/var/lib/marznode/singbox_config.json
+      - ./marznode/client_cert.pem:/var/lib/marznode/client_cert.pem
 
   marzneshin-db:
     image: mariadb:10.11
@@ -49,13 +56,3 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-
-  # Camouflage (Decoy Website)
-  camouflage:
-    image: nginx:alpine
-    container_name: marzneshin-camouflage
-    restart: always
-    volumes:
-      - ./camouflage:/usr/share/nginx/html:ro
-    ports:
-      - "127.0.0.1:8080:80" # Спрятано на локалхосте (отдает сайт-заглушку)
