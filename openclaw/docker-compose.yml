@@ -1,0 +1,48 @@
+
+
+services:
+  # ==================== OpenClaw Gateway ====================
+  openclaw-gateway:
+    image: ghcr.io/openclaw/openclaw:latest
+    container_name: openclaw-gateway
+    restart: unless-stopped
+    ports:
+      - "18789:18789"
+    volumes:
+      - ${OPENCLAW_CONFIG_DIR:-~/.openclaw}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR:-~/.openclaw/workspace}:/home/node/.openclaw/workspace
+    environment:
+      - OPENCLAW_GATEWAY_BIND=lan
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:18789/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - openclaw_network
+      - proxy_network
+
+  # ==================== OpenClaw CLI (management) ====================
+  openclaw-cli:
+    image: ghcr.io/openclaw/openclaw:latest
+    container_name: openclaw-cli
+    network_mode: "service:openclaw-gateway"
+    volumes:
+      - ${OPENCLAW_CONFIG_DIR:-~/.openclaw}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR:-~/.openclaw/workspace}:/home/node/.openclaw/workspace
+    profiles:
+      - cli
+    entrypoint: ["node", "dist/index.js"]
+
+# ==================== Networks & Volumes ====================
+networks:
+  openclaw_network:
+    driver: bridge
+  proxy_network:
+    external: true
+    name: my_server_proxy_network

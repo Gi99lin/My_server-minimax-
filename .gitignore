@@ -31,6 +31,9 @@ telegram-bot/data/
 # MAS secrets
 mas-config/
 
+# OpenClaw sensitive files
+openclaw/.env
+
 # Marzneshin sensitive files
 marzneshin/.env
 marzneshin/marznode/client_cert.pem

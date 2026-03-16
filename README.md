@@ -37,9 +37,24 @@ Personal cloud storage with Talk (Video Calls).
 
 ---
 
+## 🤖 OpenClaw (AI Agent)
+Personal AI assistant with persistent memory. Supports Telegram, WhatsApp, Discord.
+
+- **Location**: [`openclaw/`](./openclaw)
+- **Deployment**: `cd openclaw && ./install.sh`
+- **Control UI**: `http://localhost:18789` (or via NPM)
+- **Features**:
+    - LLM-powered agent (Anthropic, OpenAI, local models)
+    - Persistent memory across conversations
+    - Browser control, shell access (sandboxed in Docker)
+    - Extensible with skills & plugins
+
+---
+
 ## 📂 Directory Structure
 - `infrastructure/` - Core setup scripts.
 - `matrix/` - Matrix-specific scripts and docs.
 - `nextcloud/` - Nextcloud-specific scripts.
+- `openclaw/` - OpenClaw AI agent (Docker).
 - `scripts/` - Maintenance and debug utilities.
 - `_archive/` - Old configs and temporary files.
