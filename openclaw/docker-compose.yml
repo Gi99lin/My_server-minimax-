@@ -46,6 +46,7 @@ services:
       - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
       - HTTP_PROXY=${OPENCLAW_PROXY_URL}
       - HTTPS_PROXY=${OPENCLAW_PROXY_URL}
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/node/.openclaw/.npm-global/bin
     entrypoint: ["node", "dist/index.js"]
 
 # ==================== Networks & Volumes ====================
