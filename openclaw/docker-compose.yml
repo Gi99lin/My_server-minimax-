@@ -13,6 +13,10 @@ services:
       - ${OPENCLAW_WORKSPACE_DIR:-~/.openclaw/workspace}:/home/node/.openclaw/workspace
     environment:
       - OPENCLAW_GATEWAY_BIND=lan
+      - NODE_OPTIONS=--max-old-space-size=1536
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+      - HTTP_PROXY=${OPENCLAW_PROXY_URL}
+      - HTTPS_PROXY=${OPENCLAW_PROXY_URL}
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:18789/healthz"]
       interval: 30s
@@ -22,7 +26,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 2G
     networks:
       - openclaw_network
       - proxy_network
