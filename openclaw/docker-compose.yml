@@ -41,6 +41,10 @@ services:
       - ${OPENCLAW_WORKSPACE_DIR:-~/.openclaw/workspace}:/home/node/.openclaw/workspace
     profiles:
       - cli
+    environment:
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+      - HTTP_PROXY=${OPENCLAW_PROXY_URL}
+      - HTTPS_PROXY=${OPENCLAW_PROXY_URL}
     entrypoint: ["node", "dist/index.js"]
 
 # ==================== Networks & Volumes ====================
