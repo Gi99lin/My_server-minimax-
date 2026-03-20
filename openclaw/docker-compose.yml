@@ -11,6 +11,7 @@ services:
     volumes:
       - ${OPENCLAW_CONFIG_DIR:-~/.openclaw}:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE_DIR:-~/.openclaw/workspace}:/home/node/.openclaw/workspace
+      - ${OBSIDIAN_VAULT_DIR:-~/obsidian-vault}:/home/node/.openclaw/workspace/obsidian-vault:ro
     environment:
       - OPENCLAW_GATEWAY_BIND=lan
       - NODE_OPTIONS=--max-old-space-size=1536
