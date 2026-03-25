@@ -8,8 +8,11 @@ services:
   omniroute:
     container_name: omniroute
     build:
-      context: ./src        # путь к склонированному репо
-      target: runner-cli    # cli = с CLI-тулзами внутри контейнера (codex, claude и т.п.)
+      context: ./src
+      target: runner-cli
+      args:
+        - http_proxy=${OMNIROUTE_PROXY_URL}
+        - https_proxy=${OMNIROUTE_PROXY_URL}
     image: omniroute:cli
     restart: unless-stopped
     env_file: .env
