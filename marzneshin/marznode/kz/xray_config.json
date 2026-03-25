@@ -1,0 +1,70 @@
+{
+    "log": {
+        "loglevel": "warning"
+    },
+    "inbounds": [
+        {
+            "tag": "VLESS TCP REALITY",
+            "listen": "::",
+            "port": 443,
+            "protocol": "vless",
+            "settings": {
+                "clients": [],
+                "decryption": "none"
+            },
+            "sniffing": {
+                "destOverride": [
+                    "http",
+                    "tls",
+                    "quic"
+                ],
+                "enabled": true
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "reality",
+                "realitySettings": {
+                    "show": false,
+                    "dest": "www.gov.kz:443",
+                    "xver": 0,
+                    "serverNames": [
+                        "www.gov.kz"
+                    ],
+                    "privateKey": "CHANGE_ME_XRAY_PRIVATE_KEY",
+                    "shortIds": [
+                        "a1b2c3d4e5f6g7h8"
+                    ]
+                }
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom",
+            "tag": "DIRECT"
+        },
+        {
+            "protocol": "blackhole",
+            "tag": "BLOCK"
+        }
+    ],
+    "routing": {
+        "domainStrategy": "AsIs",
+        "rules": [
+            {
+                "ip": [
+                    "geoip:private"
+                ],
+                "outboundTag": "BLOCK",
+                "type": "field"
+            },
+            {
+                "outboundTag": "BLOCK",
+                "protocol": [
+                    "bittorrent"
+                ],
+                "type": "field"
+            }
+        ]
+    }
+}
