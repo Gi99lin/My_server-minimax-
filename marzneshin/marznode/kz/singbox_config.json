@@ -12,7 +12,7 @@
             "down_mbps": 1000,
             "obfs": {
                 "type": "salamander",
-                "password": "CHANGE_ME_HYSTERIA_PASSWORD"
+                "password": "vQWcsRO7hr7GNbLmq34bo5OSdj3+QQOn"
             },
             "tls": {
                 "enabled": true,
