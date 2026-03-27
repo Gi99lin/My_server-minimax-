@@ -83,6 +83,7 @@ restic backup \
   /home/gigglin/ \
   /var/lib/docker/volumes/ \
   /srv/nextcloud-data \
+  /var/lib/rancher/k3s \
   "$DUMP_DIR" \
   --exclude="/home/gigglin/.cache" \
   --exclude="/home/gigglin/.local/share/Trash" \
