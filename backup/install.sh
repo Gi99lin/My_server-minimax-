@@ -63,6 +63,11 @@ if command -v restic &>/dev/null; then
   ok "Restic already installed: $(restic version | head -1)"
 else
   echo "Installing restic..."
+  # Ensure bzip2 is available
+  if ! command -v bunzip2 &>/dev/null; then
+    apt-get install -y bzip2 > /dev/null 2>&1 || true
+  fi
+
   RESTIC_VERSION=$(curl -s https://api.github.com/repos/restic/restic/releases/latest | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
   RESTIC_VERSION="${RESTIC_VERSION:-0.17.3}"
   ARCH=$(uname -m)
