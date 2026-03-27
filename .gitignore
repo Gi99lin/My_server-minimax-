@@ -30,3 +30,6 @@ telegram-bot/data/
 
 # MAS secrets
 mas-config/
+**/db-data/
+**/mysql/
+nextcloud/data/

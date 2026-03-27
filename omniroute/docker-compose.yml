@@ -1,0 +1,58 @@
+
+services:
+  # ==================== OmniRoute ====================
+  # Собирается из исходников (нет преопубликованного image).
+  # Репо клонируется в ./src командой:
+  #   git clone https://github.com/diegosouzapw/OmniRoute src
+  # Затем: docker compose up -d --build
+  omniroute:
+    container_name: omniroute
+    build:
+      context: ./src
+      target: runner-cli
+      args:
+        - http_proxy=${OMNIROUTE_PROXY_URL}
+        - https_proxy=${OMNIROUTE_PROXY_URL}
+    image: omniroute:cli
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT:-20128}
+      - DASHBOARD_PORT=${DASHBOARD_PORT:-${PORT:-20128}}
+      - API_PORT=${API_PORT:-20129}
+      - API_HOST=0.0.0.0
+      - HOSTNAME=0.0.0.0
+      - DATA_DIR=/app/data
+      - TZ=Europe/Moscow
+      # ── Исходящий прокси для upstream-провайдеров ──
+      - HTTP_PROXY=${OMNIROUTE_PROXY_URL}
+      - HTTPS_PROXY=${OMNIROUTE_PROXY_URL}
+      - ALL_PROXY=${OMNIROUTE_PROXY_URL}
+      - NO_PROXY=localhost,127.0.0.1
+    ports:
+      - "${OMNIROUTE_DASHBOARD_PORT:-20130}:${PORT:-20128}"   # Dashboard (UI)
+      - "${OMNIROUTE_API_PORT:-20131}:${API_PORT:-20129}"     # API endpoint
+    volumes:
+      - omniroute_data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.mjs"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - omniroute_network
+      - proxy_network
+
+# ==================== Networks & Volumes ====================
+networks:
+  omniroute_network:
+    driver: bridge
+  proxy_network:
+    external: true
+    name: my_server_proxy_network
+
+volumes:
+  omniroute_data:
+    name: omniroute_data
