@@ -1,0 +1,37 @@
+
+
+services:
+  # ==================== Syncthing ====================
+  syncthing:
+    image: syncthing/syncthing:latest
+    container_name: syncthing
+    hostname: home-server
+    restart: unless-stopped
+    ports:
+      - "8384:8384"   # Web UI
+      - "22000:22000/tcp" # Sync protocol (TCP)
+      - "22000:22000/udp" # Sync protocol (QUIC)
+      - "21027:21027/udp" # Discovery
+    volumes:
+      - ./config:/var/syncthing/config
+      - ${OBSIDIAN_VAULT_DIR:-~/obsidian-vault}:/var/syncthing/obsidian-vault
+    environment:
+      - STGUIADDRESS=0.0.0.0:8384
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8384/rest/noauth/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - proxy_network
+
+# ==================== Networks & Volumes ====================
+networks:
+  proxy_network:
+    external: true
+    name: my_server_proxy_network

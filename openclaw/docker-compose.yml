@@ -1,0 +1,61 @@
+
+
+services:
+  # ==================== OpenClaw Gateway ====================
+  openclaw-gateway:
+    image: ghcr.io/openclaw/openclaw:latest
+    container_name: openclaw-gateway
+    restart: unless-stopped
+    ports:
+      - "18789:18789"
+    volumes:
+      - ${OPENCLAW_CONFIG_DIR:-~/.openclaw}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR:-~/.openclaw/workspace}:/home/node/.openclaw/workspace
+      - ${OBSIDIAN_VAULT_DIR:-~/obsidian-vault}:/home/node/.openclaw/workspace/obsidian-vault:rw
+    environment:
+      - TZ=Europe/Moscow
+      - OPENCLAW_GATEWAY_BIND=lan
+      - NODE_OPTIONS=--max-old-space-size=1536 --dns-result-order=ipv4first
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+      - HTTP_PROXY=${OPENCLAW_PROXY_URL}
+      - HTTPS_PROXY=${OPENCLAW_PROXY_URL}
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/node/.openclaw/.npm-global/bin
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:18789/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    networks:
+      - openclaw_network
+      - proxy_network
+
+  # ==================== OpenClaw CLI (management) ====================
+  openclaw-cli:
+    image: ghcr.io/openclaw/openclaw:latest
+    container_name: openclaw-cli
+    network_mode: "service:openclaw-gateway"
+    volumes:
+      - ${OPENCLAW_CONFIG_DIR:-~/.openclaw}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR:-~/.openclaw/workspace}:/home/node/.openclaw/workspace
+    profiles:
+      - cli
+    environment:
+      - TZ=Europe/Moscow
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+      - HTTP_PROXY=${OPENCLAW_PROXY_URL}
+      - HTTPS_PROXY=${OPENCLAW_PROXY_URL}
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/node/.openclaw/.npm-global/bin
+    entrypoint: ["node", "dist/index.js"]
+
+# ==================== Networks & Volumes ====================
+networks:
+  openclaw_network:
+    driver: bridge
+  proxy_network:
+    external: true
+    name: my_server_proxy_network
