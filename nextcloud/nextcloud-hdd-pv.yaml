@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nextcloud-hdd-pv
+spec:
+  capacity:
+    storage: 4Ti
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: hdd-manual
+  hostPath:
+    path: /srv/nextcloud-data
