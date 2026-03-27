@@ -34,6 +34,9 @@ mas-config/
 # OpenClaw sensitive files
 openclaw/.env
 
+# Backup sensitive files
+backup/.env
+
 # Marzneshin sensitive files
 marzneshin/.env
 marzneshin/marznode/client_cert.pem
