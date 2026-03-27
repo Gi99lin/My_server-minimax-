@@ -1,0 +1,12 @@
+{
+  "log": {
+    "loglevel": "none"
+  },
+  "inbounds": [],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "tag": "DIRECT"
+    }
+  ]
+}
