@@ -30,6 +30,25 @@ telegram-bot/data/
 
 # MAS secrets
 mas-config/
+
+# Data directories (Host-specific)
 **/db-data/
 **/mysql/
 nextcloud/data/
+
+# Syncthing config
+syncthing/config/
+
+# VPN Sensitive Files (Marzneshin/OpenClaw)
+openclaw/.env
+marzneshin/.env
+marzneshin/marznode/**/*.pem
+marzneshin/marznode/**/*.key
+marzneshin/marznode/**/*.crt
+marzneshin/marznode/KEYS.md
+marzneshin/marznode/home/
+marzneshin/marznode/kz/
+marzneshin/marznode/fi/
+marzneshin/marznode/lu/
+marzneshin/marznode/nl1/
+marzneshin/marznode/nl2/
