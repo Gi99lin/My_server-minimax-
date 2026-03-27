@@ -42,3 +42,12 @@ proxy_cache off;
 ## 5. Дополнительные правки
 - **Regex Fix**: В функции `stripMarkdownCodeFence` исправлена опечатка в регулярном выражении (четыре кавычки заменены на три), чтобы корректно извлекать JSON из ответов Claude/Thinking моделей.
 - **Backend Sync**: В `ai_service.py` вашего бэкенда добавлена поддержка `reasoning_content` для вывода процесса «размышления» модели.
+
+---
+
+## Update: Official Fix in v3.1.4
+
+As of 2026-03-27, an official fix has been released in **OmniRoute v3.1.4** (Streaming Override Fix). 
+The fix ensures that a `stream: true` parameter in the request body correctly overrides conflicting `Accept` headers, providing the same behavior as this manual patch but natively supported by the project.
+
+**Recommendation:** Update the deployment to `v3.1.4` or later and revert these manual changes using `git reset --hard` in the `src` directory before pulling the update.
