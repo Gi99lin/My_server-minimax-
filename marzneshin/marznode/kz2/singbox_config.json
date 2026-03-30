@@ -1,0 +1,35 @@
+{
+    "log": {
+        "level": "warn"
+    },
+    "inbounds": [
+        {
+            "type": "hysteria2",
+            "tag": "Hysteria2",
+            "listen": "::",
+            "listen_port": 10443,
+            "up_mbps": 1000,
+            "down_mbps": 1000,
+            "obfs": {
+                "type": "salamander",
+                "password": "vQWcsRO7hr7GNbLmq34bo5OSdj3+QQOn"
+            },
+            "tls": {
+                "enabled": true,
+                "server_name": "kz.gigglin.tech",
+                "certificate_path": "/var/lib/marznode/hysteria.cert",
+                "key_path": "/var/lib/marznode/hysteria.key"
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "direct",
+            "tag": "direct"
+        },
+        {
+            "type": "block",
+            "tag": "block"
+        }
+    ]
+}
