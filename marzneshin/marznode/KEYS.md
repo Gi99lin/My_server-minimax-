@@ -34,6 +34,13 @@
 - **ShortIds**: `a445b412b415ec41`, `ab873cb7`, `7c16`, `ab`
 - **Hysteria2 obfs password**: `LFltj6ZixEhM2zQH0JofWPPaCSGSk8Hy`
 
+## Node: KZ-2 (Kazakhstan 2, 212.116.240.211)
+- **SNI**: ge.gigglin.tech (via kz config)
+- **Reality PrivateKey**: `ALN6rETOXROROAnizzLS_0hBC_2i4j1_wcbdXgYBiW0`
+- **Reality PublicKey**: `lunMjXPoenYQnDS3ukqZ1G3ZpRCd7fwP74vt9XvjXWs`
+- **ShortIds**: `4948e9b4649bb6d5`
+- **Hysteria2 obfs password**: `vQWcsRO7hr7GNbLmq34bo5OSdj3+QQOn`
+
 ## Node: HOME (Home Server)
 - **SNI**: www.google.com
 - **Ports**: VLESS Reality = `8443`, Hysteria2 = `10443`
