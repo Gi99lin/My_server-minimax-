@@ -19,8 +19,8 @@ services:
       - ./client_cert.pem:/var/lib/marznode/client_cert.pem
       - ./xray_config.json:/var/lib/marznode/xray_config.json
       - ./singbox_config.json:/var/lib/marznode/singbox_config.json
-      - ./hysteria.cert:/var/lib/marznode/hysteria.cert
-      - ./hysteria.key:/var/lib/marznode/hysteria.key
+      - /var/lib/marznode/hysteria.cert:/var/lib/marznode/hysteria.cert
+      - /var/lib/marznode/hysteria.key:/var/lib/marznode/hysteria.key
 
   gost:
     image: ginuerzh/gost
