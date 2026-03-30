@@ -75,9 +75,22 @@ $SSH_CMD "${SSH_USER}@${VPS_IP}" "echo 'SSH OK'" || {
     exit 1
 }
 
-# Step 2: Install Docker if not present
-echo "🐳 Ensuring Docker is installed..."
+# Step 2: System updates and Docker installation
+echo "🐳 Updating system and ensuring Docker is installed..."
 $SSH_CMD "${SSH_USER}@${VPS_IP}" '
+    export DEBIAN_FRONTEND=noninteractive
+    
+    echo "Updating package lists..."
+    apt-get update -qq
+    
+    echo "Installing security updates..."
+    apt-get upgrade -y -qq
+    
+    echo "Setting up unattended-upgrades..."
+    apt-get install -y -qq unattended-upgrades
+    echo "unattended-upgrades unattended-upgrades/enable_auto_updates boolean true" | debconf-set-selections
+    dpkg-reconfigure -f noninteractive unattended-upgrades
+
     if ! command -v docker &>/dev/null; then
         echo "Installing Docker..."
         curl -fsSL https://get.docker.com | sh
@@ -94,10 +107,16 @@ $SSH_CMD "${SSH_USER}@${VPS_IP}" "mkdir -p ${REMOTE_DIR} /var/lib/marznode"
 
 # Step 4: Copy config files
 echo "📦 Copying configuration files..."
+COMPOSE_FILE="${MARZNODE_DIR}/docker-compose.yml"
+if [ -f "${NODE_DIR}/docker-compose.yml" ]; then
+    echo "📜 Using node-specific docker-compose.yml"
+    COMPOSE_FILE="${NODE_DIR}/docker-compose.yml"
+fi
+
 $SCP_CMD \
     "${NODE_DIR}/xray_config.json" \
     "${NODE_DIR}/singbox_config.json" \
-    "${MARZNODE_DIR}/docker-compose.yml" \
+    "${COMPOSE_FILE}" \
     "${MARZNODE_DIR}/client_cert.pem" \
     "${SSH_USER}@${VPS_IP}:${REMOTE_DIR}/"
 
@@ -122,12 +141,13 @@ $SSH_CMD "${SSH_USER}@${VPS_IP}" '
         ufw allow 22/tcp    # SSH
         ufw allow 443/tcp   # VLESS Reality
         ufw allow 10443/udp # Hysteria2
+        ufw allow 1080/tcp  # Proxy (GOST)
         ufw allow 62050/tcp # Marznode <-> Panel
         ufw --force enable
         echo "UFW configured."
     else
         echo "UFW not found, skipping firewall setup."
-        echo "⚠️  Make sure ports 443/tcp, 10443/udp, 62050/tcp are open!"
+        echo "⚠️  Make sure ports 443/tcp, 10443/udp, 1080/tcp, 62050/tcp are open!"
     fi
 '
 
