@@ -25,10 +25,10 @@
                 "security": "reality",
                 "realitySettings": {
                     "show": false,
-                    "dest": "www.gov.kz:443",
+                    "dest": "kolesa.kz:443",
                     "xver": 0,
                     "serverNames": [
-                        "www.gov.kz"
+                        "kolesa.kz"
                     ],
                     "privateKey": "ALN6rETOXROROAnizzLS_0hBC_2i4j1_wcbdXgYBiW0",
                     "shortIds": [

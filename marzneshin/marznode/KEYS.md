@@ -27,7 +27,7 @@
 - **Hysteria2 obfs password**: `E7yPj1K5CNQbq04E6HZBpD5uu5Mp1eIC`
 
 ## Node: LU (Luxembourg, 45.12.139.177)
-- **SNI**: www.booking.com
+- **SNI**: www.nvidia.com
 - **ASN**: AS209847 WorkTitans B.V.
 - **Reality PrivateKey**: `8NnxRTQWzTCrdOD2s7nsH3cpWFzC5hib9Ri9-IL49HE`
 - **Reality PublicKey**: `MiNV09NcFkyh097KVeTMkDtiXvmVef0Artaz1-rjtj4`
@@ -42,7 +42,7 @@
 - **Hysteria2 obfs password**: `vQWcsRO7hr7GNbLmq34bo5OSdj3+QQOn`
 
 ## Node: HOME (Home Server)
-- **SNI**: www.google.com
+- **SNI**: www.nvidia.com
 - **Ports**: VLESS Reality = `8443`, Hysteria2 = `10443`
 - **Reality PrivateKey**: `aD6j_Ti6aWHFepe5ZcaSCplOxqnjJNGmVa-miTW3wHo`
 - **Reality PublicKey**: `zyLqE_scOvPhm4ZHbPoUNeywmnQf-_UTCiIugpQlP2A`
