@@ -25,10 +25,10 @@
                 "security": "reality",
                 "realitySettings": {
                     "show": false,
-                    "dest": "www.booking.com:443",
+                    "dest": "www.nvidia.com:443",
                     "xver": 0,
                     "serverNames": [
-                        "www.booking.com"
+                        "www.nvidia.com"
                     ],
                     "privateKey": "8NnxRTQWzTCrdOD2s7nsH3cpWFzC5hib9Ri9-IL49HE",
                     "shortIds": [

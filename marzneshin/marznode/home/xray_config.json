@@ -25,10 +25,10 @@
                 "security": "reality",
                 "realitySettings": {
                     "show": false,
-                    "dest": "www.google.com:443",
+                    "dest": "www.nvidia.com:443",
                     "xver": 0,
                     "serverNames": [
-                        "www.google.com"
+                        "www.nvidia.com"
                     ],
                     "privateKey": "aD6j_Ti6aWHFepe5ZcaSCplOxqnjJNGmVa-miTW3wHo",
                     "shortIds": [

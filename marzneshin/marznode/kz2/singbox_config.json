@@ -16,7 +16,7 @@
             },
             "tls": {
                 "enabled": true,
-                "server_name": "kz.gigglin.tech",
+                "server_name": "kz2.gigglin.tech",
                 "certificate_path": "/var/lib/marznode/hysteria.cert",
                 "key_path": "/var/lib/marznode/hysteria.key"
             }
