@@ -1,19 +1,11 @@
 
 services:
   # ==================== OmniRoute ====================
-  # Собирается из исходников (нет преопубликованного image).
-  # Репо клонируется в ./src командой:
-  #   git clone https://github.com/diegosouzapw/OmniRoute src
-  # Затем: docker compose up -d --build
+  # По умолчанию используем официальный образ (позволяет избежать проблем при сборке).
+  # https://hub.docker.com/r/diegosouzapw/omniroute
   omniroute:
     container_name: omniroute
-    build:
-      context: ./src
-      target: runner-cli
-      args:
-        - http_proxy=${OMNIROUTE_PROXY_URL}
-        - https_proxy=${OMNIROUTE_PROXY_URL}
-    image: omniroute:cli
+    image: diegosouzapw/omniroute:latest
     restart: unless-stopped
     env_file: .env
     environment:
