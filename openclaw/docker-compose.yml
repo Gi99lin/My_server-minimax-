@@ -19,6 +19,7 @@ services:
       - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
       - HTTP_PROXY=${OPENCLAW_PROXY_URL}
       - HTTPS_PROXY=${OPENCLAW_PROXY_URL}
+      - no_proxy=spawn-sanitizer,localhost,127.0.0.1
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/node/.openclaw/.npm-global/bin
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:18789/healthz"]
@@ -51,6 +52,22 @@ services:
       - HTTPS_PROXY=${OPENCLAW_PROXY_URL}
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/node/.openclaw/.npm-global/bin
     entrypoint: ["node", "dist/index.js"]
+
+  # ==================== Spawn Sanitizer Proxy ====================
+  spawn-sanitizer:
+    image: node:22-slim
+    container_name: spawn-sanitizer
+    restart: unless-stopped
+    volumes:
+      - ${OPENCLAW_WORKSPACE_DIR:-~/.openclaw/workspace}/scripts/subagent/spawn-sanitizer-proxy.mjs:/app/proxy.mjs:ro
+    environment:
+      - UPSTREAM_URL=http://omniroute:20128
+      - LISTEN_PORT=18780
+      - DEBUG=1
+    command: ["node", "/app/proxy.mjs"]
+    networks:
+      - proxy_network
+
 
 # ==================== Networks & Volumes ====================
 networks:
