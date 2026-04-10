@@ -64,6 +64,12 @@ services:
       - UPSTREAM_URL=http://omniroute:20128
       - LISTEN_PORT=18780
       - DEBUG=1
+      - HTTP_PROXY=${OPENCLAW_PROXY_URL}
+      - HTTPS_PROXY=${OPENCLAW_PROXY_URL}
+      - http_proxy=${OPENCLAW_PROXY_URL}
+      - https_proxy=${OPENCLAW_PROXY_URL}
+      - no_proxy=omniroute,localhost,127.0.0.1
+      - TRADINGVIEW_RAPIDAPI_KEY=${TRADINGVIEW_RAPIDAPI_KEY:-6d86fe3de6msh2f953b42443ce21p1b2e18jsn14d4dea9995d}
     command: ["node", "/app/proxy.mjs"]
     networks:
       - proxy_network
