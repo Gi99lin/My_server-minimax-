@@ -18,7 +18,8 @@ services:
       - PHP_UPLOAD_LIMIT=16G
     volumes:
       - nextcloud-html:/var/www/html
-      - /srv/nextcloud-data:/var/www/html/data
+      - /srv/nextcloud-data/data:/var/www/html/data
+      - /srv/nextcloud-data/custom_apps:/var/www/html/custom_apps
     depends_on:
       - nextcloud-db
       - nextcloud-redis
@@ -61,7 +62,8 @@ services:
     entrypoint: /cron.sh
     volumes:
       - nextcloud-html:/var/www/html
-      - /srv/nextcloud-data:/var/www/html/data
+      - /srv/nextcloud-data/data:/var/www/html/data
+      - /srv/nextcloud-data/custom_apps:/var/www/html/custom_apps
     depends_on:
       - nextcloud-db
       - nextcloud-redis
