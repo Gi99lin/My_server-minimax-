@@ -128,7 +128,7 @@ phase2() {
 
     # 6. Восстанавливаем дамп
     info "6/8 Восстанавливаем дамп базы данных..."
-    docker exec -i nextcloud-db mysql -u nextcloud -pnextcloud nextcloud < "$BACKUP_DIR/nextcloud-db.sql"
+    docker exec -i nextcloud-db mariadb -u nextcloud -pnextcloud nextcloud < "$BACKUP_DIR/nextcloud-db.sql"
     info "   ✅ Дамп восстановлен!"
 
     # 7. Запускаем всё
