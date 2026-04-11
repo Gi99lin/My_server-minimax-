@@ -524,8 +524,8 @@
                         .then(d => {
                             if (!data[name]) data[name] = { name, cpu: 0, ram: 0 };
                             if (d && d.data && d.data[0]) {
-                                // RAM in MiB
-                                data[name].ram = (d.data[0][1] || 0) / 1024 / 1024;
+                                // RAM already in MiB from Netdata
+                                data[name].ram = d.data[0][1] || 0;
                             }
                         })
                 );
@@ -630,8 +630,10 @@
                 totalContainers += activeContainers;
 
                 const expanded = expandedGroups.has(group.id);
-                const ramPct = Math.min(100, (groupRam / 2048) * 100); // 2GB scale
-                const cpuPct = Math.min(100, groupCpu * 10); // 10% = full
+                // 4GB scale for RAM bars
+                const ramPct = Math.min(100, (groupRam / 4096) * 100); 
+                // 100% CPU (1 full core) fills the bar
+                const cpuPct = Math.min(100, groupCpu); 
 
                 return `
                     <div class="group-card ${group.css} ${expanded ? 'expanded' : ''}"
