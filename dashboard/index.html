@@ -48,14 +48,13 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 24px 20px;
             position: relative;
             z-index: 1;
         }
 
-        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -98,10 +97,9 @@
             color: var(--text-muted);
         }
 
-        /* System Summary */
         .system-summary {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 12px;
             margin-bottom: 28px;
         }
@@ -113,11 +111,6 @@
             padding: 16px 20px;
             backdrop-filter: blur(12px);
             transition: all 0.3s ease;
-        }
-
-        .summary-card:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-1px);
         }
 
         .summary-label {
@@ -141,14 +134,12 @@
             margin-left: 4px;
         }
 
-        /* Groups Grid */
         .groups-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
             gap: 16px;
         }
 
-        /* Group Card */
         .group-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -158,10 +149,7 @@
             transition: all 0.3s ease;
         }
 
-        .group-card:hover {
-            border-color: var(--border-hover);
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-        }
+        .group-card:hover { border-color: var(--border-hover); }
 
         .group-header {
             display: flex;
@@ -180,25 +168,14 @@
 
         .group-icon {
             font-size: 1.3rem;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
             border-radius: 10px;
             background: rgba(99, 102, 241, 0.1);
         }
 
-        .group-name {
-            font-size: 0.95rem;
-            font-weight: 600;
-        }
-
-        .group-count {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
+        .group-name { font-size: 0.95rem; font-weight: 600; }
+        .group-count { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
 
         .group-stats {
             display: flex;
@@ -219,50 +196,19 @@
             color: var(--text-muted);
         }
 
-        .group-stat-value {
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
+        .group-stat-value { font-weight: 600; font-size: 0.95rem; }
 
-        /* Progress bar */
-        .group-bar-container {
-            padding: 0 20px 12px;
-        }
-
-        .group-bars {
-            display: flex;
-            gap: 8px;
-        }
-
-        .bar-wrapper {
-            flex: 1;
-        }
-
+        .group-bar-container { padding: 0 20px 12px; }
+        .group-bars { display: flex; gap: 8px; }
+        .bar-wrapper { flex: 1; }
         .bar-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.6rem;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            display: flex; justify-content: space-between;
+            font-size: 0.6rem; color: var(--text-muted);
+            margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;
         }
+        .bar-track { height: 4px; background: rgba(255, 255, 255, 0.05); border-radius: 2px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease; min-width: 1px; }
 
-        .bar-track {
-            height: 4px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .bar-fill {
-            height: 100%;
-            border-radius: 2px;
-            transition: width 1s ease;
-            min-width: 1px;
-        }
-
-        /* Container list */
         .group-containers {
             max-height: 0;
             overflow: hidden;
@@ -271,7 +217,7 @@
         }
 
         .group-card.expanded .group-containers {
-            max-height: 500px;
+            max-height: 800px;
             border-top-color: var(--border);
         }
 
@@ -279,68 +225,47 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 20px;
+            padding: 8px 16px;
             font-size: 0.78rem;
             transition: background 0.2s;
         }
 
-        .container-row:hover {
-            background: rgba(255, 255, 255, 0.02);
-        }
+        .container-row:hover { background: rgba(255, 255, 255, 0.02); }
 
         .container-name {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-secondary);
-            min-width: 0;
-        }
-
-        .container-name .dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .container-name span {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+            display: flex; align-items: center; gap: 8px;
+            color: var(--text-secondary); min-width: 0; flex: 1;}
+        .container-name .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .container-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         .container-metrics {
             display: flex;
-            gap: 20px;
+            gap: 16px;
             flex-shrink: 0;
             font-variant-numeric: tabular-nums;
         }
 
         .container-metric {
             text-align: right;
-            min-width: 60px;
+            min-width: 55px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;
         }
 
-        .container-metric .value {
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-
-        .container-row:last-child {
-            padding-bottom: 14px;
-        }
-
-        /* Expand icon */
-        .expand-icon {
+        .metric-sub {
+            font-size: 0.65rem;
             color: var(--text-muted);
-            transition: transform 0.3s;
-            font-size: 0.7rem;
+            margin-top: 1px;
+            line-height: 1;
         }
 
-        .group-card.expanded .expand-icon {
-            transform: rotate(180deg);
-        }
+        .container-metric .value { color: var(--text-primary); font-weight: 500; }
+        .container-row:last-child { padding-bottom: 14px; }
+        .expand-icon { color: var(--text-muted); transition: transform 0.3s; font-size: 0.7rem; }
+        .group-card.expanded .expand-icon { transform: rotate(180deg); }
 
-        /* Color themes per group */
         .group-cloud .group-icon { background: rgba(99, 102, 241, 0.15); }
         .group-cloud .bar-fill { background: linear-gradient(90deg, #6366f1, #818cf8); }
         .group-cloud .group-stat-value { color: #818cf8; }
@@ -376,29 +301,9 @@
         .group-system .group-stat-value { color: #f43f5e; }
         .group-system .dot { background: #f43f5e; }
 
-        /* Responsive */
         @media (max-width: 900px) {
             .groups-grid { grid-template-columns: 1fr; }
             .system-summary { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        /* Loading */
-        .loading {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            text-align: center;
-            padding: 40px;
-        }
-
-        .loading::after {
-            content: '';
-            animation: dots 1.5s infinite;
-        }
-
-        @keyframes dots {
-            0% { content: '.'; }
-            33% { content: '..'; }
-            66% { content: '...'; }
         }
     </style>
 </head>
@@ -426,8 +331,12 @@
                 <div class="summary-value" id="totalRam">—<span class="summary-unit">MB</span></div>
             </div>
             <div class="summary-card">
-                <div class="summary-label">RAM сервер</div>
-                <div class="summary-value" id="serverRam">—<span class="summary-unit">GB</span></div>
+                <div class="summary-label">Сеть (in/out)</div>
+                <div class="summary-value" id="totalNet">—<span class="summary-unit">KB/s</span></div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Диск (r/w)</div>
+                <div class="summary-value" id="totalDisk">—<span class="summary-unit">KB/s</span></div>
             </div>
             <div class="summary-card">
                 <div class="summary-label">Uptime</div>
@@ -436,98 +345,91 @@
         </div>
 
         <div class="groups-grid" id="groupsGrid">
-            <div class="loading">Подключение к Netdata</div>
+            <div style="color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 40px;">Подключение к Netdata...</div>
         </div>
     </div>
 
     <script>
-        // ===== Configuration =====
-        // Запросы будут идти на текущий домен (Nginx проксирует /api/ в Netdata)
         const NETDATA_URL = '';
+        const REFRESH_INTERVAL = 5000;
 
-        const REFRESH_INTERVAL = 5000; // 5 seconds
-
-        // Container groups definition
         const GROUPS = [
-            {
-                id: 'cloud', name: 'Nextcloud', icon: '☁️', css: 'group-cloud',
-                containers: ['nextcloud', 'nextcloud-cron', 'nextcloud-db', 'nextcloud-redis']
-            },
-            {
-                id: 'chat', name: 'LibreChat', icon: '💬', css: 'group-chat',
-                containers: ['LibreChat', 'chat-rag_api', 'chat-code-interpreter-api',
-                    'chat-code-interpreter-redis', 'chat-vectordb', 'chat-mongodb',
-                    'chat-meilisearch', 'chat-code-interpreter-minio']
-            },
-            {
-                id: 'ai', name: 'OpenClaw / AI', icon: '🤖', css: 'group-ai',
-                containers: ['openclaw-gateway', 'spawn-sanitizer', 'omniroute']
-            },
-            {
-                id: 'hr', name: 'HR Bot', icon: '👤', css: 'group-hr',
-                containers: ['hrbot_app_prod', 'hrbot_db_prod', 'hrbot_redis_prod']
-            },
-            {
-                id: 'vpn', name: 'VPN / Marzneshin', icon: '🔒', css: 'group-vpn',
-                containers: ['marznode', 'marzneshin-marzneshin-1', 'marzneshin-marzneshin-db-1']
-            },
-            {
-                id: 'infra', name: 'Инфраструктура', icon: '🌐', css: 'group-infra',
-                containers: ['nginx-proxy-manager', 'nginx-proxy-manager-db', 'syncthing', 'landing']
-            }
+            { id: 'cloud', name: 'Nextcloud', icon: '☁️', css: 'group-cloud', containers: ['nextcloud', 'nextcloud-cron', 'nextcloud-db', 'nextcloud-redis'] },
+            { id: 'chat', name: 'LibreChat', icon: '💬', css: 'group-chat', containers: ['LibreChat', 'chat-rag_api', 'chat-code-interpreter-api', 'chat-code-interpreter-redis', 'chat-vectordb', 'chat-mongodb', 'chat-meilisearch', 'chat-code-interpreter-minio'] },
+            { id: 'ai', name: 'OpenClaw / AI', icon: '🤖', css: 'group-ai', containers: ['openclaw-gateway', 'spawn-sanitizer', 'omniroute'] },
+            { id: 'hr', name: 'HR Bot', icon: '👤', css: 'group-hr', containers: ['hrbot_app_prod', 'hrbot_db_prod', 'hrbot_redis_prod'] },
+            { id: 'vpn', name: 'VPN / Marzneshin', icon: '🔒', css: 'group-vpn', containers: ['marznode', 'marzneshin-marzneshin-1', 'marzneshin-marzneshin-db-1'] },
+            { id: 'infra', name: 'Инфраструктура', icon: '🌐', css: 'group-infra', containers: ['nginx-proxy-manager', 'nginx-proxy-manager-db', 'syncthing', 'landing'] }
         ];
 
-        // ===== State =====
         let containerData = {};
         let expandedGroups = new Set();
+        let lastChartsList = [];
 
-        // ===== Netdata API =====
         async function fetchJson(url) {
             try {
-                const resp = await fetch(url, { signal: AbortSignal.timeout(4000) });
+                const resp = await fetch(url + '&_=' + new Date().getTime(), { signal: AbortSignal.timeout(4000) });
                 if (!resp.ok) return null;
                 return await resp.json();
             } catch { return null; }
         }
 
         async function getDockerStats() {
-            // Use docker stats via Netdata's cgroup data
-            const charts = await fetchJson(`${NETDATA_URL}/api/v1/charts`);
-            if (!charts || !charts.charts) return {};
+            let charts;
+            if (lastChartsList.length === 0) {
+                const chartsData = await fetchJson(`${NETDATA_URL}/api/v1/charts?`);
+                if (chartsData && chartsData.charts) {
+                    lastChartsList = Object.keys(chartsData.charts);
+                } else return {};
+            }
+            charts = lastChartsList;
 
-            const data = {};
-            const cgroupCharts = Object.keys(charts.charts).filter(k => k.startsWith('cgroup_'));
-
-            // Get unique container names from cgroup charts
+            const cgroupCharts = charts.filter(k => k.startsWith('cgroup_'));
             const containerNames = new Set();
             cgroupCharts.forEach(chart => {
                 const match = chart.match(/^cgroup_(.+?)\.(cpu|mem|cpu_limit)/);
                 if (match) containerNames.add(match[1]);
             });
 
-            // Fetch CPU and memory for each container
+            const data = {};
             const promises = [];
+            
             for (const name of containerNames) {
+                if (!data[name]) data[name] = { name, cpu: 0, ram: 0, netIn: 0, netOut: 0, diskR: 0, diskW: 0 };
+                
                 promises.push(
-                    fetchJson(`${NETDATA_URL}/api/v1/data?chart=cgroup_${name}.cpu&points=1&after=-5&format=json`)
-                        .then(d => {
-                            if (!data[name]) data[name] = { name, cpu: 0, ram: 0 };
-                            if (d && d.data && d.data[0]) {
-                                // Sum all CPU dimensions
-                                const values = d.data[0].slice(1);
-                                data[name].cpu = values.reduce((a, b) => a + (b || 0), 0);
-                            }
-                        })
+                    fetchJson(`${NETDATA_URL}/api/v1/data?chart=cgroup_${name}.cpu&points=1&after=-5&format=json`).then(d => {
+                        if (d && d.data && d.data[0]) {
+                            const values = d.data[0].slice(1);
+                            data[name].cpu = values.reduce((a, b) => a + (b || 0), 0);
+                        }
+                    })
                 );
+                
                 promises.push(
-                    fetchJson(`${NETDATA_URL}/api/v1/data?chart=cgroup_${name}.mem_usage&points=1&after=-5&format=json`)
-                        .then(d => {
-                            if (!data[name]) data[name] = { name, cpu: 0, ram: 0 };
-                            if (d && d.data && d.data[0]) {
-                                // RAM already in MiB from Netdata
-                                data[name].ram = d.data[0][1] || 0;
-                            }
-                        })
+                    fetchJson(`${NETDATA_URL}/api/v1/data?chart=cgroup_${name}.mem_usage&points=1&after=-5&format=json`).then(d => {
+                        if (d && d.data && d.data[0]) data[name].ram = d.data[0][1] || 0;
+                    })
+                );
+
+                promises.push(
+                    fetchJson(`${NETDATA_URL}/api/v1/data?chart=cgroup_${name}.net_eth0&points=1&after=-5&format=json`).then(d => {
+                        if (d && d.data && d.data[0]) {
+                            // Netdata usually returns kilobits/s. Divide by 8 for KB/s
+                            data[name].netIn = Math.abs(d.data[0][1] || 0) / 8;
+                            data[name].netOut = Math.abs(d.data[0][2] || 0) / 8;
+                        }
+                    })
+                );
+
+                promises.push(
+                    fetchJson(`${NETDATA_URL}/api/v1/data?chart=cgroup_${name}.io&points=1&after=-5&format=json`).then(d => {
+                        if (d && d.data && d.data[0]) {
+                            // IO read/write in KiB/s
+                            data[name].diskR = Math.abs(d.data[0][1] || 0);
+                            data[name].diskW = Math.abs(d.data[0][2] || 0);
+                        }
+                    })
                 );
             }
 
@@ -536,36 +438,12 @@
         }
 
         async function getSystemInfo() {
-            const [ramData, uptimeData] = await Promise.all([
-                fetchJson(`${NETDATA_URL}/api/v1/data?chart=system.ram&points=1&after=-5&format=json`),
-                fetchJson(`${NETDATA_URL}/api/v1/data?chart=system.uptime&points=1&after=-5&format=json`)
-            ]);
-
-            let totalRamGB = 0, usedRamGB = 0;
-            if (ramData && ramData.data && ramData.data[0]) {
-                const values = ramData.data[0].slice(1);
-                const totalMB = values.reduce((a, b) => a + Math.abs(b || 0), 0);
-                totalRamGB = totalMB / 1024;
-                // used = total - free - cached - buffers
-                const labels = ramData.labels || [];
-                const freeIdx = labels.indexOf('free');
-                const cachedIdx = labels.indexOf('cached');
-                const buffersIdx = labels.indexOf('buffers');
-                const freeMB = (freeIdx > 0 ? Math.abs(ramData.data[0][freeIdx]) : 0);
-                const cachedMB = (cachedIdx > 0 ? Math.abs(ramData.data[0][cachedIdx]) : 0);
-                const buffersMB = (buffersIdx > 0 ? Math.abs(ramData.data[0][buffersIdx]) : 0);
-                usedRamGB = (totalMB - freeMB - cachedMB - buffersMB) / 1024;
-            }
-
+            const uptimeData = await fetchJson(`${NETDATA_URL}/api/v1/data?chart=system.uptime&points=1&after=-5&format=json`);
             let uptimeSec = 0;
-            if (uptimeData && uptimeData.data && uptimeData.data[0]) {
-                uptimeSec = uptimeData.data[0][1] || 0;
-            }
-
-            return { totalRamGB, usedRamGB, uptimeSec };
+            if (uptimeData && uptimeData.data && uptimeData.data[0]) uptimeSec = uptimeData.data[0][1] || 0;
+            return { uptimeSec };
         }
 
-        // ===== Rendering =====
         function formatMB(mb) {
             if (mb >= 1024) return (mb / 1024).toFixed(1) + ' GB';
             if (mb >= 100) return mb.toFixed(0) + ' MB';
@@ -578,6 +456,12 @@
             return pct.toFixed(1) + '%';
         }
 
+        function formatKBps(kbps) {
+            if (kbps < 0.1) return '0.0';
+            if (kbps > 1024) return (kbps / 1024).toFixed(1) + ' MB/s';
+            return kbps.toFixed(1);
+        }
+
         function formatUptime(seconds) {
             const days = Math.floor(seconds / 86400);
             const hours = Math.floor((seconds % 86400) / 3600);
@@ -588,74 +472,67 @@
 
         function renderGroups(data) {
             const grid = document.getElementById('groupsGrid');
-            let totalCpu = 0, totalRam = 0, totalContainers = 0;
+            let totalCpu = 0, totalRam = 0, totalNetIn = 0, totalNetOut = 0, totalDiskR = 0, totalDiskW = 0, totalContainers = 0;
 
             const html = GROUPS.map(group => {
-                let groupCpu = 0, groupRam = 0;
+                let groupCpu = 0, groupRam = 0, groupNetIn = 0, groupNetOut = 0, groupDiskR = 0, groupDiskW = 0;
                 let activeContainers = 0;
 
                 const containerRows = group.containers.map(name => {
-                    // Try different name formats
                     const d = data[name] || data[name.replace(/-/g, '_')] || null;
-                    const cpu = d ? d.cpu : 0;
-                    const ram = d ? d.ram : 0;
                     const active = d !== null;
+                    if (!active) return '';
 
-                    if (active) {
-                        groupCpu += cpu;
-                        groupRam += ram;
-                        activeContainers++;
-                    }
+                    groupCpu += d.cpu; groupRam += d.ram;
+                    groupNetIn += d.netIn; groupNetOut += d.netOut;
+                    groupDiskR += d.diskR; groupDiskW += d.diskW;
+                    activeContainers++;
 
                     return `
                         <div class="container-row">
                             <div class="container-name">
-                                <div class="dot" style="opacity: ${active ? 1 : 0.3}"></div>
+                                <div class="dot" style="opacity: 1"></div>
                                 <span>${name}</span>
                             </div>
                             <div class="container-metrics">
-                                <div class="container-metric">
-                                    <span class="value">${active ? formatCpu(cpu) : '—'}</span>
+                                <div class="container-metric"><span class="value">${formatCpu(d.cpu)}</span></div>
+                                <div class="container-metric"><span class="value">${formatMB(d.ram)}</span></div>
+                                <div class="container-metric" style="min-width: 65px">
+                                    <span class="value">↓${formatKBps(d.netIn)}</span>
+                                    <span class="metric-sub">↑${formatKBps(d.netOut)}</span>
                                 </div>
-                                <div class="container-metric">
-                                    <span class="value">${active ? formatMB(ram) : '—'}</span>
+                                <div class="container-metric" style="min-width: 65px">
+                                    <span class="value">R ${formatKBps(d.diskR)}</span>
+                                    <span class="metric-sub">W ${formatKBps(d.diskW)}</span>
                                 </div>
                             </div>
                         </div>
                     `;
                 }).join('');
 
-                totalCpu += groupCpu;
-                totalRam += groupRam;
+                totalCpu += groupCpu; totalRam += groupRam;
+                totalNetIn += groupNetIn; totalNetOut += groupNetOut;
+                totalDiskR += groupDiskR; totalDiskW += groupDiskW;
                 totalContainers += activeContainers;
 
                 const expanded = expandedGroups.has(group.id);
-                // 4GB scale for RAM bars
-                const ramPct = Math.min(100, (groupRam / 4096) * 100); 
-                // 100% CPU (1 full core) fills the bar
-                const cpuPct = Math.min(100, groupCpu); 
+                const ramPct = Math.min(100, (groupRam / 4096) * 100);
+                const cpuPct = Math.min(100, groupCpu);
 
                 return `
-                    <div class="group-card ${group.css} ${expanded ? 'expanded' : ''}"
-                         data-group="${group.id}">
+                    <div class="group-card ${group.css} ${expanded ? 'expanded' : ''}" data-group="${group.id}">
                         <div class="group-header" onclick="toggleGroup('${group.id}')">
                             <div class="group-title">
                                 <div class="group-icon">${group.icon}</div>
                                 <div>
                                     <div class="group-name">${group.name}</div>
-                                    <div class="group-count">${activeContainers}/${group.containers.length} контейнеров</div>
+                                    <div class="group-count">${activeContainers}/${group.containers.length} конт.</div>
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 16px;">
                                 <div class="group-stats">
-                                    <div class="group-stat">
-                                        <span class="group-stat-label">CPU</span>
-                                        <span class="group-stat-value">${formatCpu(groupCpu)}</span>
-                                    </div>
-                                    <div class="group-stat">
-                                        <span class="group-stat-label">RAM</span>
-                                        <span class="group-stat-value">${formatMB(groupRam)}</span>
-                                    </div>
+                                    <div class="group-stat"><span class="group-stat-label">CPU</span><span class="group-stat-value">${formatCpu(groupCpu)}</span></div>
+                                    <div class="group-stat"><span class="group-stat-label">RAM</span><span class="group-stat-value">${formatMB(groupRam)}</span></div>
                                 </div>
                                 <span class="expand-icon">▼</span>
                             </div>
@@ -663,19 +540,21 @@
                         <div class="group-bar-container">
                             <div class="group-bars">
                                 <div class="bar-wrapper">
-                                    <div class="bar-label"><span>CPU</span><span>${formatCpu(groupCpu)}</span></div>
+                                    <div class="bar-label"><span>CPU</span></div>
                                     <div class="bar-track"><div class="bar-fill" style="width: ${cpuPct}%"></div></div>
                                 </div>
                                 <div class="bar-wrapper">
-                                    <div class="bar-label"><span>RAM</span><span>${formatMB(groupRam)}</span></div>
+                                    <div class="bar-label"><span>RAM</span></div>
                                     <div class="bar-track"><div class="bar-fill" style="width: ${ramPct}%"></div></div>
                                 </div>
                             </div>
                         </div>
                         <div class="group-containers">
-                            <div style="padding: 4px 20px 0; display: flex; justify-content: flex-end; gap: 20px; font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
-                                <span style="min-width: 60px; text-align: right;">CPU</span>
-                                <span style="min-width: 60px; text-align: right;">RAM</span>
+                            <div style="padding: 4px 16px 8px; display: flex; justify-content: flex-end; gap: 16px; font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;">
+                                <span style="min-width: 55px; text-align: right;">CPU</span>
+                                <span style="min-width: 55px; text-align: right;">RAM</span>
+                                <span style="min-width: 65px; text-align: right;">Net In/Out</span>
+                                <span style="min-width: 65px; text-align: right;">Disk R/W</span>
                             </div>
                             ${containerRows}
                         </div>
@@ -685,48 +564,28 @@
 
             grid.innerHTML = html;
 
-            // Update summary
             document.getElementById('totalContainers').textContent = totalContainers;
             document.getElementById('totalCpu').innerHTML = `${totalCpu.toFixed(1)}<span class="summary-unit">%</span>`;
             document.getElementById('totalRam').innerHTML = `${formatMB(totalRam)}`;
+            document.getElementById('totalNet').innerHTML = `↓${formatKBps(totalNetIn)} <span style="font-size:0.9rem">↑${formatKBps(totalNetOut)}</span>`;
+            document.getElementById('totalDisk').innerHTML = `R ${formatKBps(totalDiskR)} <span style="font-size:0.9rem">W ${formatKBps(totalDiskW)}</span>`;
         }
 
-        function toggleGroup(groupId) {
-            if (expandedGroups.has(groupId)) {
-                expandedGroups.delete(groupId);
-            } else {
-                expandedGroups.add(groupId);
-            }
+        window.toggleGroup = function(groupId) {
+            expandedGroups.has(groupId) ? expandedGroups.delete(groupId) : expandedGroups.add(groupId);
             renderGroups(containerData);
         }
 
-        // ===== Main Loop =====
         async function refresh() {
             try {
-                const [dockerData, sysInfo] = await Promise.all([
-                    getDockerStats(),
-                    getSystemInfo()
-                ]);
-
+                const [dockerData, sysInfo] = await Promise.all([ getDockerStats(), getSystemInfo() ]);
                 containerData = dockerData;
                 renderGroups(dockerData);
-
-                if (sysInfo.totalRamGB > 0) {
-                    document.getElementById('serverRam').innerHTML =
-                        `${sysInfo.usedRamGB.toFixed(1)}<span class="summary-unit">/ ${sysInfo.totalRamGB.toFixed(0)} GB</span>`;
-                }
-                if (sysInfo.uptimeSec > 0) {
-                    document.getElementById('uptime').textContent = formatUptime(sysInfo.uptimeSec);
-                }
-
-                document.getElementById('lastUpdate').textContent =
-                    `Обновлено: ${new Date().toLocaleTimeString('ru-RU')}`;
-            } catch (e) {
-                console.error('Refresh error:', e);
-            }
+                if (sysInfo.uptimeSec > 0) document.getElementById('uptime').textContent = formatUptime(sysInfo.uptimeSec);
+                document.getElementById('lastUpdate').textContent = `Обновлено: ${new Date().toLocaleTimeString('ru-RU')}`;
+            } catch (e) { console.error('Refresh error:', e); }
         }
 
-        // Start
         refresh();
         setInterval(refresh, REFRESH_INTERVAL);
     </script>
