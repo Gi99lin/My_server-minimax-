@@ -70,7 +70,8 @@ phase2() {
 
     # Подготовка kubeconfig
     if [ -f /etc/rancher/k3s/k3s.yaml ]; then
-        cp /etc/rancher/k3s/k3s.yaml "$KUBECONFIG_TMP"
+        sudo cp /etc/rancher/k3s/k3s.yaml "$KUBECONFIG_TMP"
+        sudo chown $(id -u):$(id -g) "$KUBECONFIG_TMP"
         chmod 644 "$KUBECONFIG_TMP"
         export KUBECONFIG="$KUBECONFIG_TMP"
     else
@@ -213,7 +214,8 @@ rollback() {
 
     # Проверяем, есть ли K3s
     if [ -f /etc/rancher/k3s/k3s.yaml ]; then
-        cp /etc/rancher/k3s/k3s.yaml "$KUBECONFIG_TMP"
+        sudo cp /etc/rancher/k3s/k3s.yaml "$KUBECONFIG_TMP"
+        sudo chown $(id -u):$(id -g) "$KUBECONFIG_TMP"
         chmod 644 "$KUBECONFIG_TMP"
         export KUBECONFIG="$KUBECONFIG_TMP"
 
