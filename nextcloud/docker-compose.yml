@@ -1,0 +1,88 @@
+services:
+  # ==================== Nextcloud ====================
+  nextcloud:
+    build: .
+    container_name: nextcloud
+    restart: unless-stopped
+    environment:
+      - MYSQL_HOST=nextcloud-db
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=nextcloud
+      - REDIS_HOST=nextcloud-redis
+      - REDIS_HOST_PASSWORD=redispassword
+      - OVERWRITEPROTOCOL=https
+      - TRUSTED_PROXIES=172.16.0.0/12 192.168.0.0/16 10.0.0.0/8
+      - OVERWRITECLIURL=https://cloud.gigglin.tech
+      - NEXTCLOUD_TRUSTED_DOMAINS=cloud.gigglin.tech
+      - PHP_UPLOAD_LIMIT=16G
+    volumes:
+      - nextcloud-html:/var/www/html
+      - /srv/nextcloud-data:/var/www/html/data
+    depends_on:
+      - nextcloud-db
+      - nextcloud-redis
+    networks:
+      - nextcloud-net
+      - proxy_network
+
+  # ==================== MariaDB for Nextcloud ====================
+  nextcloud-db:
+    image: mariadb:11
+    container_name: nextcloud-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: mariadbroot
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+      MYSQL_PASSWORD: nextcloud
+    volumes:
+      - nextcloud-db-data:/var/lib/mysql
+    networks:
+      - nextcloud-net
+
+  # ==================== Redis for Nextcloud ====================
+  nextcloud-redis:
+    image: redis:7-alpine
+    container_name: nextcloud-redis
+    restart: unless-stopped
+    command: redis-server --requirepass redispassword
+    volumes:
+      - nextcloud-redis-data:/data
+    networks:
+      - nextcloud-net
+
+  # ==================== Cron (background jobs) ====================
+  nextcloud-cron:
+    build: .
+    container_name: nextcloud-cron
+    restart: unless-stopped
+    entrypoint: /cron.sh
+    volumes:
+      - nextcloud-html:/var/www/html
+      - /srv/nextcloud-data:/var/www/html/data
+    depends_on:
+      - nextcloud-db
+      - nextcloud-redis
+    environment:
+      - MYSQL_HOST=nextcloud-db
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=nextcloud
+      - REDIS_HOST=nextcloud-redis
+      - REDIS_HOST_PASSWORD=redispassword
+    networks:
+      - nextcloud-net
+
+# ==================== Networks & Volumes ====================
+networks:
+  nextcloud-net:
+    driver: bridge
+  proxy_network:
+    external: true
+    name: my_server_proxy_network
+
+volumes:
+  nextcloud-html:
+  nextcloud-db-data:
+  nextcloud-redis-data:

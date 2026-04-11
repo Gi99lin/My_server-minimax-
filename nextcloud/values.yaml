@@ -1,3 +1,6 @@
+# [BACKUP] Helm values for K3s deployment
+# Сохранён на случай отката. Docker Compose теперь в docker-compose.yml
+#
 # Nextcloud Configuration
 nextcloud:
   host: cloud.gigglin.tech
