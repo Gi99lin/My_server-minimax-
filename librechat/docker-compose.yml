@@ -87,6 +87,7 @@ services:
     security_opt:
       - apparmor:unconfined
     environment:
+      - API_KEY=${LIBRECHAT_CODE_API_KEY:-local_master_key}
       - REDIS_HOST=code-interpreter-redis
       - MINIO_ENDPOINT=code-interpreter-minio:9000
     volumes:
