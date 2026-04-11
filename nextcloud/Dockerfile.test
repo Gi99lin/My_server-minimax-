@@ -1,0 +1,7 @@
+FROM nextcloud:30-apache
+RUN apt-get update && apt-get install -y git \
+    && git clone https://github.com/remicollet/php-rar.git /usr/src/php/ext/rar \
+    && docker-php-ext-install rar \
+    && rm -rf /usr/src/php/ext/rar \
+    && apt-get purge -y git && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
