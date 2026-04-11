@@ -12,7 +12,6 @@ RUN apt-get update \
         git \
         p7zip \
         p7zip-full \
-        unrar \
     && git clone https://github.com/remicollet/php-rar.git /usr/src/php/ext/rar \
     && docker-php-ext-install rar \
     && rm -rf /usr/src/php/ext/rar \
