@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeLab Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-card: rgba(15, 23, 42, 0.8);
+            --bg-card-hover: rgba(20, 30, 55, 0.9);
+            --border: rgba(99, 102, 241, 0.15);
+            --border-hover: rgba(99, 102, 241, 0.35);
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #6366f1;
+            --accent-cyan: #22d3ee;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --accent-purple: #a855f7;
+            --accent-orange: #f97316;
+            --glow-blue: rgba(99, 102, 241, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(34, 211, 238, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e2e8f0, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 8px var(--accent-green);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .last-update {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* System Summary */
+        .system-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+        }
+
+        .summary-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .summary-unit {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin-left: 4px;
+        }
+
+        /* Groups Grid */
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            gap: 16px;
+        }
+
+        /* Group Card */
+        .group-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+        }
+
+        .group-card:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px 12px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .group-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .group-icon {
+            font-size: 1.3rem;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .group-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .group-count {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .group-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 0.8rem;
+        }
+
+        .group-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .group-stat-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .group-stat-value {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* Progress bar */
+        .group-bar-container {
+            padding: 0 20px 12px;
+        }
+
+        .group-bars {
+            display: flex;
+            gap: 8px;
+        }
+
+        .bar-wrapper {
+            flex: 1;
+        }
+
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bar-track {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 1s ease;
+            min-width: 1px;
+        }
+
+        /* Container list */
+        .group-containers {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            border-top: 1px solid transparent;
+        }
+
+        .group-card.expanded .group-containers {
+            max-height: 500px;
+            border-top-color: var(--border);
+        }
+
+        .container-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 20px;
+            font-size: 0.78rem;
+            transition: background 0.2s;
+        }
+
+        .container-row:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .container-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            min-width: 0;
+        }
+
+        .container-name .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .container-name span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .container-metrics {
+            display: flex;
+            gap: 20px;
+            flex-shrink: 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .container-metric {
+            text-align: right;
+            min-width: 60px;
+        }
+
+        .container-metric .value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .container-row:last-child {
+            padding-bottom: 14px;
+        }
+
+        /* Expand icon */
+        .expand-icon {
+            color: var(--text-muted);
+            transition: transform 0.3s;
+            font-size: 0.7rem;
+        }
+
+        .group-card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Color themes per group */
+        .group-cloud .group-icon { background: rgba(99, 102, 241, 0.15); }
+        .group-cloud .bar-fill { background: linear-gradient(90deg, #6366f1, #818cf8); }
+        .group-cloud .group-stat-value { color: #818cf8; }
+        .group-cloud .dot { background: #6366f1; }
+
+        .group-chat .group-icon { background: rgba(34, 211, 238, 0.12); }
+        .group-chat .bar-fill { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
+        .group-chat .group-stat-value { color: #22d3ee; }
+        .group-chat .dot { background: #22d3ee; }
+
+        .group-ai .group-icon { background: rgba(168, 85, 247, 0.12); }
+        .group-ai .bar-fill { background: linear-gradient(90deg, #7c3aed, #a855f7); }
+        .group-ai .group-stat-value { color: #a855f7; }
+        .group-ai .dot { background: #a855f7; }
+
+        .group-hr .group-icon { background: rgba(16, 185, 129, 0.12); }
+        .group-hr .bar-fill { background: linear-gradient(90deg, #059669, #10b981); }
+        .group-hr .group-stat-value { color: #10b981; }
+        .group-hr .dot { background: #10b981; }
+
+        .group-vpn .group-icon { background: rgba(249, 115, 22, 0.12); }
+        .group-vpn .bar-fill { background: linear-gradient(90deg, #ea580c, #f97316); }
+        .group-vpn .group-stat-value { color: #f97316; }
+        .group-vpn .dot { background: #f97316; }
+
+        .group-infra .group-icon { background: rgba(245, 158, 11, 0.12); }
+        .group-infra .bar-fill { background: linear-gradient(90deg, #d97706, #f59e0b); }
+        .group-infra .group-stat-value { color: #f59e0b; }
+        .group-infra .dot { background: #f59e0b; }
+
+        .group-system .group-icon { background: rgba(244, 63, 94, 0.12); }
+        .group-system .bar-fill { background: linear-gradient(90deg, #e11d48, #f43f5e); }
+        .group-system .group-stat-value { color: #f43f5e; }
+        .group-system .dot { background: #f43f5e; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .groups-grid { grid-template-columns: 1fr; }
+            .system-summary { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* Loading */
+        .loading {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0% { content: '.'; }
+            33% { content: '..'; }
+            66% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 HomeLab Monitor</h1>
+            <div class="header-meta">
+                <div class="status-dot"></div>
+                <span class="last-update" id="lastUpdate">Загрузка...</span>
+            </div>
+        </div>
+
+        <div class="system-summary" id="systemSummary">
+            <div class="summary-card">
+                <div class="summary-label">Контейнеры</div>
+                <div class="summary-value" id="totalContainers">—</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">CPU (все)</div>
+                <div class="summary-value" id="totalCpu">—<span class="summary-unit">%</span></div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">RAM (все)</div>
+                <div class="summary-value" id="totalRam">—<span class="summary-unit">MB</span></div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">RAM сервер</div>
+                <div class="summary-value" id="serverRam">—<span class="summary-unit">GB</span></div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Uptime</div>
+                <div class="summary-value" id="uptime">—</div>
+            </div>
+        </div>
+
+        <div class="groups-grid" id="groupsGrid">
+            <div class="loading">Подключение к Netdata</div>
+        </div>
+    </div>
+
+    <script>
+        // ===== Configuration =====
+        // Запросы будут идти на текущий домен (Nginx проксирует /api/ в Netdata)
+        const NETDATA_URL = '';
+
+        const REFRESH_INTERVAL = 5000; // 5 seconds
+
+        // Container groups definition
+        const GROUPS = [
+            {
+                id: 'cloud', name: 'Nextcloud', icon: '☁️', css: 'group-cloud',
+                containers: ['nextcloud', 'nextcloud-cron', 'nextcloud-db', 'nextcloud-redis']
+            },
+            {
+                id: 'chat', name: 'LibreChat', icon: '💬', css: 'group-chat',
+                containers: ['LibreChat', 'chat-rag_api', 'chat-code-interpreter-api',
+                    'chat-code-interpreter-redis', 'chat-vectordb', 'chat-mongodb',
+                    'chat-meilisearch', 'chat-code-interpreter-minio']
+            },
+            {
+                id: 'ai', name: 'OpenClaw / AI', icon: '🤖', css: 'group-ai',
+                containers: ['openclaw-gateway', 'spawn-sanitizer', 'omniroute']
+            },
+            {
+                id: 'hr', name: 'HR Bot', icon: '👤', css: 'group-hr',
+                containers: ['hrbot_app_prod', 'hrbot_db_prod', 'hrbot_redis_prod']
+            },
+            {
+                id: 'vpn', name: 'VPN / Marzneshin', icon: '🔒', css: 'group-vpn',
+                containers: ['marznode', 'marzneshin-marzneshin-1', 'marzneshin-marzneshin-db-1']
+            },
+            {
+                id: 'infra', name: 'Инфраструктура', icon: '🌐', css: 'group-infra',
+                containers: ['nginx-proxy-manager', 'nginx-proxy-manager-db', 'syncthing', 'landing']
+            }
+        ];
+
+        // ===== State =====
+        let containerData = {};
+        let expandedGroups = new Set();
+
+        // ===== Netdata API =====
+        async function fetchJson(url) {
+            try {
+                const resp = await fetch(url, { signal: AbortSignal.timeout(4000) });
+                if (!resp.ok) return null;
+                return await resp.json();
+            } catch { return null; }
+        }
+
+        async function getDockerStats() {
+            // Use docker stats via Netdata's cgroup data
+            const charts = await fetchJson(`${NETDATA_URL}/api/v1/charts`);
+            if (!charts || !charts.charts) return {};
+
+            const data = {};
+            const cgroupCharts = Object.keys(charts.charts).filter(k => k.startsWith('cgroup_'));
+
+            // Get unique container names from cgroup charts
+            const containerNames = new Set();
+            cgroupCharts.forEach(chart => {
+                const match = chart.match(/^cgroup_(.+?)\.(cpu|mem|cpu_limit)/);
+                if (match) containerNames.add(match[1]);
+            });
+
+            // Fetch CPU and memory for each container
+            const promises = [];
+            for (const name of containerNames) {
+                promises.push(
+                    fetchJson(`${NETDATA_URL}/api/v1/data?chart=cgroup_${name}.cpu&points=1&after=-5&format=json`)
+                        .then(d => {
+                            if (!data[name]) data[name] = { name, cpu: 0, ram: 0 };
+                            if (d && d.data && d.data[0]) {
+                                // Sum all CPU dimensions
+                                const values = d.data[0].slice(1);
+                                data[name].cpu = values.reduce((a, b) => a + (b || 0), 0);
+                            }
+                        })
+                );
+                promises.push(
+                    fetchJson(`${NETDATA_URL}/api/v1/data?chart=cgroup_${name}.mem_usage&points=1&after=-5&format=json`)
+                        .then(d => {
+                            if (!data[name]) data[name] = { name, cpu: 0, ram: 0 };
+                            if (d && d.data && d.data[0]) {
+                                // RAM in MiB
+                                data[name].ram = (d.data[0][1] || 0) / 1024 / 1024;
+                            }
+                        })
+                );
+            }
+
+            await Promise.all(promises);
+            return data;
+        }
+
+        async function getSystemInfo() {
+            const [ramData, uptimeData] = await Promise.all([
+                fetchJson(`${NETDATA_URL}/api/v1/data?chart=system.ram&points=1&after=-5&format=json`),
+                fetchJson(`${NETDATA_URL}/api/v1/data?chart=system.uptime&points=1&after=-5&format=json`)
+            ]);
+
+            let totalRamGB = 0, usedRamGB = 0;
+            if (ramData && ramData.data && ramData.data[0]) {
+                const values = ramData.data[0].slice(1);
+                const totalMB = values.reduce((a, b) => a + Math.abs(b || 0), 0);
+                totalRamGB = totalMB / 1024;
+                // used = total - free - cached - buffers
+                const labels = ramData.labels || [];
+                const freeIdx = labels.indexOf('free');
+                const cachedIdx = labels.indexOf('cached');
+                const buffersIdx = labels.indexOf('buffers');
+                const freeMB = (freeIdx > 0 ? Math.abs(ramData.data[0][freeIdx]) : 0);
+                const cachedMB = (cachedIdx > 0 ? Math.abs(ramData.data[0][cachedIdx]) : 0);
+                const buffersMB = (buffersIdx > 0 ? Math.abs(ramData.data[0][buffersIdx]) : 0);
+                usedRamGB = (totalMB - freeMB - cachedMB - buffersMB) / 1024;
+            }
+
+            let uptimeSec = 0;
+            if (uptimeData && uptimeData.data && uptimeData.data[0]) {
+                uptimeSec = uptimeData.data[0][1] || 0;
+            }
+
+            return { totalRamGB, usedRamGB, uptimeSec };
+        }
+
+        // ===== Rendering =====
+        function formatMB(mb) {
+            if (mb >= 1024) return (mb / 1024).toFixed(1) + ' GB';
+            if (mb >= 100) return mb.toFixed(0) + ' MB';
+            return mb.toFixed(1) + ' MB';
+        }
+
+        function formatCpu(pct) {
+            if (pct < 0.01) return '0%';
+            if (pct < 1) return pct.toFixed(2) + '%';
+            return pct.toFixed(1) + '%';
+        }
+
+        function formatUptime(seconds) {
+            const days = Math.floor(seconds / 86400);
+            const hours = Math.floor((seconds % 86400) / 3600);
+            if (days > 0) return `${days}д ${hours}ч`;
+            const mins = Math.floor((seconds % 3600) / 60);
+            return `${hours}ч ${mins}м`;
+        }
+
+        function renderGroups(data) {
+            const grid = document.getElementById('groupsGrid');
+            let totalCpu = 0, totalRam = 0, totalContainers = 0;
+
+            const html = GROUPS.map(group => {
+                let groupCpu = 0, groupRam = 0;
+                let activeContainers = 0;
+
+                const containerRows = group.containers.map(name => {
+                    // Try different name formats
+                    const d = data[name] || data[name.replace(/-/g, '_')] || null;
+                    const cpu = d ? d.cpu : 0;
+                    const ram = d ? d.ram : 0;
+                    const active = d !== null;
+
+                    if (active) {
+                        groupCpu += cpu;
+                        groupRam += ram;
+                        activeContainers++;
+                    }
+
+                    return `
+                        <div class="container-row">
+                            <div class="container-name">
+                                <div class="dot" style="opacity: ${active ? 1 : 0.3}"></div>
+                                <span>${name}</span>
+                            </div>
+                            <div class="container-metrics">
+                                <div class="container-metric">
+                                    <span class="value">${active ? formatCpu(cpu) : '—'}</span>
+                                </div>
+                                <div class="container-metric">
+                                    <span class="value">${active ? formatMB(ram) : '—'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                totalCpu += groupCpu;
+                totalRam += groupRam;
+                totalContainers += activeContainers;
+
+                const expanded = expandedGroups.has(group.id);
+                const ramPct = Math.min(100, (groupRam / 2048) * 100); // 2GB scale
+                const cpuPct = Math.min(100, groupCpu * 10); // 10% = full
+
+                return `
+                    <div class="group-card ${group.css} ${expanded ? 'expanded' : ''}"
+                         data-group="${group.id}">
+                        <div class="group-header" onclick="toggleGroup('${group.id}')">
+                            <div class="group-title">
+                                <div class="group-icon">${group.icon}</div>
+                                <div>
+                                    <div class="group-name">${group.name}</div>
+                                    <div class="group-count">${activeContainers}/${group.containers.length} контейнеров</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div class="group-stats">
+                                    <div class="group-stat">
+                                        <span class="group-stat-label">CPU</span>
+                                        <span class="group-stat-value">${formatCpu(groupCpu)}</span>
+                                    </div>
+                                    <div class="group-stat">
+                                        <span class="group-stat-label">RAM</span>
+                                        <span class="group-stat-value">${formatMB(groupRam)}</span>
+                                    </div>
+                                </div>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                        <div class="group-bar-container">
+                            <div class="group-bars">
+                                <div class="bar-wrapper">
+                                    <div class="bar-label"><span>CPU</span><span>${formatCpu(groupCpu)}</span></div>
+                                    <div class="bar-track"><div class="bar-fill" style="width: ${cpuPct}%"></div></div>
+                                </div>
+                                <div class="bar-wrapper">
+                                    <div class="bar-label"><span>RAM</span><span>${formatMB(groupRam)}</span></div>
+                                    <div class="bar-track"><div class="bar-fill" style="width: ${ramPct}%"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="group-containers">
+                            <div style="padding: 4px 20px 0; display: flex; justify-content: flex-end; gap: 20px; font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                                <span style="min-width: 60px; text-align: right;">CPU</span>
+                                <span style="min-width: 60px; text-align: right;">RAM</span>
+                            </div>
+                            ${containerRows}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            grid.innerHTML = html;
+
+            // Update summary
+            document.getElementById('totalContainers').textContent = totalContainers;
+            document.getElementById('totalCpu').innerHTML = `${totalCpu.toFixed(1)}<span class="summary-unit">%</span>`;
+            document.getElementById('totalRam').innerHTML = `${formatMB(totalRam)}`;
+        }
+
+        function toggleGroup(groupId) {
+            if (expandedGroups.has(groupId)) {
+                expandedGroups.delete(groupId);
+            } else {
+                expandedGroups.add(groupId);
+            }
+            renderGroups(containerData);
+        }
+
+        // ===== Main Loop =====
+        async function refresh() {
+            try {
+                const [dockerData, sysInfo] = await Promise.all([
+                    getDockerStats(),
+                    getSystemInfo()
+                ]);
+
+                containerData = dockerData;
+                renderGroups(dockerData);
+
+                if (sysInfo.totalRamGB > 0) {
+                    document.getElementById('serverRam').innerHTML =
+                        `${sysInfo.usedRamGB.toFixed(1)}<span class="summary-unit">/ ${sysInfo.totalRamGB.toFixed(0)} GB</span>`;
+                }
+                if (sysInfo.uptimeSec > 0) {
+                    document.getElementById('uptime').textContent = formatUptime(sysInfo.uptimeSec);
+                }
+
+                document.getElementById('lastUpdate').textContent =
+                    `Обновлено: ${new Date().toLocaleTimeString('ru-RU')}`;
+            } catch (e) {
+                console.error('Refresh error:', e);
+            }
+        }
+
+        // Start
+        refresh();
+        setInterval(refresh, REFRESH_INTERVAL);
+    </script>
+</body>
+</html>

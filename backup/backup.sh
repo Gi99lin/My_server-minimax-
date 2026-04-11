@@ -71,6 +71,18 @@ else
   log "  MariaDB container not running — skipping dump"
 fi
 
+# Nextcloud MariaDB
+if docker ps --format '{{.Names}}' | grep -q "^nextcloud-db$"; then
+  log "  Dumping MariaDB (nextcloud-db)..."
+  docker exec nextcloud-db \
+    mariadb-dump --all-databases -uroot -p"mariadbroot" \
+    --default-character-set=utf8mb4 --single-transaction --quick --skip-extended-insert \
+    > "$DUMP_DIR/nextcloud-all-databases.sql" 2>>"$LOG_FILE"
+  log "  Nextcloud DB dump: OK ($(du -sh "$DUMP_DIR/nextcloud-all-databases.sql" | cut -f1))"
+else
+  log "  Nextcloud DB container not running — skipping dump"
+fi
+
 # Marzneshin (SQLite — просто будет включён в бэкап папки)
 if docker ps --format '{{.Names}}' | grep -qi "marzneshin"; then
   log "  Marzneshin uses SQLite — included in volume backup automatically"
@@ -83,7 +95,6 @@ restic backup \
   /home/gigglin/ \
   /var/lib/docker/volumes/ \
   /srv/nextcloud-data \
-  /var/lib/rancher/k3s \
   "$DUMP_DIR" \
   --exclude="/home/gigglin/.cache" \
   --exclude="/home/gigglin/.local/share/Trash" \
