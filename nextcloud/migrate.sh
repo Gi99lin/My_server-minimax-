@@ -156,13 +156,25 @@ phase2() {
     info "   Ждём 40 секунд (чтобы Nextcloud скопировал файлы в volume)..."
     sleep 40
 
-    info "   Восстанавливаем старый config.php..."
-    docker cp "$BACKUP_DIR/config.php.backup" nextcloud:/var/www/html/config/config.php
+    # Патчим config.php ДО копирования — меняем адреса K3s на Docker Compose
+    info "   Патчим config.php (K3s → Docker адреса)..."
+    cp "$BACKUP_DIR/config.php.backup" "$BACKUP_DIR/config.php.patched"
+    # dbhost: nextcloud-mariadb → nextcloud-db
+    sed -i "s/'dbhost' *=> *'[^']*'/'dbhost' => 'nextcloud-db'/" "$BACKUP_DIR/config.php.patched"
+    # redis host
+    sed -i "s/'host' *=> *'[^']*nextcloud-redis[^']*'/'host' => 'nextcloud-redis'/" "$BACKUP_DIR/config.php.patched"
+    # overwriteprotocol
+    sed -i "s/'overwriteprotocol' *=> *'[^']*'/'overwriteprotocol' => 'https'/" "$BACKUP_DIR/config.php.patched"
+
+    info "   Восстанавливаем пропатченный config.php..."
+    docker cp "$BACKUP_DIR/config.php.patched" nextcloud:/var/www/html/config/config.php
     docker exec nextcloud chown www-data:www-data /var/www/html/config/config.php
+
+    # 8. Обновляем конфиг и запускаем upgrade
+    info "8/8 Запускаем occ upgrade..."
     docker exec -u www-data nextcloud php occ upgrade || true
 
-    # 8. Обновляем конфиг
-    info "8/8 Обновляем конфигурацию Nextcloud (Docker)..."
+    # Дополнительные настройки через occ (на случай если sed не поймал всё)
     docker exec -u www-data nextcloud php occ config:system:set dbhost --value="nextcloud-db"
     docker exec -u www-data nextcloud php occ config:system:set redis host --value="nextcloud-redis"
     docker exec -u www-data nextcloud php occ config:system:set redis password --value="redispassword"
