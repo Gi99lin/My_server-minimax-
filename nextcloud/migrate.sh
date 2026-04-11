@@ -133,11 +133,16 @@ phase2() {
     # 7. Запускаем всё
     info "7/8 Запускаем все контейнеры..."
     docker compose up -d
-    info "   Ждём 30 секунд..."
-    sleep 30
+    info "   Ждём 40 секунд (чтобы Nextcloud скопировал файлы в volume)..."
+    sleep 40
+
+    info "   Восстанавливаем старый config.php..."
+    docker cp "$BACKUP_DIR/config.php.backup" nextcloud:/var/www/html/config/config.php
+    docker exec nextcloud chown www-data:www-data /var/www/html/config/config.php
+    docker exec -u www-data nextcloud php occ upgrade || true
 
     # 8. Обновляем конфиг
-    info "8/8 Обновляем конфигурацию Nextcloud..."
+    info "8/8 Обновляем конфигурацию Nextcloud (Docker)..."
     docker exec -u www-data nextcloud php occ config:system:set dbhost --value="nextcloud-db"
     docker exec -u www-data nextcloud php occ config:system:set redis host --value="nextcloud-redis"
     docker exec -u www-data nextcloud php occ config:system:set redis password --value="redispassword"
