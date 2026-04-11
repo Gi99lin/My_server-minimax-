@@ -72,17 +72,6 @@ services:
     env_file:
       - .env
 
-volumes:
-  vectordb_data:
-  sandbox-data:
-  sandbox-redis-data:
-  sandbox-minio-data:
-
-networks:
-  proxy_network:
-    external: true
-    name: my_server_proxy_network
-
   code-interpreter-api:
     image: ghcr.io/usnavy13/librecodeinterpreter:main
     deploy:
@@ -155,3 +144,14 @@ networks:
       mc mb --ignore-existing myminio/code-interpreter-files;
       exit 0;
       "
+
+volumes:
+  vectordb_data:
+  sandbox-data:
+  sandbox-redis-data:
+  sandbox-minio-data:
+
+networks:
+  proxy_network:
+    external: true
+    name: my_server_proxy_network
