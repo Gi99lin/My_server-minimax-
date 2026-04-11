@@ -152,7 +152,7 @@ phase2() {
 
     # 7. Запускаем всё
     info "7/8 Запускаем все контейнеры..."
-    docker compose up -d
+    docker compose up -d --build
     info "   Ждём 40 секунд (чтобы Nextcloud скопировал файлы в volume)..."
     sleep 40
 
