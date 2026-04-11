@@ -32,7 +32,7 @@ services:
     image: mariadb:10.11
     container_name: nextcloud-db
     restart: unless-stopped
-    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --innodb-read-only-compressed=OFF --max-allowed-packet=256M --innodb-log-file-size=512M --innodb-buffer-pool-size=512M --innodb-use-native-aio=0 --innodb-flush-method=fsync
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --innodb-read-only-compressed=OFF --innodb-use-native-aio=0 --innodb-flush-method=fsync --innodb-buffer-pool-size=256M
     environment:
       MYSQL_ROOT_PASSWORD: mariadbroot
       MYSQL_DATABASE: nextcloud
