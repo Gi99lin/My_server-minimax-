@@ -1,6 +1,6 @@
 # Custom Nextcloud image with RAR support
 # Based on the official Nextcloud Apache image
-FROM nextcloud:30-apache
+FROM nextcloud:32-apache
 
 LABEL maintainer="gi99lin@yandex.ru"
 LABEL description="Nextcloud with RAR/7z archive support"
