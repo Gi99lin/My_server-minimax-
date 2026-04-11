@@ -28,9 +28,10 @@ services:
 
   # ==================== MariaDB for Nextcloud ====================
   nextcloud-db:
-    image: mariadb:11
+    image: mariadb:10.11
     container_name: nextcloud-db
     restart: unless-stopped
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --innodb-read-only-compressed=OFF
     environment:
       MYSQL_ROOT_PASSWORD: mariadbroot
       MYSQL_DATABASE: nextcloud
