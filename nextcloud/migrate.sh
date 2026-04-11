@@ -102,11 +102,24 @@ phase2() {
     fi
 
     info "   Найден MariaDB под: $MARIADB_POD"
+    # --skip-extended-insert: каждая строка = отдельный INSERT (предотвращает слишком большие транзакции)
+    # --default-character-set=utf8mb4: корректная обработка emoji (таблица oc_reactions)
+    # --single-transaction: консистентный снэпшот
     kubectl exec -n nextcloud "$MARIADB_POD" -- \
-        mysqldump -u nextcloud -pnextcloud nextcloud > "$BACKUP_DIR/nextcloud-db.sql"
+        mysqldump --default-character-set=utf8mb4 --single-transaction --quick --skip-extended-insert \
+        -u nextcloud -pnextcloud nextcloud > "$BACKUP_DIR/nextcloud-db.sql"
 
     DB_SIZE=$(du -h "$BACKUP_DIR/nextcloud-db.sql" | cut -f1)
     info "   Дамп сохранён: $BACKUP_DIR/nextcloud-db.sql ($DB_SIZE)"
+
+    # Конвертируем Aria/MyISAM → InnoDB
+    # Bitnami MariaDB использует Aria для некоторых таблиц Nextcloud (включая oc_reactions).
+    # Aria НЕ работает корректно под Docker seccomp профилем и вызывает
+    # "Got error 1 Operation not permitted during COMMIT"
+    info "   Конвертируем Aria/MyISAM → InnoDB в дампе..."
+    sed -i 's/ENGINE=Aria/ENGINE=InnoDB/g; s/ENGINE=MyISAM/ENGINE=InnoDB/g' "$BACKUP_DIR/nextcloud-db.sql"
+    # Удаляем несовместимые опции Aria (PAGE_CHECKSUM, TRANSACTIONAL)
+    sed -i 's/ PAGE_CHECKSUM=[01]//g; s/ TRANSACTIONAL=[01]//g' "$BACKUP_DIR/nextcloud-db.sql"
 
     # 3. Сохраняем config.php
     info "3/8 Сохраняем config.php..."
@@ -128,8 +141,14 @@ phase2() {
 
     # 6. Восстанавливаем дамп
     info "6/8 Восстанавливаем дамп базы данных..."
-    docker exec -i nextcloud-db mariadb -u nextcloud -pnextcloud nextcloud < "$BACKUP_DIR/nextcloud-db.sql"
+    info "   (это может занять несколько минут из-за --skip-extended-insert)"
+    # -f = force: продолжать при некритичных ошибках
+    docker exec -i nextcloud-db mariadb -f --default-character-set=utf8mb4 -u nextcloud -pnextcloud nextcloud < "$BACKUP_DIR/nextcloud-db.sql" 2>&1 | tail -5
     info "   ✅ Дамп восстановлен!"
+
+    # Проверяем количество таблиц
+    TABLE_COUNT=$(docker exec nextcloud-db mariadb -u nextcloud -pnextcloud nextcloud -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='nextcloud';" -sN)
+    info "   Таблиц в базе: $TABLE_COUNT"
 
     # 7. Запускаем всё
     info "7/8 Запускаем все контейнеры..."
