@@ -55,3 +55,4 @@ syncthing/config/index-v2/
 *.db
 *.db-shm
 *.db-wal
+openclaw/.env.bak
