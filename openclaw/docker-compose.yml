@@ -31,6 +31,10 @@ services:
       - TELEGRAM_BOT_TOKEN_FINANALYST=${TELEGRAM_BOT_TOKEN_FINANALYST}
       - TELEGRAM_BOT_TOKEN_DEVTEAM=${TELEGRAM_BOT_TOKEN_DEVTEAM}
       - TELEGRAM_BOT_TOKEN_QA=${TELEGRAM_BOT_TOKEN_QA}
+      # --- MTProto QA User Client (Pyrogram) ---
+      - TELEGRAM_API_ID=${TELEGRAM_API_ID}
+      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
+      - TELEGRAM_TEST_PHONE=${TELEGRAM_TEST_PHONE}
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/node/.openclaw/.npm-global/bin
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:18789/healthz"]
