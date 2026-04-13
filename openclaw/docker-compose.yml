@@ -29,6 +29,8 @@ services:
       - OMNIROUTE_API_KEY=${OMNIROUTE_API_KEY}
       - TELEGRAM_BOT_TOKEN_MAIN=${TELEGRAM_BOT_TOKEN_MAIN}
       - TELEGRAM_BOT_TOKEN_FINANALYST=${TELEGRAM_BOT_TOKEN_FINANALYST}
+      - TELEGRAM_BOT_TOKEN_DEVTEAM=${TELEGRAM_BOT_TOKEN_DEVTEAM}
+      - TELEGRAM_BOT_TOKEN_QA=${TELEGRAM_BOT_TOKEN_QA}
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/node/.openclaw/.npm-global/bin
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:18789/healthz"]
