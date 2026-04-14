@@ -1,60 +1,80 @@
 # My HomeLab Server
 
-This repository contains the configuration and deployment scripts for a personal HomeLab server running on **K3s (Kubernetes)** and **Docker**.
+This repository contains the configuration, deployment scripts, and docker-compose files for a personal HomeLab server infrastructure. It combines **Docker Compose** architectures for most services with **K3s (Kubernetes)** for specific enterprise stacks like Matrix.
 
-## 🏗 Infrastructure
-- **Base OS**: Ubuntu (Orange Pi / VPS)
-- **CRI**: K3s (Lightweight Kubernetes)
-- **Ingress/Proxy**: Nginx Proxy Manager (Docker) - Handles SSL and external access for all services.
-- **VPN**: 3X-UI / Xray (Managed via scripts in `_archive` or manual setup).
+## 🏗 Infrastructure Overview
+- **Base OS**: Ubuntu (VPS / Local Mini PC)
+- **Container Runtimes**: Docker (Portainer/Native) & K3s (Lightweight Kubernetes)
+- **Ingress & Proxy**: [Nginx Proxy Manager](https://nginxproxymanager.com/) running via docker in the root directory. Handles SSL termination and subdomains.
+- **Landing Page**: Custom nginx-based landing page running alongside NPM.
 
-### Quick Start
-1. **Setup Host**: Run `./infrastructure/setup.sh` (installs Docker, UFW).
-2. **Install K3s**: Run `./infrastructure/install-k3s.sh`.
-3. **Start NPM**: `docker-compose up -d` (in root).
+### 🚀 Quick Start
+1. **Basic Host Setup**: Configure your Ubuntu server environment and firewall limits.
+2. **Setup Proxy & Landing**: At the root of this project, run `docker compose up -d` to spin up Nginx Proxy Manager and the local Landing page.
+3. **Deploy Services**: Navigate to individual directories (e.g., `cd openclaw`) to configure `.env` files and run deployment commands/scripts.
+
+*(For detailed local Matrix deployment and K3s instructions, see [LOCAL_DEPLOY.md](./LOCAL_DEPLOY.md))*
 
 ---
 
-## 💬 Matrix Server (Element Server Suite)
-A complete Matrix stack with built-in VoIP (LiveKit).
+## 🤖 AI & LLM Ecosystem
 
+### OpenClaw (Multi-Agent System)
+Personal AI assistant framework with persistent memory, multi-agent orchestration, and Telegram bots (Dev Team, QA, FinAnalyst, etc.).
+- **Location**: [`openclaw/`](./openclaw)
+- **Deployment**: `cd openclaw && docker compose up -d`
+
+### LibreChat
+An enterprise-grade, unified web interface for interacting with various LLM providers.
+- **Location**: [`librechat/`](./librechat)
+
+### OmniRoute
+API routing proxy and load balancer to manage, monitor, and route inference LLM requests (used seamlessly by OpenClaw).
+- **Location**: [`omniroute/`](./omniroute)
+
+---
+
+## 🛡️ Privacy, Proxy & VPN
+
+### Marzneshin (Xray Proxy)
+Advanced VPN and proxy management interface using the Xray core. Handles secure access workflows.
+- **Location**: [`marzneshin/`](./marzneshin)
+
+---
+
+## ☁️ Cloud & Synchronization
+
+### Nextcloud
+Self-hosted platform for comprehensive file storage, calendar, and contacts synchronization. Includes Talk integration.
+- **Location**: [`nextcloud/`](./nextcloud)
+
+### Syncthing
+Decentralized, continuous file synchronization service operating smoothly across devices.
+- **Location**: [`syncthing/`](./syncthing)
+
+---
+
+## 💬 Communication
+
+### Matrix Server (Element Server Suite)
+A complete federated Matrix messaging stack with built-in VoIP via LiveKit. Deployed entirely on K3s.
 - **Location**: [`matrix/`](./matrix)
-- **Deployment**: `cd matrix && ./install.sh`
-- **Diagnose**: `cd matrix && ./diagnose.sh`
 - **Docs**: [Deployment Walkthrough](./matrix/WALKTHROUGH.md)
 
 ---
 
-## ☁️ Nextcloud
-Personal cloud storage with Talk (Video Calls).
-
-- **Location**: [`nextcloud/`](./nextcloud)
-- **Deployment**: `cd nextcloud && ./install.sh`
-- **Features**:
-    - File Storage (10Gi+ PVC)
-    - Talk (P2P Calls enabled)
-    - Redis & MariaDB optimizations
-
----
-
-## 🤖 OpenClaw (AI Agent)
-Personal AI assistant with persistent memory. Supports Telegram, WhatsApp, Discord.
-
-- **Location**: [`openclaw/`](./openclaw)
-- **Deployment**: `cd openclaw && ./install.sh`
-- **Control UI**: `http://localhost:18789` (or via NPM)
-- **Features**:
-    - LLM-powered agent (Anthropic, OpenAI, local models)
-    - Persistent memory across conversations
-    - Browser control, shell access (sandboxed in Docker)
-    - Extensible with skills & plugins
-
----
-
-## 📂 Directory Structure
-- `infrastructure/` - Core setup scripts.
-- `matrix/` - Matrix-specific scripts and docs.
-- `nextcloud/` - Nextcloud-specific scripts.
-- `openclaw/` - OpenClaw AI agent (Docker).
-- `scripts/` - Maintenance and debug utilities.
-- `_archive/` - Old configs and temporary files.
+## 📂 Full Directory Structure
+- `dashboard/` - Minimal start dashboard configuration.
+- `infrastructure/` - Core host and K3s installation scripts.
+- `librechat/` - Chat UI for local and remote LLMs.
+- `livekit-config/` - Custom configuration sets for LiveKit services.
+- `marzneshin/` - Xray proxy panel configuration.
+- `matrix/` - Complete Matrix deployment scripts for K3s.
+- `nextcloud/` - Nextcloud deployment files.
+- `nginx-landing/` - Source for the web landing page (starts via root docker-compose).
+- `omniroute/` - Setup for LLM proxy routing.
+- `openclaw/` - The OpenClaw AI Multi-Agent architecture.
+- `scripts/` - Maintenance and utility bash scripts.
+- `syncthing/` - File synchronization component.
+- `_archive/` - Archived templates and legacy files.
+- `backup/` - Tools or scripts associated with taking system backups.
