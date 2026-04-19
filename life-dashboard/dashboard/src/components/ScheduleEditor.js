@@ -6,6 +6,7 @@
 
 let currentDate = null;
 let blocks = [];
+let initialized = false;
 
 const MONTHS_RU = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
   'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
@@ -31,11 +32,11 @@ function shiftDate(dateStr, delta) {
   return d.toISOString().slice(0, 10);
 }
 
-export function openScheduleEditor(date) {
-  currentDate = date || todayStr();
+function initListeners() {
+  if (initialized) return;
+  initialized = true;
+
   const overlay = document.getElementById('scheduleEditorOverlay');
-  if (!overlay) return;
-  overlay.classList.add('open');
 
   document.getElementById('schedPrev')?.addEventListener('click', () => {
     currentDate = shiftDate(currentDate, -1);
@@ -46,11 +47,22 @@ export function openScheduleEditor(date) {
     loadAndRender();
   });
   document.getElementById('schedModalClose')?.addEventListener('click', closeScheduleEditor);
-  document.getElementById('schedSaveBtn')?.addEventListener('click', saveSchedule);
+  document.getElementById('schedSaveBtn')?.addEventListener('click', () => saveSchedule());
 
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) closeScheduleEditor();
-  });
+  if (overlay) {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeScheduleEditor();
+    });
+  }
+}
+
+export function openScheduleEditor(date) {
+  currentDate = date || todayStr();
+  initListeners();
+
+  const overlay = document.getElementById('scheduleEditorOverlay');
+  if (!overlay) return;
+  overlay.classList.add('open');
 
   loadAndRender();
 }
@@ -60,13 +72,17 @@ function closeScheduleEditor() {
 }
 
 async function loadAndRender() {
-  document.getElementById('schedDateTitle').textContent = formatDateRu(currentDate);
+  const titleEl = document.getElementById('schedDateTitle');
+  if (titleEl) titleEl.textContent = formatDateRu(currentDate);
 
   try {
     const res = await fetch(`/api/schedule?date=${currentDate}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     blocks = (data.blocks || []).map(b => ({ ...b }));
-  } catch {
+    console.log(`[ScheduleEditor] Loaded ${blocks.length} blocks for ${currentDate}`);
+  } catch (err) {
+    console.error('[ScheduleEditor] Load error:', err);
     blocks = [];
   }
 
@@ -79,6 +95,19 @@ function renderRows() {
 
   const curHm = nowHHMM();
   const isToday = currentDate === todayStr();
+
+  if (blocks.length === 0) {
+    body.innerHTML = `
+      <div style="text-align: center; color: var(--fg-muted); padding: 24px 0; font-size: 0.85rem;">
+        Нет активностей на этот день
+      </div>
+      <div class="sched-add-row">
+        <button class="sched-add-btn" id="schedAddRow">+ Добавить активность</button>
+      </div>
+    `;
+    document.getElementById('schedAddRow')?.addEventListener('click', addRow);
+    return;
+  }
 
   let html = '';
   blocks.forEach((b, i) => {
@@ -116,7 +145,7 @@ function renderRows() {
   // Delete buttons
   body.querySelectorAll('.sched-delete-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      const idx = parseInt(e.target.dataset.idx);
+      const idx = parseInt(e.target.closest('[data-idx]').dataset.idx);
       blocks.splice(idx, 1);
       renderRows();
     });
@@ -125,7 +154,7 @@ function renderRows() {
   // Quick Confirm buttons
   body.querySelectorAll('.sched-confirm-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
-      const idx = parseInt(e.target.dataset.idx);
+      const idx = parseInt(e.target.closest('[data-idx]').dataset.idx);
       const now = nowHHMM();
 
       // End current activity at now
@@ -136,26 +165,12 @@ function renderRows() {
       const savedMinutes = timeToMin(originalEnd) - timeToMin(now);
 
       if (savedMinutes > 0 && idx + 1 < blocks.length) {
-        // Start next activity at now
-        blocks[idx + 1].start = now;
-
-        // Shift all subsequent activities up proportionally
+        // Shift all subsequent activities up, preserving their durations
         for (let j = idx + 1; j < blocks.length; j++) {
-          const origStart = timeToMin(blocks[j].start);
-          const origEnd = timeToMin(blocks[j].end);
-
-          if (j === idx + 1) {
-            // Already set start to now; keep original duration
-            const duration = origEnd - timeToMin(originalEnd) + (timeToMin(originalEnd) - origStart);
-            // Actually: just shift start, keep end shifted by same delta
-            blocks[j].start = now;
-            blocks[j].end = minToTime(timeToMin(now) + (origEnd - origStart));
-          } else {
-            // Shift by delta
-            blocks[j].start = minToTime(timeToMin(blocks[j - 1].end));
-            const duration = origEnd - origStart;
-            blocks[j].end = minToTime(timeToMin(blocks[j].start) + duration);
-          }
+          const origDuration = timeToMin(blocks[j].end) - timeToMin(blocks[j].start);
+          const newStart = j === idx + 1 ? now : blocks[j - 1].end;
+          blocks[j].start = newStart;
+          blocks[j].end = minToTime(timeToMin(newStart) + origDuration);
         }
       }
 
@@ -166,12 +181,14 @@ function renderRows() {
   });
 
   // Add row
-  document.getElementById('schedAddRow')?.addEventListener('click', () => {
-    const lastEnd = blocks.length > 0 ? blocks[blocks.length - 1].end : '09:00';
-    const newEnd = minToTime(timeToMin(lastEnd) + 60);
-    blocks.push({ start: lastEnd, end: newEnd, activity: '' });
-    renderRows();
-  });
+  document.getElementById('schedAddRow')?.addEventListener('click', addRow);
+}
+
+function addRow() {
+  const lastEnd = blocks.length > 0 ? blocks[blocks.length - 1].end : '09:00';
+  const newEnd = minToTime(timeToMin(lastEnd) + 60);
+  blocks.push({ start: lastEnd, end: newEnd, activity: '' });
+  renderRows();
 }
 
 function timeToMin(hhmm) {
@@ -187,12 +204,14 @@ function minToTime(min) {
 
 async function saveSchedule() {
   try {
-    await fetch('/api/schedule', {
+    const res = await fetch('/api/schedule', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ date: currentDate, blocks }),
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    console.log(`[ScheduleEditor] Saved ${blocks.length} blocks for ${currentDate}`);
   } catch (err) {
-    console.error('Schedule save error:', err);
+    console.error('[ScheduleEditor] Save error:', err);
   }
 }
