@@ -9,6 +9,8 @@ import { renderTimeBreakdown } from './components/TimeBreakdown.js';
 import { renderMoodHeatmap } from './components/MoodHeatmap.js';
 import { renderQuickEntry } from './components/QuickEntry.js';
 import { initWeather } from './components/WeatherForecast.js';
+import { openScheduleEditor } from './components/ScheduleEditor.js';
+import { initGlobalTooltip } from './utils/tooltip.js';
 
 // V2 Imports
 import { initAuth, showLoginModal } from './components/LoginModal.js';
@@ -127,9 +129,41 @@ async function init() {
   const heatmapEl = document.getElementById('moodHeatmap');
   if (heatmapEl) renderMoodHeatmap(heatmapEl, data);
 
+  // Tooltip system
+  initGlobalTooltip();
+
   // Quick entry
   const quickEntry = document.getElementById('quickEntry');
   if (quickEntry) renderQuickEntry(quickEntry);
+
+  // QuickEntry modal wiring
+  const qeOverlay = document.getElementById('quickEntryOverlay');
+  const qeCloseBtn = document.getElementById('qeModalClose');
+  const quickAddBtn = document.getElementById('quickAddBtn');
+
+  function openQuickEntry(date) {
+    if (qeOverlay) {
+      const dateEl = document.getElementById('qeModalDate');
+      if (dateEl) dateEl.textContent = date || new Date().toISOString().slice(0, 10);
+      qeOverlay.classList.add('open');
+    }
+  }
+
+  if (quickAddBtn) quickAddBtn.addEventListener('click', () => openQuickEntry());
+  if (qeCloseBtn) qeCloseBtn.addEventListener('click', () => qeOverlay?.classList.remove('open'));
+  if (qeOverlay) qeOverlay.addEventListener('click', (e) => {
+    if (e.target === qeOverlay) qeOverlay.classList.remove('open');
+  });
+
+  // Expose openQuickEntry globally for MoodHeatmap clicks
+  window.__openQuickEntry = openQuickEntry;
+
+  // Schedule editor — click on schedule widget opens editor
+  const schedWidget = document.querySelector('.schedule-widget-pane');
+  if (schedWidget) {
+    schedWidget.style.cursor = 'pointer';
+    schedWidget.addEventListener('click', () => openScheduleEditor());
+  }
 
   // Health Charts (V2)
   renderHealthCharts(data);

@@ -90,7 +90,7 @@ export function renderMoodHeatmap(container, data) {
         if (mood) tooltipText += ` — ${mood}/5`;
         if (entry?.note && entry.note.length < 60) tooltipText += `\n${entry.note}`;
 
-        html += `<div class="${classes.join(' ')}" data-mood="${mood || ''}" data-tooltip="${escapeAttr(tooltipText)}"></div>`;
+        html += `<div class="${classes.join(' ')}" data-mood="${mood || ''}" data-tooltip="${escapeAttr(tooltipText)}" data-date="${dateStr}" style="cursor:pointer"></div>`;
       }
     }
 
@@ -115,6 +115,15 @@ export function renderMoodHeatmap(container, data) {
 
   // Attach tooltip behavior
   initTooltips(container);
+
+  // Click on cell → open QuickEntry for that date
+  container.addEventListener('click', (e) => {
+    const cell = e.target.closest('.heatmap-cell');
+    if (!cell || !cell.dataset.date) return;
+    if (typeof window.__openQuickEntry === 'function') {
+      window.__openQuickEntry(cell.dataset.date);
+    }
+  });
 }
 
 function formatDateRu(d) {

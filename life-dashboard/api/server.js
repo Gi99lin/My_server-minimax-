@@ -343,9 +343,28 @@ function updateDailyNote(dateStr, entry) {
  */
 app.get('/api/schedule', (req, res) => {
   try {
-    const dateStr = new Date().toISOString().slice(0, 10);
-    const schedulePath = join(VAULT_PATH, 'Жизнь', 'Daily', `${dateStr}-schedules.md`);
-    if (!existsSync(schedulePath)) return res.json({ current: null, next: null, blocks: [] });
+    const dateStr = req.query.date || new Date().toISOString().slice(0, 10);
+
+    // Try structured path first, then flat
+    const [year, monthNum] = dateStr.split('-');
+    const monthNames = {
+      '01': '01-Январь', '02': '02-Февраль', '03': '03-Март',
+      '04': '04-Апрель', '05': '05-Май', '06': '06-Июнь',
+      '07': '07-Июль', '08': '08-Август', '09': '09-Сентябрь',
+      '10': '10-Октябрь', '11': '11-Ноябрь', '12': '12-Декабрь',
+    };
+
+    const candidates = [
+      join(VAULT_PATH, 'Жизнь', 'Daily', year, monthNames[monthNum] || '', `${dateStr}-schedules.md`),
+      join(VAULT_PATH, 'Жизнь', 'Daily', `${dateStr}-schedules.md`),
+    ];
+
+    let schedulePath = null;
+    for (const p of candidates) {
+      if (existsSync(p)) { schedulePath = p; break; }
+    }
+
+    if (!schedulePath) return res.json({ current: null, next: null, blocks: [] });
 
     const content = readFileSync(schedulePath, 'utf-8');
     const lines = content.split('\n');
@@ -370,16 +389,105 @@ app.get('/api/schedule', (req, res) => {
             next = blocks[i+1] || null;
             break;
         } else if (b.start > curHm && !current) {
-            // Gap, this is the upcoming one
             next = b;
             break;
         }
     }
     
-    const debugInfo = { dateStr, schedulePath, exists: existsSync(schedulePath), blocksCount: blocks.length, curHm };
-    res.json({ current, next, blocks, debugInfo });
+    res.json({ current, next, blocks, date: dateStr });
   } catch(err) {
-    res.status(500).json({ error: err.message, debugInfo: "Crash" });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/schedule
+ * Body: { date: "2026-04-19", blocks: [{ start, end, activity }] }
+ * Writes the schedule to the Obsidian vault as a markdown table.
+ */
+app.post('/api/schedule', (req, res) => {
+  try {
+    const { date, blocks } = req.body;
+    if (!date || !blocks) return res.status(400).json({ error: 'date and blocks required' });
+
+    // Determine file path
+    const [year, monthNum] = date.split('-');
+    const monthNames = {
+      '01': '01-Январь', '02': '02-Февраль', '03': '03-Март',
+      '04': '04-Апрель', '05': '05-Май', '06': '06-Июнь',
+      '07': '07-Июль', '08': '08-Август', '09': '09-Сентябрь',
+      '10': '10-Октябрь', '11': '11-Ноябрь', '12': '12-Декабрь',
+    };
+
+    // Try structured path first
+    const structuredDir = join(VAULT_PATH, 'Жизнь', 'Daily', year, monthNames[monthNum] || '');
+    const structuredPath = join(structuredDir, `${date}-schedules.md`);
+    const flatPath = join(VAULT_PATH, 'Жизнь', 'Daily', `${date}-schedules.md`);
+
+    let filePath;
+    if (existsSync(structuredPath)) {
+      filePath = structuredPath;
+    } else if (existsSync(flatPath)) {
+      filePath = flatPath;
+    } else {
+      // Create new file in flat structure
+      filePath = flatPath;
+    }
+
+    // Build markdown table
+    const dt = new Date(date + 'T12:00:00');
+    const weekdays = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+    const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+    const title = `# ${weekdays[dt.getDay()].toUpperCase()} — ${dt.getDate()} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
+
+    let table = '| Время | Активность | Статус |\n|-------|------------|--------|\n';
+    for (const b of blocks) {
+      table += `| ${b.start}-${b.end} | ${b.activity} | |\n`;
+    }
+
+    // If file exists, try to preserve non-table content
+    let content;
+    if (existsSync(filePath)) {
+      const existing = readFileSync(filePath, 'utf-8');
+      // Replace table portion: everything between the header line with '|' and end of consecutive '|' lines
+      const lines = existing.split('\n');
+      const preTable = [];
+      const postTable = [];
+      let inTable = false;
+      let pastTable = false;
+
+      for (const line of lines) {
+        if (!inTable && !pastTable && line.trim().startsWith('|')) {
+          inTable = true;
+          continue; // skip old table lines
+        }
+        if (inTable && !line.trim().startsWith('|')) {
+          inTable = false;
+          pastTable = true;
+          postTable.push(line);
+          continue;
+        }
+        if (inTable) continue; // skip old table lines
+        if (pastTable) {
+          postTable.push(line);
+        } else {
+          preTable.push(line);
+        }
+      }
+
+      content = preTable.join('\n') + '\n' + table + (postTable.length ? '\n' + postTable.join('\n') : '');
+    } else {
+      content = title + '\n\n' + table;
+    }
+
+    writeFileSync(filePath, content.trim() + '\n', 'utf-8');
+    console.log(`📋 Schedule saved: ${filePath} (${blocks.length} blocks)`);
+
+    res.json({ ok: true, date, path: filePath });
+  } catch (err) {
+    console.error('Schedule save error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 

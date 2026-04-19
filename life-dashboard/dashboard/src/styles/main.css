@@ -614,8 +614,8 @@ body::after {
 /* ---- Stat Cards ---- */
 .stat-cards {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: var(--gap);
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
   margin-bottom: var(--gap);
 }
 
@@ -623,7 +623,7 @@ body::after {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
-  padding: 22px 22px 16px;
+  padding: 14px 16px 10px;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   cursor: pointer;
@@ -709,19 +709,19 @@ body::after {
 
 /* ---- Stat Typography ---- */
 .stat-label {
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   text-transform: uppercase;
-  letter-spacing: 1.6px;
+  letter-spacing: 1.4px;
   color: var(--fg-muted);
-  margin-bottom: 12px;
+  margin-bottom: 6px;
   font-weight: 500;
 }
 
 .stat-value {
-  font-size: 2.6rem;
+  font-size: 1.8rem;
   font-weight: 700;
   line-height: 1;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   font-variant-numeric: tabular-nums;
   letter-spacing: -1px;
   position: relative;
@@ -766,8 +766,8 @@ body::after {
 .stat-delta-down { color: var(--red); }
 
 .stat-sparkline {
-  margin-top: 14px;
-  height: 32px;
+  margin-top: 8px;
+  height: 24px;
   opacity: 0.7;
   transition: opacity 0.3s;
 }
@@ -781,14 +781,14 @@ body::after {
 
 /* ---- Sleep Mini Bars ---- */
 .sleep-bars {
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .sleep-bars-container {
   display: flex;
   align-items: flex-end;
   gap: 3px;
-  height: 36px;
+  height: 28px;
   position: relative;
 }
 
@@ -813,7 +813,7 @@ body::after {
 
 /* ---- Commit Dots Grid ---- */
 .commit-dots {
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .commit-dots-grid {
@@ -824,14 +824,14 @@ body::after {
 }
 
 .commit-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 2px;
   transition: transform 0.2s var(--ease-spring);
 }
 
 .commit-dot:hover {
-  transform: scale(1.6);
+  transform: scale(1.8);
   z-index: 2;
 }
 
@@ -986,6 +986,10 @@ body::after {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
   gap: var(--gap);
+}
+
+.bottom-row-full {
+  grid-template-columns: 1fr;
 }
 
 /* ---- Mood Heatmap ---- */
@@ -1602,4 +1606,291 @@ body::after {
   background: var(--fg-muted);
   border-radius: 2px;
   transition: width 0.3s ease;
+}
+
+/* ---- Header "+" Button ---- */
+.header-add-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--fg);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  margin-left: 6px;
+  line-height: 1;
+}
+.header-add-btn:hover {
+  background: var(--green);
+  color: var(--bg);
+  border-color: var(--green);
+  transform: scale(1.1);
+}
+
+/* ---- Modal System ---- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 90%;
+  max-width: 520px;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  animation: modalEnter 0.25s var(--ease-out);
+}
+
+@keyframes modalEnter {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(125, 135, 125, 0.15);
+}
+
+.modal-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--fg);
+  flex: 1;
+}
+
+.modal-date {
+  font-size: 0.75rem;
+  color: var(--fg-muted);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--fg-muted);
+  font-size: 1.4rem;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  margin-left: auto;
+}
+.modal-close:hover {
+  background: rgba(230, 126, 128, 0.15);
+  color: var(--red);
+}
+
+.modal-footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(125, 135, 125, 0.15);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-save-btn {
+  padding: 8px 24px;
+  border: 1px solid var(--green);
+  background: rgba(167, 192, 128, 0.15);
+  color: var(--green);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.modal-save-btn:hover {
+  background: var(--green);
+  color: var(--bg);
+}
+
+/* ---- Schedule Editor ---- */
+.schedule-editor-modal {
+  max-width: 600px;
+}
+
+.sched-nav-btn {
+  background: none;
+  border: 1px solid var(--card-border);
+  color: var(--fg);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+.sched-nav-btn:hover {
+  background: var(--card-bg);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.sched-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(125, 135, 125, 0.08);
+  position: relative;
+}
+.sched-row:last-child { border-bottom: none; }
+.sched-row.sched-current {
+  background: rgba(167, 192, 128, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  margin: 0 -8px;
+}
+
+.sched-time-input {
+  width: 52px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  color: var(--fg);
+  font-size: 0.8rem;
+  font-family: 'Inter', sans-serif;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.sched-time-input:focus {
+  border-color: var(--green);
+  outline: none;
+}
+
+.sched-time-sep {
+  color: var(--fg-muted);
+  font-size: 0.75rem;
+}
+
+.sched-activity-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: var(--fg);
+  font-size: 0.8rem;
+  font-family: 'Inter', sans-serif;
+}
+.sched-activity-input:focus {
+  border-color: var(--green);
+  outline: none;
+}
+
+.sched-confirm-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--green);
+  background: rgba(167, 192, 128, 0.15);
+  color: var(--green);
+  cursor: pointer;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.sched-confirm-btn:hover {
+  background: var(--green);
+  color: var(--bg);
+}
+
+.sched-delete-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--fg-muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.sched-row:hover .sched-delete-btn { opacity: 1; }
+.sched-delete-btn:hover {
+  background: rgba(230, 126, 128, 0.15);
+  color: var(--red);
+}
+
+.sched-add-row {
+  padding: 8px 0;
+  text-align: center;
+}
+.sched-add-btn {
+  background: none;
+  border: 1px dashed var(--card-border);
+  color: var(--fg-muted);
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+}
+.sched-add-btn:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* ---- Global Tooltip ---- */
+.global-tooltip {
+  position: fixed;
+  z-index: 2000;
+  background: rgba(35, 42, 46, 0.95);
+  color: var(--fg);
+  font-size: 0.7rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(125, 135, 125, 0.15);
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+  opacity: 0;
+  transition: opacity 0.15s;
+  white-space: pre-line;
+  max-width: 220px;
+  text-align: center;
+  line-height: 1.4;
+}
+.global-tooltip.visible {
+  opacity: 1;
 }
