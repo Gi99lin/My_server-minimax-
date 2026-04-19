@@ -123,6 +123,123 @@ setInterval(() => {
   pollDocker();
 }, 5000);
 
+// ---- Server Metrics (Netdata Proxy) ----
+
+async function getNetdataChart(chart, after = -3600, points = 60) {
+  try {
+    const res = await fetch(`${NETDATA_URL}/api/v1/data?chart=${chart}&after=${after}&points=${points}&format=json`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+app.get('/api/metrics/server', async (req, res) => {
+  try {
+    const minutes = Math.min(parseInt(req.query.minutes) || 60, 1440);
+    const after = -minutes * 60;
+    const points = Math.min(minutes, 120);
+
+    // System-wide metrics
+    const [cpuData, ramData, netData, diskData] = await Promise.all([
+      getNetdataChart('system.cpu', after, points),
+      getNetdataChart('system.ram', after, points),
+      getNetdataChart('system.net', after, points),
+      getNetdataChart('disk_space._', after, 1),
+    ]);
+
+    const system = {
+      cpu: null,
+      ram: null,
+      net: null,
+      disk: null,
+    };
+
+    if (cpuData?.data) {
+      const labels = cpuData.labels;
+      system.cpu = cpuData.data.map(row => {
+        const obj = { t: row[0] };
+        labels.forEach((l, i) => { if (i > 0) obj[l] = row[i]; });
+        return obj;
+      });
+    }
+
+    if (ramData?.data?.length) {
+      const labels = ramData.labels;
+      const last = ramData.data[ramData.data.length - 1];
+      const obj = {};
+      labels.forEach((l, i) => { if (i > 0) obj[l] = Math.round(last[i]); });
+      system.ram = obj;
+    }
+
+    if (netData?.data) {
+      const labels = netData.labels;
+      system.net = netData.data.map(row => {
+        const obj = { t: row[0] };
+        labels.forEach((l, i) => { if (i > 0) obj[l] = row[i]; });
+        return obj;
+      });
+    }
+
+    if (diskData?.data?.length) {
+      const labels = diskData.labels;
+      const last = diskData.data[diskData.data.length - 1];
+      const obj = {};
+      labels.forEach((l, i) => { if (i > 0) obj[l] = Math.round(last[i]); });
+      system.disk = obj;
+    }
+
+    // Per-container metrics (dynamic grouping)
+    const apps = {};
+    if (docker) {
+      try {
+        const containers = await docker.listContainers({ all: true });
+        
+        // Group containers by app prefix
+        for (const c of containers) {
+          const name = c.Names[0].replace('/', '');
+          // Determine app group: use docker-compose project or first segment before "-"
+          const parts = name.split(/[-_]/);
+          let appKey = parts[0];
+          // Merge common prefixes
+          if (name.includes('life-dashboard')) appKey = 'life-dashboard';
+          else if (name.includes('openclaw')) appKey = 'openclaw';
+          else if (name.includes('omniroute')) appKey = 'omniroute';
+          else if (name.includes('nextcloud')) appKey = 'nextcloud';
+          else if (name.includes('hrBot') || name.includes('hrbot')) appKey = 'hrbot';
+
+          if (!apps[appKey]) {
+            apps[appKey] = { containers: [], totalCpu: 0, totalMem: 0 };
+          }
+          
+          const [cpu, mem] = await Promise.all([
+            getNetdata(`cgroup_${name}.cpu_limit`),
+            getNetdata(`cgroup_${name}.mem_usage_limit`),
+          ]);
+
+          apps[appKey].containers.push({
+            name,
+            state: c.State,
+            status: c.Status,
+            cpu: typeof cpu === 'number' ? cpu : 0,
+            mem: typeof mem === 'number' ? mem : 0,
+          });
+          apps[appKey].totalCpu += (typeof cpu === 'number' ? cpu : 0);
+          apps[appKey].totalMem += (typeof mem === 'number' ? mem : 0);
+        }
+      } catch (e) {
+        console.error('Container metrics error:', e.message);
+      }
+    }
+
+    res.json({ system, apps });
+  } catch (err) {
+    console.error('Server metrics error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ---- Config ----
 const VAULT_PATH = process.env.VAULT_PATH || '/Users/ivanakimkin/Documents/1';
 const METRICS_PATH = process.env.METRICS_PATH || join(__dirname, '..', 'data', 'metrics.json');
