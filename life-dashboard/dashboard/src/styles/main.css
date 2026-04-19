@@ -144,7 +144,212 @@ body::after {
   gap: 16px;
 }
 
-/* ---- Weather Widget ---- */
+/* ---- Top Controls Row ---- */
+.top-controls-row {
+  display: flex;
+  gap: var(--gap);
+  margin-bottom: var(--gap);
+  align-items: stretch;
+}
+
+.controls-left {
+  flex: 0 0 auto;
+}
+
+.controls-right {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+}
+
+/* ---- Top Widgets ---- */
+.top-widget {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  animation: fadeSlideUp 0.6s var(--ease-out) both;
+  transition: border-color 0.3s, background 0.3s;
+}
+
+.top-widget:hover {
+  border-color: rgba(167, 192, 128, 0.2);
+  background: rgba(35, 42, 46, 0.7);
+}
+
+/* Noise overlay */
+.top-widget::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.025;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 128 128' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---- Weather Widget Hourly ---- */
+.weather-current-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.weather-icon { font-size: 1.5rem; line-height: 1; }
+
+.weather-temp {
+  font-weight: 700;
+  font-size: 1.6rem;
+  letter-spacing: -1px;
+}
+
+.weather-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.weather-desc {
+  font-size: 0.75rem;
+  color: var(--fg);
+  font-weight: 500;
+}
+
+.weather-pressure {
+  font-size: 0.65rem;
+  color: var(--fg-muted);
+}
+
+.weather-hourly {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  /* hide scrollbar */
+  -ms-overflow-style: none;  
+  scrollbar-width: none;  
+}
+.weather-hourly::-webkit-scrollbar { display: none; }
+
+.hourly-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: rgba(26, 32, 36, 0.4);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  min-width: 50px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.hourly-item:hover {
+  background: rgba(52, 63, 68, 0.6);
+  border-color: rgba(167, 192, 128, 0.15);
+  transform: translateY(-2px);
+}
+
+.hc-time { font-size: 0.65rem; color: var(--fg-muted); font-weight: 600; }
+.hc-icon { font-size: 1.1rem; }
+.hc-temp { font-size: 0.8rem; font-weight: 600; }
+
+/* ---- Date & Schedule Combo ---- */
+.schedule-widget-pane {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.date-big-display {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--fg);
+  letter-spacing: 0.2px;
+}
+
+.date-big-display::first-letter {
+  text-transform: capitalize;
+}
+
+.schedule-empty {
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+  background: rgba(26,32,36,0.3);
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.schedule-live-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  overflow-y: hidden;
+}
+
+.schedule-block-mini {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(26, 32, 36, 0.4);
+  font-size: 0.75rem;
+  transition: transform 0.2s;
+}
+
+.schedule-block-mini:hover {
+  transform: translateX(4px);
+  background: rgba(52, 63, 68, 0.4);
+}
+
+.schedule-current {
+  border-left: 3px solid var(--green);
+  background: rgba(167, 192, 128, 0.05);
+}
+
+.schedule-next {
+  border-left: 3px solid var(--orange);
+}
+
+.sbm-time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--fg-muted);
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.schedule-current .sbm-time { color: var(--green); }
+
+.sbm-activity {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--fg);
+}
+
+.sbm-tag {
+  font-size: 0.55rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-left: 8px;
+}
+
+.schedule-current .sbm-tag { background: rgba(167,192,128,0.2); color: var(--green); }
+.schedule-next .sbm-tag { background: rgba(230,152,117,0.2); color: var(--orange); }
 .weather-widget {
   display: flex;
   align-items: center;
@@ -277,31 +482,35 @@ body::after {
 
 /* ---- Tabs ---- */
 .tabs {
-  display: flex;
-  gap: 2px;
-  margin-bottom: 24px;
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  grid-auto-flow: column;
+  gap: 4px;
   background: rgba(26, 32, 36, 0.5);
   border-radius: var(--radius-sm);
   padding: 3px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--card-border);
-  width: fit-content;
+  width: auto;
+  height: 100%;
   animation: fadeSlideUp 0.6s var(--ease-out) 0.1s both;
 }
 
 .tab {
-  padding: 7px 22px;
+  padding: 6px 16px;
   border: none;
   background: none;
   color: var(--fg-muted);
   font-family: inherit;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 500;
+  text-align: left;
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.3s var(--ease-out);
   letter-spacing: 0.2px;
+  min-width: 130px;
 }
 
 .tab:hover { color: var(--fg-dim); }
