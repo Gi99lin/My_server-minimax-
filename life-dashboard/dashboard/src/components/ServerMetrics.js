@@ -226,6 +226,12 @@ function chartOpts(yLabel) {
   };
 }
 
+function fmtMem(kib) {
+  if (kib > 1048576) return (kib / 1048576).toFixed(1) + ' GB';
+  if (kib > 1024) return (kib / 1024).toFixed(0) + ' MB';
+  return Math.round(kib) + ' KB';
+}
+
 function renderApps(apps) {
   const el = document.getElementById('srvApps');
   if (!el) return;
@@ -235,12 +241,16 @@ function renderApps(apps) {
     return;
   }
 
+  // Find max memory across all apps for relative bar scaling
+  const maxMem = Math.max(...Object.values(apps).map(a => a.totalMem), 1);
+
   let html = '<h3 class="srv-section-title">Приложения</h3><div class="srv-apps-grid">';
 
   for (const [appKey, app] of Object.entries(apps).sort((a, b) => a[0].localeCompare(b[0]))) {
     const running = app.containers.filter(c => c.state === 'running').length;
     const total = app.containers.length;
     const allUp = running === total;
+    const memBarPct = Math.min((app.totalMem / maxMem) * 100, 100);
 
     html += `
       <div class="srv-app-card ${allUp ? '' : 'srv-app-warn'}">
@@ -256,8 +266,8 @@ function renderApps(apps) {
           </div>
           <div class="srv-app-metric">
             <span class="srv-app-metric-label">MEM</span>
-            <div class="srv-app-bar-bg"><div class="srv-app-bar-fill" style="width: ${Math.min(app.totalMem, 100)}%; background: ${app.totalMem > 80 ? 'var(--red)' : '#7fbbb3'}"></div></div>
-            <span class="srv-app-metric-val">${app.totalMem.toFixed(1)}%</span>
+            <div class="srv-app-bar-bg"><div class="srv-app-bar-fill" style="width: ${memBarPct.toFixed(0)}%; background: ${memBarPct > 80 ? 'var(--red)' : '#7fbbb3'}"></div></div>
+            <span class="srv-app-metric-val">${fmtMem(app.totalMem)}</span>
           </div>
         </div>
         <div class="srv-app-containers">
