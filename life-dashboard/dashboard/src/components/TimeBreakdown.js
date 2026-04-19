@@ -79,4 +79,50 @@ export function renderTimeBreakdown(canvas, data) {
       animation: { duration: 700, easing: 'easeOutCubic' },
     },
   });
+
+  renderSummary(data);
+}
+
+function renderSummary(data) {
+  const summaryEl = document.getElementById('timeSummary');
+  if (!summaryEl) return;
+
+  // Use the same dataLoader to get last 35 days (7 current + 28 historical)
+  const days = getDays(data, 35);
+  if (days.length < 7) {
+    summaryEl.innerHTML = '';
+    return;
+  }
+
+  // Split into current week (last 7 days) and strict historical (previous 28 days)
+  const currentWeek = days.slice(-7);
+  const history = days.slice(0, -7);
+
+  // Helper to sum a field across an array of day objects
+  const sumField = (arr, field) => arr.reduce((acc, d) => acc + (d.schedule?.[field] ?? 0), 0);
+
+  // We consider Work + Projects as productive
+  const calcProductive = (arr) => sumField(arr, 'hours_work') + sumField(arr, 'hours_projects');
+  
+  const curProd = calcProductive(currentWeek);
+  
+  let histAvgProd = 0;
+  if (history.length > 0) {
+     const totalHistProd = calcProductive(history);
+     histAvgProd = totalHistProd / (history.length / 7); // convert total historical to weekly average
+  }
+
+  const delta = curProd - histAvgProd;
+  const deltaStr = delta >= 0 ? `+${delta.toFixed(1)}ч` : `${delta.toFixed(1)}ч`;
+  const deltaClass = delta >= 0 ? 'positive' : 'negative';
+
+  summaryEl.innerHTML = `
+    <div class="ts-item">
+      <div class="ts-label">Сумма (7дней)</div>
+      <div class="ts-value">
+        ${curProd.toFixed(1)}ч
+        ${history.length >= 7 ? `<span class="ts-delta ${deltaClass}">${deltaStr}</span>` : ''}
+      </div>
+    </div>
+  `;
 }

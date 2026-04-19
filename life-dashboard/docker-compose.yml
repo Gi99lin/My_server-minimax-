@@ -61,6 +61,8 @@ services:
       - garmin_tokens:/root/.garminconnect
       # Git repos for commit tracking (optional, read-only)
       - ${GIT_REPOS_PATH:-/mnt/data/repos}:/repos:ro
+      # Obsidian vault
+      - ${VAULT_PATH:-/mnt/data/obsidian}:/vault:ro
 
 # ==================== Networks & Volumes ====================
 networks:
