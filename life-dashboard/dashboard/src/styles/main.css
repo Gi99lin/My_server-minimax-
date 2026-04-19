@@ -1499,42 +1499,92 @@ body.app-mode {
   overflow: hidden;
 }
 
-/* Hide everything except tabs */
-body.app-mode .header-branding,
-body.app-mode .header-weather-mini,
-body.app-mode .header-mood-mini {
+/* Hide branding only */
+body.app-mode .header-branding {
   display: none;
 }
 
 /* Compact the layout */
 body.app-mode .app {
-  padding: 8px 16px;
+  padding: 6px 12px;
   max-width: 100%;
 }
 
 body.app-mode .top-header-row {
-  margin-bottom: 8px;
-  gap: 0;
-  justify-content: center;
+  margin-bottom: 6px;
+  gap: 8px;
+  align-items: center;
 }
 
 /* Tabs become single horizontal row */
 body.app-mode .tabs {
   grid-template-rows: 1fr;
   grid-auto-flow: column;
-  width: 100%;
+  flex: 1;
 }
 
 body.app-mode .tab {
   min-width: auto;
-  padding: 5px 14px;
+  padding: 5px 12px;
   font-size: 0.7rem;
   text-align: center;
 }
 
+/* --- Weather: compact single line --- */
+body.app-mode .weather-widget-pane {
+  padding: 4px 10px;
+  min-width: auto;
+  width: auto;
+  flex: 0 0 auto;
+}
+
+body.app-mode .weather-current-row {
+  gap: 6px;
+}
+
+/* Hide extra weather detail */
+body.app-mode .weather-metrics,
+body.app-mode .weather-quote,
+body.app-mode .weather-sun-col,
+body.app-mode .weather-hourly-wrap,
+body.app-mode .weather-desc {
+  display: none;
+}
+
+body.app-mode .weather-icon {
+  font-size: 1.2rem;
+}
+
+body.app-mode .weather-temp {
+  font-size: 0.85rem;
+}
+
+body.app-mode .weather-temp-col {
+  gap: 0;
+}
+
+/* --- Schedule: compact single line --- */
+body.app-mode .schedule-widget-pane {
+  padding: 4px 10px;
+  min-width: auto;
+  width: auto;
+  flex: 0 0 auto;
+}
+
+body.app-mode .date-big-display {
+  font-size: 0.75rem;
+  margin-bottom: 0;
+}
+
+body.app-mode .top-live-schedule {
+  font-size: 0.7rem;
+  max-height: 24px;
+  overflow: hidden;
+}
+
 /* iframe fills the rest */
 body.app-mode .app-iframe-tab {
-  height: calc(100vh - 56px);
+  height: calc(100vh - 58px);
   border-radius: 8px 8px 0 0;
 }
 
