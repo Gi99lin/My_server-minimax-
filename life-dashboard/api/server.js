@@ -434,13 +434,13 @@ app.post('/api/entry', (req, res) => {
 
 /**
  * GET /api/forecast
- * Returns 7-day weather forecast from Open-Meteo
+ * Returns 7-day weather forecast from Open-Meteo with hourly data for the first 2 days
  */
 app.get('/api/forecast', async (req, res) => {
   try {
     const lat = 55.7558;
     const lon = 37.6173;
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum&timezone=auto&forecast_days=7`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum&hourly=temperature_2m,weathercode&timezone=auto&forecast_days=7`;
 
     const response = await fetch(url);
     const data = await response.json();
@@ -461,6 +461,8 @@ app.get('/api/forecast', async (req, res) => {
 
     const WEEKDAYS = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
     const daily = data.daily || {};
+    const hourlyRaw = data.hourly || {};
+
     const days = (daily.time || []).map((date, i) => {
       const code = daily.weathercode?.[i] ?? 0;
       const [desc, icon] = WMO[code] || ['?', '❓'];
@@ -476,7 +478,17 @@ app.get('/api/forecast', async (req, res) => {
       };
     });
 
-    res.json({ days });
+    const hourly = (hourlyRaw.time || []).map((timeStr, i) => {
+      const code = hourlyRaw.weathercode?.[i] ?? 0;
+      const [, icon] = WMO[code] || ['?', '❓'];
+      return {
+        time: timeStr, // format: "YYYY-MM-DDTHH:00"
+        temp: hourlyRaw.temperature_2m?.[i],
+        icon
+      };
+    });
+
+    res.json({ days, hourly });
   } catch (err) {
     console.error('Forecast error:', err);
     res.status(500).json({ error: err.message });

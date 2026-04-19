@@ -12,50 +12,58 @@
 </head>
 <body>
     <div class="app" id="app">
-        <!-- Header -->
-        <header class="header" id="header">
+        <!-- Header (Logo & Greeting) -->
+        <header class="header" id="header" style="margin-bottom: 12px;">
             <div class="header-left">
                 <span class="logo"><span class="logo-accent">Life</span> Dashboard</span>
                 <h1 class="greeting" id="greeting">—</h1>
             </div>
             <div class="header-right">
-                <div class="weather-widget" id="weatherWidget">
-                    <span class="weather-icon" id="weatherIcon"></span>
-                    <span class="weather-temp" id="weatherTemp">—</span>
-                    <span class="weather-desc" id="weatherDesc"></span>
-                    <span class="weather-pressure" id="weatherPressure"></span>
-                </div>
-                <div class="date-display">
-                    <span class="sync-dot" id="syncDot"></span>
-                    <span id="dateDisplay">—</span>
-                </div>
+                <span class="sync-dot" id="syncDot"></span>
             </div>
         </header>
 
-        <!-- Navigation Tabs -->
-        <nav class="tabs" id="tabs">
-            <button class="tab active" data-tab="dashboard">Обзор</button>
-            <button class="tab" data-tab="devops">🛠 Инфраструктура</button>
-            <button class="tab" data-tab="librechat">💬 LibreChat</button>
-            <button class="tab" data-tab="openclaw">🧠 OpenClaw</button>
-            <button class="tab" data-tab="omniroute">🔄 OmniRoute</button>
-            <button class="tab" data-tab="analytics">🧬 Аналитика</button>
-        </nav>
+        <!-- Top Controls Row (Tabs + Widgets) -->
+        <div class="top-controls-row">
+            <!-- Left: Tabs Column -->
+            <div class="controls-left">
+                <nav class="tabs" id="tabs">
+                    <button class="tab active" data-tab="dashboard">Обзор</button>
+                    <button class="tab" data-tab="devops">Инфраструктура</button>
+                    <button class="tab" data-tab="analytics">Аналитика</button>
+                    <button class="tab" data-tab="librechat">LibreChat</button>
+                    <button class="tab" data-tab="openclaw">OpenClaw</button>
+                    <button class="tab" data-tab="omniroute">OmniRoute</button>
+                </nav>
+            </div>
+
+            <!-- Right: Widgets Column -->
+            <div class="controls-right">
+                <!-- Weather Full Block -->
+                <div class="top-widget flex-col" id="weatherWidget">
+                    <div class="weather-current-row">
+                        <span class="weather-icon" id="weatherIcon"></span>
+                        <span class="weather-temp" id="weatherTemp">—</span>
+                        <div class="weather-text">
+                            <div class="weather-desc" id="weatherDesc"></div>
+                            <div class="weather-pressure" id="weatherPressure"></div>
+                        </div>
+                    </div>
+                    <div class="weather-hourly" id="weatherHourly"></div>
+                </div>
+
+                <!-- Date & Schedule Block -->
+                <div class="top-widget flex-col schedule-widget-pane">
+                    <div class="date-big-display" id="dateDisplay">—</div>
+                    <div id="liveSchedule" class="top-live-schedule"></div>
+                </div>
+            </div>
+        </div>
 
         <!-- Tab: Dashboard -->
         <main class="tab-content active" id="tab-dashboard">
             <!-- Stat Cards -->
             <section class="stat-cards" id="statCards"></section>
-
-            <!-- Live HUD Row -->
-            <section class="charts-row hud-row" style="grid-template-columns: 1fr;">
-                <div class="chart-card" id="scheduleCard" style="--i: 0">
-                    <div class="chart-header">
-                        <h2>Расписание</h2>
-                    </div>
-                    <div id="liveSchedule"></div>
-                </div>
-            </section>
 
             <!-- Charts Row -->
             <section class="charts-row">
