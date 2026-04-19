@@ -19,6 +19,7 @@
                 <div class="header-logo-row">
                     <span class="logo"><span class="logo-accent">Life</span> Dashboard</span>
                     <span class="sync-dot" id="syncDot" title="Sync Status"></span>
+                    <button class="header-add-btn" id="quickAddBtn" title="Быстрый ввод">+</button>
                 </div>
                 <h1 class="greeting" id="greeting">—</h1>
             </div>
@@ -97,18 +98,12 @@
             </section>
 
             <!-- Bottom Row -->
-            <section class="bottom-row">
+            <section class="bottom-row bottom-row-full">
                 <div class="chart-card heatmap-card" id="heatmapCard" style="--i: 2">
                     <div class="chart-header">
                         <h2>История настроения</h2>
                     </div>
                     <div id="moodHeatmap" class="heatmap-container"></div>
-                </div>
-                <div class="chart-card quick-entry-card" id="quickEntryCard" style="--i: 3">
-                    <div class="chart-header">
-                        <h2>Быстрый ввод</h2>
-                    </div>
-                    <div id="quickEntry" class="quick-entry"></div>
                 </div>
             </section>
         </main>
@@ -167,6 +162,33 @@
         <main class="tab-content app-iframe-tab" id="tab-omniroute">
             <iframe src="https://omniroute.gigglin.tech/" class="app-iframe"></iframe>
         </main>
+    <!-- QuickEntry Modal -->
+    <div class="modal-overlay" id="quickEntryOverlay">
+        <div class="modal-content quick-entry-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Быстрый ввод</h2>
+                <span class="modal-date" id="qeModalDate"></span>
+                <button class="modal-close" id="qeModalClose">&times;</button>
+            </div>
+            <div id="quickEntry" class="quick-entry"></div>
+        </div>
+    </div>
+
+    <!-- Schedule Editor Modal -->
+    <div class="modal-overlay" id="scheduleEditorOverlay">
+        <div class="modal-content schedule-editor-modal">
+            <div class="modal-header">
+                <button class="sched-nav-btn" id="schedPrev">&lt;</button>
+                <h2 class="modal-title" id="schedDateTitle">—</h2>
+                <button class="sched-nav-btn" id="schedNext">&gt;</button>
+                <button class="modal-close" id="schedModalClose">&times;</button>
+            </div>
+            <div id="scheduleEditorBody"></div>
+            <div class="modal-footer">
+                <button class="modal-save-btn" id="schedSaveBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
     </div>
 
     <script type="module" src="/src/main.js"></script>
