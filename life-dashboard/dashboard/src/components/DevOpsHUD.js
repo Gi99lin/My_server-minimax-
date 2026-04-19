@@ -1,68 +1,85 @@
+/**
+ * DevOpsHUD.js — Gather.town-style agent room visualization.
+ * Each agent has a "room" with furniture, mascot, and activity status.
+ */
+
+const AGENT_META = {
+  schedule_agent: { emoji: '📅', name: 'Schedule Agent', color: '#a7c080' },
+  writer_agent:   { emoji: '✍️', name: 'Writer Agent', color: '#7fbbb3' },
+  research_agent: { emoji: '🔬', name: 'Research Agent', color: '#d699b6' },
+  code_agent:     { emoji: '💻', name: 'Code Agent', color: '#dbbc7f' },
+  memory_agent:   { emoji: '🧠', name: 'Memory Agent', color: '#e69875' },
+};
+
+let lastActiveTime = null;
+
+function getAgentMeta(agentId) {
+  if (AGENT_META[agentId]) return AGENT_META[agentId];
+  // Dynamic agent — generate a color
+  const hue = [...agentId].reduce((h, c) => h + c.charCodeAt(0), 0) % 360;
+  return { emoji: '🤖', name: agentId.replace(/_/g, ' '), color: `hsl(${hue}, 45%, 65%)` };
+}
+
+function timeAgo(ts) {
+  if (!ts) return '';
+  const diff = Math.floor((Date.now() - ts) / 1000);
+  if (diff < 60) return `${diff}с назад`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}м назад`;
+  return `${Math.floor(diff / 3600)}ч назад`;
+}
+
 export function renderDevOpsHUD(container, dockerState) {
-  if (!dockerState || !dockerState.containers) {
-    container.innerHTML = `<div class="devops-loading">Syncing LifeOS Modules...</div>`;
+  if (!dockerState) {
+    container.innerHTML = `
+      <div class="ar-loading">
+        <div class="ar-loading-dot"></div>
+        <span>Подключение к LifeOS...</span>
+      </div>`;
     return;
   }
 
-  const { containers, activeAgent } = dockerState;
+  const { activeAgent, lastAgentTime } = dockerState;
+  if (lastAgentTime) lastActiveTime = lastAgentTime;
 
-  let html = `<div class="devops-grid">`;
-  
-  // -- Agent Rooms --
   const defaultAgents = ['schedule_agent', 'writer_agent', 'research_agent'];
   let agentsToRender = [...defaultAgents];
   if (activeAgent && !agentsToRender.includes(activeAgent)) {
     agentsToRender.push(activeAgent);
   }
 
-  html += `<div class="agent-rooms-grid">`;
-  
-  for (const ag of agentsToRender) {
-    const isWorking = (ag === activeAgent);
-    html += `
-      <div class="devops-room ${isWorking ? 'room-active' : 'room-sleep'}">
-        <div class="room-floor">
-          <div class="room-bed" title="Bed">🛏️</div>
-          <div class="room-mascot">👾</div>
-          <div class="room-desk" title="Desk">💻</div>
-        </div>
-        <div class="room-info">
-          <span class="room-title">${ag}</span>
-          <span class="room-sub">${isWorking ? 'Working...' : 'Sleeping...'}</span>
-        </div>
-      </div>
-    `;
-  }
-  html += `</div>`;
+  let html = '<div class="ar-grid">';
 
-  // -- Server Infrastructure --
-  for (const c of containers) {
-    const isUp = c.state === 'running';
-    const cpu = typeof c.cpu === 'number' ? c.cpu : 0;
-    const mem = typeof c.mem === 'number' ? c.mem : 0;
+  for (const agentId of agentsToRender) {
+    const meta = getAgentMeta(agentId);
+    const isWorking = agentId === activeAgent;
+    const statusText = isWorking ? 'В работе' : 'Спит';
+    const lastSeen = (agentId === activeAgent && lastActiveTime) ? timeAgo(lastActiveTime) : '';
 
     html += `
-      <div class="devops-container ${isUp ? 'cont-up' : 'cont-down'}">
-        <div class="cont-header">
-          <span class="cont-name">${c.name}</span>
-          <span class="cont-state">${isUp ? 'Online' : c.state}</span>
-        </div>
-        ${isUp && (cpu || mem) ? `
-          <div class="cont-stats">
-            <div class="cont-stat" title="CPU Limit">
-              CPU: ${cpu.toFixed(1)}% 
-              <div class="stat-bar-bg"><div class="stat-bar-fill" style="width: ${Math.min(cpu, 100)}%;"></div></div>
+      <div class="ar-room ${isWorking ? 'ar-room-active' : 'ar-room-idle'}">
+        <div class="ar-room-glow" style="--agent-color: ${meta.color}"></div>
+        <div class="ar-room-content">
+          <div class="ar-room-scene">
+            <div class="ar-furniture ar-bed" title="Кровать">🛏️</div>
+            <div class="ar-mascot ${isWorking ? 'ar-mascot-working' : 'ar-mascot-sleeping'}">
+              <span class="ar-mascot-emoji">${meta.emoji}</span>
+              ${isWorking ? '<div class="ar-mascot-pulse"></div>' : '<div class="ar-zzz">💤</div>'}
             </div>
-            <div class="cont-stat" title="Memory Limit">
-              MEM: ${mem.toFixed(1)}% 
-              <div class="stat-bar-bg"><div class="stat-bar-fill" style="width: ${Math.min(mem, 100)}%;"></div></div>
+            <div class="ar-furniture ar-desk" title="Рабочий стол">🖥️</div>
+          </div>
+          <div class="ar-room-info">
+            <div class="ar-room-name">${meta.name}</div>
+            <div class="ar-room-status">
+              <span class="ar-status-dot ${isWorking ? 'ar-dot-active' : 'ar-dot-idle'}"></span>
+              <span class="ar-status-text">${statusText}</span>
+              ${lastSeen ? `<span class="ar-last-seen">· ${lastSeen}</span>` : ''}
             </div>
           </div>
-        ` : ''}
+        </div>
       </div>
     `;
   }
 
-  html += `</div>`;
+  html += '</div>';
   container.innerHTML = html;
 }
