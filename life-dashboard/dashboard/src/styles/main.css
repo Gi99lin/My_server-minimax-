@@ -611,12 +611,34 @@ body::after {
   background-size: 128px 128px;
 }
 
-/* ---- Stat Cards ---- */
-.stat-cards {
+/* ---- Stats + Heatmap Row ---- */
+.stats-heatmap-row {
+  display: flex;
+  gap: var(--gap);
+  margin-bottom: var(--gap);
+  align-items: stretch;
+}
+
+.stats-column {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  margin-bottom: var(--gap);
+  flex: 0 0 48%;
+  min-width: 0;
+}
+
+.heatmap-inline {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.heatmap-inline .heatmap-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .stat-card {
