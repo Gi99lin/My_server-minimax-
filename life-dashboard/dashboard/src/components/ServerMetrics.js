@@ -8,6 +8,7 @@ import { Chart } from 'chart.js';
 let cpuChart = null;
 let netChart = null;
 let currentMinutes = 60;
+let currentAbort = null;
 
 export async function renderServerMetrics(container) {
   container.innerHTML = `
@@ -17,7 +18,9 @@ export async function renderServerMetrics(container) {
       <button class="period-btn" data-min="360">6ч</button>
       <button class="period-btn" data-min="1440">24ч</button>
     </div>
-    <div class="srv-gauges" id="srvGauges"></div>
+    <div class="srv-gauges" id="srvGauges">
+      <div style="grid-column: 1/-1; text-align: center; color: var(--fg-muted); padding: 20px;">Загрузка метрик...</div>
+    </div>
     <div class="srv-charts-row" id="srvChartsRow"></div>
     <div class="srv-apps" id="srvApps"></div>
   `;
@@ -28,21 +31,30 @@ export async function renderServerMetrics(container) {
     container.querySelectorAll('.srv-period-selector .period-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentMinutes = parseInt(btn.dataset.min);
-    loadMetrics(container);
+    loadMetrics();
   });
 
-  loadMetrics(container);
+  loadMetrics();
 }
 
-async function loadMetrics(container) {
+async function loadMetrics() {
+  // Abort any in-flight request
+  if (currentAbort) currentAbort.abort();
+  currentAbort = new AbortController();
+
   try {
-    const res = await fetch(`/api/metrics/server?minutes=${currentMinutes}`);
+    const res = await fetch(`/api/metrics/server?minutes=${currentMinutes}`, {
+      signal: currentAbort.signal,
+    });
     const data = await res.json();
     renderGauges(data.system);
     renderSystemCharts(data.system);
     renderApps(data.apps);
   } catch (err) {
+    if (err.name === 'AbortError') return; // cancelled, ignore
     console.error('[ServerMetrics] Load error:', err);
+    const el = document.getElementById('srvGauges');
+    if (el) el.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--red); padding:20px;">Ошибка загрузки метрик</div>';
   }
 }
 
