@@ -54,7 +54,10 @@ const NETDATA_URL = process.env.NETDATA_URL || 'http://172.17.0.1:19999';
 
 async function getNetdata(chartName) {
   try {
-    const res = await fetch(`${NETDATA_URL}/api/v1/data?chart=${chartName}&points=1`);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+    const res = await fetch(`${NETDATA_URL}/api/v1/data?chart=${chartName}&points=1`, { signal: controller.signal });
+    clearTimeout(timeout);
     if (!res.ok) return 0;
     const data = await res.json();
     return data.data[0][1] || 0; 
@@ -127,7 +130,10 @@ setInterval(() => {
 
 async function getNetdataChart(chart, after = -3600, points = 60) {
   try {
-    const res = await fetch(`${NETDATA_URL}/api/v1/data?chart=${chart}&after=${after}&points=${points}&format=json`);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(`${NETDATA_URL}/api/v1/data?chart=${chart}&after=${after}&points=${points}&format=json`, { signal: controller.signal });
+    clearTimeout(timeout);
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -190,43 +196,49 @@ app.get('/api/metrics/server', async (req, res) => {
       system.disk = obj;
     }
 
-    // Per-container metrics (dynamic grouping)
+    // Per-container metrics (dynamic grouping) — PARALLEL
     const apps = {};
     if (docker) {
       try {
         const containers = await docker.listContainers({ all: true });
-        
-        // Group containers by app prefix
-        for (const c of containers) {
-          const name = c.Names[0].replace('/', '');
-          // Determine app group: use docker-compose project or first segment before "-"
-          const parts = name.split(/[-_]/);
-          let appKey = parts[0];
-          // Merge common prefixes
-          if (name.includes('life-dashboard')) appKey = 'life-dashboard';
-          else if (name.includes('openclaw')) appKey = 'openclaw';
-          else if (name.includes('omniroute')) appKey = 'omniroute';
-          else if (name.includes('nextcloud')) appKey = 'nextcloud';
-          else if (name.includes('hrBot') || name.includes('hrbot')) appKey = 'hrbot';
 
-          if (!apps[appKey]) {
-            apps[appKey] = { containers: [], totalCpu: 0, totalMem: 0 };
+        // Resolve app group for a container name
+        function resolveAppKey(name) {
+          if (name.includes('life-dashboard')) return 'life-dashboard';
+          if (name.includes('openclaw')) return 'openclaw';
+          if (name.includes('omniroute')) return 'omniroute';
+          if (name.includes('nextcloud')) return 'nextcloud';
+          if (name.includes('hrBot') || name.includes('hrbot')) return 'hrbot';
+          return name.split(/[-_]/)[0];
+        }
+
+        // Fire ALL Netdata requests in parallel (not sequentially)
+        const enriched = await Promise.all(
+          containers.map(async (c) => {
+            const name = c.Names[0].replace('/', '');
+            const [cpu, mem] = await Promise.all([
+              getNetdata(`cgroup_${name}.cpu_limit`),
+              getNetdata(`cgroup_${name}.mem_usage_limit`),
+            ]);
+            return {
+              name,
+              appKey: resolveAppKey(name),
+              state: c.State,
+              status: c.Status,
+              cpu: typeof cpu === 'number' ? cpu : 0,
+              mem: typeof mem === 'number' ? mem : 0,
+            };
+          })
+        );
+
+        // Group results
+        for (const c of enriched) {
+          if (!apps[c.appKey]) {
+            apps[c.appKey] = { containers: [], totalCpu: 0, totalMem: 0 };
           }
-          
-          const [cpu, mem] = await Promise.all([
-            getNetdata(`cgroup_${name}.cpu_limit`),
-            getNetdata(`cgroup_${name}.mem_usage_limit`),
-          ]);
-
-          apps[appKey].containers.push({
-            name,
-            state: c.State,
-            status: c.Status,
-            cpu: typeof cpu === 'number' ? cpu : 0,
-            mem: typeof mem === 'number' ? mem : 0,
-          });
-          apps[appKey].totalCpu += (typeof cpu === 'number' ? cpu : 0);
-          apps[appKey].totalMem += (typeof mem === 'number' ? mem : 0);
+          apps[c.appKey].containers.push(c);
+          apps[c.appKey].totalCpu += c.cpu;
+          apps[c.appKey].totalMem += c.mem;
         }
       } catch (e) {
         console.error('Container metrics error:', e.message);
