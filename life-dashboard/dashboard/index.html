@@ -108,11 +108,20 @@
 
         <!-- Tab: Infrastructure -->
         <main class="tab-content" id="tab-devops">
-            <div class="chart-card" id="devopsFullCard" style="--i: 0; min-height: 60vh;">
-                <div class="chart-header">
-                    <h2>Центр управления LifeOS</h2>
-                </div>
-                <div id="devOpsHUD"></div>
+            <!-- Sub-tab switcher -->
+            <div class="sub-tabs" id="devopsSubTabs">
+                <button class="sub-tab active" data-subtab="agents">🤖 Агенты</button>
+                <button class="sub-tab" data-subtab="resources">📊 Ресурсы</button>
+            </div>
+
+            <!-- Sub-tab: Agents -->
+            <div class="sub-tab-content active" id="subtab-agents">
+                <div id="agentRooms"></div>
+            </div>
+
+            <!-- Sub-tab: Resources -->
+            <div class="sub-tab-content" id="subtab-resources">
+                <div id="serverMetrics"></div>
             </div>
         </main>
 

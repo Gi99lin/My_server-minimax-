@@ -17,6 +17,7 @@ import { initAuth, showLoginModal } from './components/LoginModal.js';
 import { renderLiveSchedule } from './components/LiveSchedule.js';
 import { renderDevOpsHUD } from './components/DevOpsHUD.js';
 import { renderHealthCharts } from './components/HealthCharts.js';
+import { renderServerMetrics } from './components/ServerMetrics.js';
 import { io } from 'socket.io-client';
 
 function setGreeting() {
@@ -75,12 +76,12 @@ async function init() {
   });
 
   socket.on('docker_pulse', (state) => {
-    const el = document.getElementById('devOpsHUD');
+    const el = document.getElementById('agentRooms');
     if (el) renderDevOpsHUD(el, state);
   });
   
   socket.on('agent_pulse', (state) => {
-    const el = document.getElementById('devOpsHUD');
+    const el = document.getElementById('agentRooms');
     if (el) renderDevOpsHUD(el, state);
   });
 
@@ -177,6 +178,26 @@ async function init() {
     btn.classList.add('active');
     const target = document.getElementById(`tab-${btn.dataset.tab}`);
     if (target) target.classList.add('active');
+  });
+
+  // Sub-tab switching (Infrastructure)
+  let metricsLoaded = false;
+  document.getElementById('devopsSubTabs')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.sub-tab');
+    if (!btn) return;
+    const parent = btn.closest('.tab-content');
+    parent.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+    parent.querySelectorAll('.sub-tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    const target = document.getElementById(`subtab-${btn.dataset.subtab}`);
+    if (target) target.classList.add('active');
+
+    // Lazy-load server metrics on first visit
+    if (btn.dataset.subtab === 'resources' && !metricsLoaded) {
+      metricsLoaded = true;
+      const el = document.getElementById('serverMetrics');
+      if (el) renderServerMetrics(el);
+    }
   });
 }
 

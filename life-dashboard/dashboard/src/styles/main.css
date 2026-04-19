@@ -1495,6 +1495,272 @@ body::after {
 }
 
 /* ========================================
+   SUB-TABS
+   ======================================== */
+.sub-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--gap);
+  background: rgba(26, 32, 36, 0.4);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 4px;
+  width: fit-content;
+}
+
+.sub-tab {
+  padding: 8px 20px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--fg-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sub-tab:hover { color: var(--fg); }
+.sub-tab.active {
+  background: rgba(167, 192, 128, 0.12);
+  color: var(--green);
+}
+
+.sub-tab-content { display: none; }
+.sub-tab-content.active { display: block; }
+
+/* ========================================
+   SERVER METRICS (Grafana-lite)
+   ======================================== */
+.srv-period-selector {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+/* ---- Gauges ---- */
+.srv-gauges {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: var(--gap);
+}
+
+.srv-gauge {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.srv-gauge-ring {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--color) calc(var(--pct) * 1%),
+    rgba(52, 63, 68, 0.4) calc(var(--pct) * 1%)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.srv-gauge-ring::after {
+  content: '';
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(35, 42, 46, 0.95);
+}
+
+.srv-gauge-value {
+  z-index: 1;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.srv-gauge-net {
+  background: rgba(52, 63, 68, 0.4);
+}
+.srv-gauge-net::after {
+  background: rgba(35, 42, 46, 0.95);
+}
+
+.srv-gauge-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--fg-muted);
+  font-weight: 500;
+}
+
+.srv-gauge-sub {
+  font-size: 0.65rem;
+  color: var(--fg-muted);
+  opacity: 0.7;
+  text-align: center;
+}
+
+/* ---- System Charts ---- */
+.srv-charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+  margin-bottom: var(--gap);
+}
+
+.srv-chart-card {
+  min-height: 200px;
+}
+.srv-chart-card h3 {
+  font-size: 0.85rem;
+  color: var(--fg);
+  font-weight: 500;
+}
+
+/* ---- App Cards ---- */
+.srv-section-title {
+  font-size: 0.85rem;
+  color: var(--fg);
+  font-weight: 500;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.srv-apps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.srv-app-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  transition: border-color 0.2s;
+}
+.srv-app-card:hover {
+  border-color: rgba(167, 192, 128, 0.25);
+}
+.srv-app-warn {
+  border-color: rgba(230, 126, 128, 0.25);
+}
+
+.srv-app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.srv-app-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.srv-app-status {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+.srv-up { color: var(--green); }
+.srv-down { color: var(--red); }
+
+.srv-app-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.srv-app-metric {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+}
+
+.srv-app-metric-label {
+  width: 28px;
+  color: var(--fg-muted);
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.srv-app-bar-bg {
+  flex: 1;
+  height: 6px;
+  background: rgba(52, 63, 68, 0.5);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.srv-app-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.srv-app-metric-val {
+  width: 44px;
+  text-align: right;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.7rem;
+}
+
+.srv-app-containers {
+  border-top: 1px solid rgba(125, 135, 125, 0.1);
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.srv-cont-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+}
+
+.srv-cont-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.srv-dot-up { background: var(--green); }
+.srv-dot-down { background: var(--red); }
+
+.srv-cont-name {
+  color: var(--fg);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.srv-cont-status {
+  color: var(--fg-muted);
+  font-size: 0.6rem;
+}
+
+/* ========================================
    V2: DEVOPS HUD & MASCOTS
    ======================================== */
 .agent-rooms-grid {
