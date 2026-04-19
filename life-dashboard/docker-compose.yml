@@ -32,7 +32,7 @@ services:
     volumes:
       - dashboard_data:/data
       # Obsidian vault (synced via Syncthing)
-      - ${VAULT_PATH:-/mnt/data/obsidian}:/vault:ro
+      - ${VAULT_PATH:-/mnt/data/obsidian}:/vault
       # Docker socket to read container stats
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
