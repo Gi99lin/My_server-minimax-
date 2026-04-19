@@ -72,8 +72,16 @@
 
         <!-- Tab: Dashboard -->
         <main class="tab-content active" id="tab-dashboard">
-            <!-- Stat Cards -->
-            <section class="stat-cards" id="statCards"></section>
+            <!-- Stat Cards + Heatmap Row -->
+            <section class="stats-heatmap-row">
+                <div class="stats-column" id="statCards"></div>
+                <div class="chart-card heatmap-card heatmap-inline" id="heatmapCard" style="--i: 2">
+                    <div class="chart-header">
+                        <h2>История настроения</h2>
+                    </div>
+                    <div id="moodHeatmap" class="heatmap-container"></div>
+                </div>
+            </section>
 
             <!-- Charts Row -->
             <section class="charts-row">
@@ -94,16 +102,6 @@
                     </div>
                     <canvas id="timeChart"></canvas>
                     <div id="timeSummary" class="time-summary"></div>
-                </div>
-            </section>
-
-            <!-- Bottom Row -->
-            <section class="bottom-row bottom-row-full">
-                <div class="chart-card heatmap-card" id="heatmapCard" style="--i: 2">
-                    <div class="chart-header">
-                        <h2>История настроения</h2>
-                    </div>
-                    <div id="moodHeatmap" class="heatmap-container"></div>
                 </div>
             </section>
         </main>
