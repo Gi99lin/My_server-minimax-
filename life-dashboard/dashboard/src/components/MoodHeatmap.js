@@ -51,10 +51,14 @@ export function renderMoodHeatmap(container, data) {
   const currentWeek = Math.floor((todayMs - startMs) / (7 * 24 * 60 * 60 * 1000));
 
   // Month labels
-  let html = `<div class="heatmap-months">`;
-  for (let w = 0; w < weeks; w++) {
-    const label = monthLabels.find(m => m.week === w);
-    html += `<span class="heatmap-month-label" style="width:${100 / weeks}%">${label ? label.name : ''}</span>`;
+  let html = `<div class="heatmap-months" style="position: relative; height: 14px;">`;
+  for (const label of monthLabels) {
+    let extraPx = 0;
+    for (let w = 1; w <= label.week; w++) {
+      if (monthBoundaries.includes(w)) extraPx += 2;
+    }
+    const leftPx = label.week * 17 + extraPx;
+    html += `<span class="heatmap-month-label" style="position:absolute; left:${leftPx}px">${label.name}</span>`;
   }
   html += `</div>`;
 

@@ -10,6 +10,12 @@ import { renderMoodHeatmap } from './components/MoodHeatmap.js';
 import { renderQuickEntry } from './components/QuickEntry.js';
 import { initWeather } from './components/WeatherForecast.js';
 
+// V2 Imports
+import { initAuth, showLoginModal } from './components/LoginModal.js';
+import { renderLiveSchedule } from './components/LiveSchedule.js';
+import { renderDevOpsHUD } from './components/DevOpsHUD.js';
+import { io } from 'socket.io-client';
+
 function setGreeting() {
   const el = document.getElementById('greeting');
   if (!el) return;
@@ -43,8 +49,47 @@ function setSyncDot(status) {
 }
 
 async function init() {
+  const token = initAuth();
+  if (!token) return; // Halt init until authenticated
+
   setGreeting();
   setDate();
+
+  // Setup generic fetch wrapper to inject Auth header
+  const originalFetch = window.fetch;
+  window.fetch = async (url, options = {}) => {
+    if (url.startsWith('/api')) {
+      options.headers = { ...options.headers, 'Authorization': encodeURIComponent(token) };
+    }
+    return originalFetch(url, options);
+  };
+
+  // V2 live sockets
+  const socket = io('/', { auth: { token } });
+  
+  socket.on('connect_error', (err) => {
+    if (err.message === 'Unauthorized') showLoginModal('Неверный пароль');
+  });
+
+  socket.on('docker_pulse', (state) => {
+    const el = document.getElementById('devOpsHUD');
+    if (el) renderDevOpsHUD(el, state);
+  });
+  
+  socket.on('agent_pulse', (state) => {
+    const el = document.getElementById('devOpsHUD');
+    if (el) renderDevOpsHUD(el, state);
+  });
+
+  // Fetch Live Schedule
+  try {
+    const sRes = await fetch('/api/schedule');
+    const sData = await sRes.json();
+    const sCont = document.getElementById('liveSchedule');
+    if (sCont) renderLiveSchedule(sCont, sData);
+  } catch(e) {
+    console.error("No schedule data", e);
+  }
 
   const data = await loadMetrics();
   setSyncDot(data.days ? 'ok' : 'error');

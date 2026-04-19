@@ -10,12 +10,118 @@ import cors from 'cors';
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import Docker from 'dockerode';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, { cors: { origin: '*' } });
+
+let docker;
+try {
+  docker = new Docker({ socketPath: '/var/run/docker.sock' });
+} catch(e) {
+  console.warn("Docker socket not available", e.message);
+}
+
+const DASHBOARD_PASS = process.env.DASHBOARD_PASS;
+
 app.use(cors());
 app.use(express.json());
+
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') return next();
+  if (DASHBOARD_PASS && req.headers.authorization !== encodeURIComponent(DASHBOARD_PASS)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+});
+
+io.use((socket, next) => {
+  if (DASHBOARD_PASS && socket.handshake.auth.token !== DASHBOARD_PASS) {
+    return next(new Error('Unauthorized'));
+  }
+  next();
+});
+
+// ---- Docker Polling ----
+const dockerState = { containers: [], activeAgent: null, lastAgentTime: null };
+
+const NETDATA_URL = process.env.NETDATA_URL || 'http://172.17.0.1:19999';
+
+async function getNetdata(chartName) {
+  try {
+    const res = await fetch(`${NETDATA_URL}/api/v1/data?chart=${chartName}&points=1`);
+    if (!res.ok) return 0;
+    const data = await res.json();
+    return data.data[0][1] || 0; 
+  } catch {
+    return 0;      
+  }
+}
+
+async function pollDocker() {
+  if (!docker) return;
+  try {
+    const containers = await docker.listContainers({ all: true });
+    const targets = ['openclaw', 'omniroute', 'life-dashboard-api', 'hrBot'];
+    
+    const promises = containers.map(async c => {
+      const name = c.Names[0].replace('/', '');
+      const targetName = targets.find(t => name.includes(t));
+      if (!targetName) return null;
+
+      // Netdata automatically resolves docker container names for cgroup plugins
+      const [cpu, mem] = await Promise.all([
+         getNetdata(`cgroup_${name}.cpu_limit`),
+         getNetdata(`cgroup_${name}.mem_usage_limit`)
+      ]);
+      
+      return { name: targetName, state: c.State, status: c.Status, cpu, mem };
+    });
+
+    const results = await Promise.all(promises);
+    dockerState.containers = results.filter(Boolean);
+    io.emit('docker_pulse', dockerState);
+  } catch(e) {
+    console.error("Docker poll error", e.message);
+  }
+}
+
+async function tailOpenclawLogs() {
+  if (!docker) return;
+  try {
+    const containers = await docker.listContainers({ all: true });
+    const oc = containers.find(c => c.Names[0].includes('openclaw'));
+    if (!oc) return;
+
+    const container = docker.getContainer(oc.Id);
+    const logStream = await container.logs({ follow: true, stdout: true, stderr: true, tail: 100 });
+    
+    logStream.on('data', chunk => {
+      const line = chunk.toString();
+      const match = line.match(/runId=announce:v1:agent:([a-zA-Z0-9_\-]+):subagent/);
+      if (match) {
+        dockerState.activeAgent = match[1];
+        dockerState.lastAgentTime = Date.now();
+        io.emit('agent_pulse', dockerState);
+      }
+    });
+  } catch(e) {
+    console.warn("Could not tail OpenClaw logs", e.message);
+  }
+}
+
+setInterval(() => {
+  if (dockerState.activeAgent && Date.now() - dockerState.lastAgentTime > 120000) {
+     dockerState.activeAgent = null;
+     io.emit('agent_pulse', dockerState);
+  }
+  pollDocker();
+}, 5000);
 
 // ---- Config ----
 const VAULT_PATH = process.env.VAULT_PATH || '/Users/ivanakimkin/Documents/1';
@@ -232,6 +338,52 @@ function updateDailyNote(dateStr, entry) {
 // ---- Routes ----
 
 /**
+ * GET /api/schedule
+ * Parses today's Markdown schedule table and returns current/next activity
+ */
+app.get('/api/schedule', (req, res) => {
+  try {
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const schedulePath = join(VAULT_PATH, 'Жизнь', 'Daily', `${dateStr}-schedules.md`);
+    if (!existsSync(schedulePath)) return res.json({ current: null, next: null, blocks: [] });
+
+    const content = readFileSync(schedulePath, 'utf-8');
+    const lines = content.split('\n');
+    let blocks = [];
+    for (const line of lines) {
+       const m = line.match(/\|\s*(\d{2}:\d{2})-(\d{2}:\d{2})\s*\|\s*(.*?)\s*\|/);
+       if (m) {
+           blocks.push({ start: m[1], end: m[2], activity: m[3].trim() });
+       }
+    }
+    
+    const now = new Date();
+    const curHm = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    
+    let current = null;
+    let next = null;
+    
+    for (let i=0; i<blocks.length; i++) {
+        const b = blocks[i];
+        if (curHm >= b.start && curHm < b.end) {
+            current = b;
+            next = blocks[i+1] || null;
+            break;
+        } else if (b.start > curHm && !current) {
+            // Gap, this is the upcoming one
+            next = b;
+            break;
+        }
+    }
+    
+    const debugInfo = { dateStr, schedulePath, exists: existsSync(schedulePath), blocksCount: blocks.length, curHm };
+    res.json({ current, next, blocks, debugInfo });
+  } catch(err) {
+    res.status(500).json({ error: err.message, debugInfo: "Crash" });
+  }
+});
+
+/**
  * POST /api/entry
  * Body: { date, mood, food_before_20, note }
  */
@@ -370,7 +522,7 @@ function getISOWeek(dateStr) {
 
 // ---- Start ----
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`🌿 Life Dashboard API on http://localhost:${PORT}`);
   console.log(`   Vault: ${VAULT_PATH}`);
   console.log(`   Metrics: ${METRICS_PATH}`);
@@ -381,4 +533,8 @@ app.listen(PORT, () => {
   } catch (e) {
     console.warn('Initial vault sync failed:', e.message);
   }
+  
+  // Start docker polling and log tailing
+  setTimeout(tailOpenclawLogs, 3000);
+  pollDocker();
 });
