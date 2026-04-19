@@ -124,6 +124,49 @@ def collect_git(metrics, dates):
         print(f"  Git error: {e}")
 
 
+def collect_schedules(metrics, dates):
+    """Fetch schedules for given dates."""
+    try:
+        from sources.schedule_source import parse_schedule_file
+        import glob
+
+        vault_path = os.environ.get('VAULT_PATH', '/vault')
+        
+        for date_str in dates:
+            patterns = [
+                os.path.join(vault_path, 'Жизнь', 'Daily', '**', f'{date_str}-schedules.md'),
+                os.path.join(vault_path, 'Жизнь', 'Daily', f'{date_str}-schedules.md'),
+            ]
+            
+            filepath = None
+            for pattern in patterns:
+                files = glob.glob(pattern, recursive=True)
+                if files:
+                    filepath = files[0]
+                    break
+                    
+            if filepath:
+                s_data = parse_schedule_file(filepath)
+                if s_data:
+                    day = ensure_day(metrics, date_str)
+                    day['schedule'] = {
+                        'wake_time': s_data.get('wake_time'),
+                        'hours_work': s_data.get('hours_work', 0),
+                        'hours_projects': s_data.get('hours_projects', 0),
+                        'hours_games': s_data.get('hours_games', 0),
+                        'hours_rest': s_data.get('hours_rest', 0),
+                        'hours_food': s_data.get('hours_food', 0),
+                        'hours_commute': s_data.get('hours_commute', 0),
+                        'hours_productive': s_data.get('hours_productive', 0),
+                        'hours_sleep': s_data.get('hours_sleep', 0),
+                    }
+                    print(f"  Schedule {date_str}: parsed successfully")
+            else:
+                print(f"  Schedule {date_str}: no schedule file found")
+    except Exception as e:
+        print(f"  Schedule error: {e}")
+
+
 def main():
     now = datetime.now()
     today = now.strftime('%Y-%m-%d')
@@ -139,6 +182,7 @@ def main():
     collect_garmin(metrics, dates)
     collect_weather(metrics, dates)
     collect_git(metrics, dates)
+    collect_schedules(metrics, dates)
 
     save_metrics(metrics)
     print(f"\n✅ Saved to {METRICS_PATH}")

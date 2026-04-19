@@ -849,6 +849,57 @@ body::after {
   margin-bottom: var(--gap);
 }
 
+.time-summary {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(125, 135, 125, 0.15);
+}
+
+.ts-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ts-label {
+  font-size: 0.65rem;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ts-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--fg);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ts-delta {
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: rgba(125, 135, 125, 0.15);
+}
+
+.ts-delta.positive {
+  color: var(--green);
+  background: rgba(167, 192, 128, 0.15);
+}
+
+.ts-delta.negative {
+  color: var(--red);
+  background: rgba(230, 126, 128, 0.15);
+}
+
 .chart-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
