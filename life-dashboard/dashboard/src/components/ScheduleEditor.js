@@ -112,9 +112,15 @@ function renderRows() {
   let html = '';
   blocks.forEach((b, i) => {
     const isCurrent = isToday && curHm >= b.start && curHm < b.end;
+    const isFirst = i === 0;
+    const isLast = i === blocks.length - 1;
 
     html += `
       <div class="sched-row${isCurrent ? ' sched-current' : ''}" data-idx="${i}">
+        <div class="sched-reorder">
+          <button class="sched-reorder-btn" data-dir="up" data-idx="${i}" title="Вверх"${isFirst ? ' disabled' : ''}>▲</button>
+          <button class="sched-reorder-btn" data-dir="down" data-idx="${i}" title="Вниз"${isLast ? ' disabled' : ''}>▼</button>
+        </div>
         <input class="sched-time-input" type="text" value="${b.start}" data-field="start" data-idx="${i}" maxlength="5" />
         <span class="sched-time-sep">&ndash;</span>
         <input class="sched-time-input" type="text" value="${b.end}" data-field="end" data-idx="${i}" maxlength="5" />
@@ -147,6 +153,44 @@ function renderRows() {
     btn.addEventListener('click', (e) => {
       const idx = parseInt(e.target.closest('[data-idx]').dataset.idx);
       blocks.splice(idx, 1);
+      renderRows();
+    });
+  });
+
+  // Reorder buttons (up/down)
+  body.querySelectorAll('.sched-reorder-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      const dir = e.target.dataset.dir;
+      const targetIdx = dir === 'up' ? idx - 1 : idx + 1;
+      if (targetIdx < 0 || targetIdx >= blocks.length) return;
+
+      // Swap the activity names only, then recalculate times
+      // preserving each activity's original duration
+      const durA = timeToMin(blocks[idx].end) - timeToMin(blocks[idx].start);
+      const durB = timeToMin(blocks[targetIdx].end) - timeToMin(blocks[targetIdx].start);
+
+      // Swap activities
+      const tmpActivity = blocks[idx].activity;
+      blocks[idx].activity = blocks[targetIdx].activity;
+      blocks[targetIdx].activity = tmpActivity;
+
+      // Recalculate times: the one moving up gets its neighbor's start + own duration
+      if (dir === 'up') {
+        // idx moves up (to targetIdx), targetIdx moves down (to idx)
+        // targetIdx now has activity that was at idx (longer/shorter)
+        const startA = timeToMin(blocks[targetIdx].start);
+        blocks[targetIdx].end = minToTime(startA + durA);
+        blocks[idx].start = blocks[targetIdx].end;
+        blocks[idx].end = minToTime(timeToMin(blocks[idx].start) + durB);
+      } else {
+        // idx moves down (to targetIdx), targetIdx moves up (to idx)
+        const startB = timeToMin(blocks[idx].start);
+        blocks[idx].end = minToTime(startB + durB);
+        blocks[targetIdx].start = blocks[idx].end;
+        blocks[targetIdx].end = minToTime(timeToMin(blocks[targetIdx].start) + durA);
+      }
+
       renderRows();
     });
   });
