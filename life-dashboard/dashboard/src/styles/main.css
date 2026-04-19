@@ -1494,9 +1494,48 @@ body::after {
   background: var(--bg0);
 }
 
-/* Lock body scroll when iframe tab is active */
+/* ---- App Mode: compact header when iframe tab is active ---- */
 body.app-mode {
   overflow: hidden;
+}
+
+/* Hide everything except tabs */
+body.app-mode .header-branding,
+body.app-mode .header-weather-mini,
+body.app-mode .header-mood-mini {
+  display: none;
+}
+
+/* Compact the layout */
+body.app-mode .app {
+  padding: 8px 16px;
+  max-width: 100%;
+}
+
+body.app-mode .top-header-row {
+  margin-bottom: 8px;
+  gap: 0;
+  justify-content: center;
+}
+
+/* Tabs become single horizontal row */
+body.app-mode .tabs {
+  grid-template-rows: 1fr;
+  grid-auto-flow: column;
+  width: 100%;
+}
+
+body.app-mode .tab {
+  min-width: auto;
+  padding: 5px 14px;
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+/* iframe fills the rest */
+body.app-mode .app-iframe-tab {
+  height: calc(100vh - 56px);
+  border-radius: 8px 8px 0 0;
 }
 
 /* ========================================
