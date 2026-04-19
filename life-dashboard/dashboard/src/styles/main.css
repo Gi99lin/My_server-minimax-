@@ -1761,139 +1761,224 @@ body::after {
 }
 
 /* ========================================
-   V2: DEVOPS HUD & MASCOTS
+   V2: AGENT ROOMS (Gather-style)
    ======================================== */
-.agent-rooms-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 16px;
-}
 
-.devops-room {
-  background: rgba(26, 32, 36, 0.4);
-  border: 1px solid rgba(125, 135, 125, 0.08);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s var(--ease-out);
-}
-.room-active {
-  border-color: rgba(167, 192, 128, 0.25);
-  background: rgba(35, 42, 46, 0.6);
-  box-shadow: inset 0 0 12px rgba(167, 192, 128, 0.05);
-}
-
-/* 3D-ish Floor layout */
-.room-floor {
+.ar-loading {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  width: 100%;
-  margin-bottom: 12px;
-  position: relative;
-  height: 28px;
-}
-
-.room-bed, .room-desk {
-  font-size: 1.4rem;
-  opacity: 0.8;
-  z-index: 1;
-}
-
-.room-mascot {
-  position: absolute;
-  top: 0;
-  left: 0;
-  font-size: 1.2rem;
-  z-index: 2;
-  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.room-sleep .room-mascot {
-  transform: translateX(2px) translateY(4px) rotate(-15deg);
-}
-
-/* Desk is on the right, translation depends on container width, we use calc */
-.room-active .room-mascot {
-  transform: translateX(calc(100% + 56px)) translateY(0px) rotate(0deg);
-}
-
-.room-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.room-title {
+  gap: 12px;
+  justify-content: center;
+  padding: 60px 0;
+  color: var(--fg-muted);
   font-size: 0.85rem;
-  color: var(--fg);
-  font-weight: 500;
-  word-break: break-all;
-}
-.room-sub {
-  font-size: 0.7rem;
-  color: var(--fg-muted);
 }
 
-/* DevOps Containers */
-.devops-container {
-  padding: 10px 14px;
-  background: rgba(26, 32, 36, 0.3);
-  border: 1px solid rgba(125, 135, 125, 0.05);
-  border-radius: 8px;
+.ar-loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: arPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes arPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.ar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* ---- Room Card ---- */
+.ar-room {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: all 0.4s var(--ease-out);
+}
+
+.ar-room-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(125, 135, 125, 0.1);
+  pointer-events: none;
+  transition: all 0.4s;
+}
+
+.ar-room-active .ar-room-glow {
+  border-color: var(--agent-color, var(--green));
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--agent-color, var(--green)) 15%, transparent),
+    inset 0 0 20px color-mix(in srgb, var(--agent-color, var(--green)) 8%, transparent);
+}
+
+.ar-room-content {
+  position: relative;
+  z-index: 1;
+  padding: 20px;
+  background: rgba(26, 32, 36, 0.6);
+  border-radius: inherit;
+}
+
+.ar-room-active .ar-room-content {
+  background: rgba(35, 42, 46, 0.75);
+}
+
+/* ---- Scene (Furniture + Mascot) ---- */
+.ar-room-scene {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  margin-bottom: 14px;
+  position: relative;
+}
+
+.ar-furniture {
+  font-size: 1.6rem;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+}
+
+.ar-room-active .ar-desk { opacity: 0.9; }
+.ar-room-idle .ar-bed { opacity: 0.9; }
+
+/* ---- Mascot ---- */
+.ar-mascot {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.8rem;
+  z-index: 2;
+  transition: left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ar-mascot-sleeping {
+  left: 12%;
+}
+
+.ar-mascot-working {
+  left: 72%;
+}
+
+.ar-mascot-emoji {
+  display: inline-block;
+  position: relative;
+}
+
+.ar-mascot-sleeping .ar-mascot-emoji {
+  animation: arSleep 3s ease-in-out infinite;
+}
+
+.ar-mascot-working .ar-mascot-emoji {
+  animation: arWork 0.4s ease-in-out infinite alternate;
+}
+
+@keyframes arSleep {
+  0%, 100% { transform: rotate(-10deg) scale(0.95); }
+  50% { transform: rotate(-5deg) scale(1); }
+}
+
+@keyframes arWork {
+  from { transform: translateY(0); }
+  to { transform: translateY(-2px); }
+}
+
+/* Pulse ring behind working mascot */
+.ar-mascot-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--green);
+  animation: arRingPulse 1.5s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes arRingPulse {
+  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+}
+
+/* Zzz float animation */
+.ar-zzz {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  font-size: 0.7rem;
+  animation: arFloat 2.5s ease-in-out infinite;
+}
+
+@keyframes arFloat {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-6px); opacity: 0.8; }
+}
+
+/* ---- Room Info ---- */
+.ar-room-info {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-.cont-up { border-color: rgba(167, 192, 128, 0.15); }
-.cont-down { border-color: rgba(230, 126, 128, 0.2); }
-
-.cont-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.cont-name {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--fg-dim);
-}
-.cont-state {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.cont-up .cont-state { color: var(--green); }
-.cont-down .cont-state { color: var(--red); }
-
-/* Netdata Stats */
-.cont-stats {
-  display: flex;
-  gap: 12px;
-  font-size: 0.75rem;
-  color: var(--fg-muted);
-  font-variant-numeric: tabular-nums;
-  margin-top: 2px;
-}
-.cont-stat {
-  display: flex;
-  align-items: center;
   gap: 4px;
 }
-.stat-bar-bg {
-  width: 40px;
-  height: 4px;
-  background: rgba(0,0,0,0.2);
-  border-radius: 2px;
-  overflow: hidden;
+
+.ar-room-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--fg);
+  text-transform: capitalize;
 }
-.stat-bar-fill {
-  height: 100%;
+
+.ar-room-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+}
+
+.ar-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ar-dot-active {
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: arDotBlink 1s ease-in-out infinite alternate;
+}
+
+.ar-dot-idle {
   background: var(--fg-muted);
-  border-radius: 2px;
-  transition: width 0.3s ease;
+  opacity: 0.5;
+}
+
+@keyframes arDotBlink {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}
+
+.ar-status-text {
+  color: var(--fg-muted);
+}
+
+.ar-room-active .ar-status-text {
+  color: var(--green);
+  font-weight: 500;
+}
+
+.ar-last-seen {
+  color: var(--fg-muted);
+  opacity: 0.6;
+  font-size: 0.65rem;
 }
 
 /* ---- Header "+" Button ---- */
