@@ -178,6 +178,10 @@ async function init() {
     btn.classList.add('active');
     const target = document.getElementById(`tab-${btn.dataset.tab}`);
     if (target) target.classList.add('active');
+
+    // Lock body scroll when iframe tab is active
+    const isAppTab = target?.classList.contains('app-iframe-tab');
+    document.body.classList.toggle('app-mode', isAppTab);
   });
 
   // Sub-tab switching (Infrastructure)
