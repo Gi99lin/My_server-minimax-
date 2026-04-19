@@ -246,7 +246,7 @@ function renderApps(apps) {
 
   let html = '<h3 class="srv-section-title">Приложения</h3><div class="srv-apps-grid">';
 
-  for (const [appKey, app] of Object.entries(apps).sort((a, b) => a[0].localeCompare(b[0]))) {
+  for (const [appKey, app] of Object.entries(apps).sort((a, b) => b[1].containers.length - a[1].containers.length || a[0].localeCompare(b[0]))) {
     const running = app.containers.filter(c => c.state === 'running').length;
     const total = app.containers.length;
     const allUp = running === total;
