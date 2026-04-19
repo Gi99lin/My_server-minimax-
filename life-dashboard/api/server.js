@@ -196,7 +196,7 @@ app.get('/api/metrics/server', async (req, res) => {
       system.disk = obj;
     }
 
-    // Per-container metrics (dynamic grouping) — PARALLEL
+    // Per-container metrics via Docker API (not Netdata — more reliable)
     const apps = {};
     if (docker) {
       try {
@@ -204,29 +204,57 @@ app.get('/api/metrics/server', async (req, res) => {
 
         // Resolve app group for a container name
         function resolveAppKey(name) {
-          if (name.includes('life-dashboard')) return 'life-dashboard';
-          if (name.includes('openclaw')) return 'openclaw';
-          if (name.includes('omniroute')) return 'omniroute';
-          if (name.includes('nextcloud')) return 'nextcloud';
-          if (name.includes('hrBot') || name.includes('hrbot')) return 'hrbot';
+          const n = name.toLowerCase();
+          if (n.includes('life-dashboard')) return 'life-dashboard';
+          if (n.includes('openclaw') || n.includes('spawn')) return 'openclaw';
+          if (n.includes('omniroute')) return 'omniroute';
+          if (n.includes('nextcloud')) return 'nextcloud';
+          if (n.includes('hrbot') || n.includes('hrbot_')) return 'hrbot';
+          if (n.includes('chat-') || n === 'librechat') return 'librechat';
+          if (n.includes('marz')) return 'marzneshin';
+          if (n.includes('nginx')) return 'nginx';
+          if (n.includes('syncthing')) return 'syncthing';
+          if (n.includes('trueconf')) return 'trueconf';
           return name.split(/[-_]/)[0];
         }
 
-        // Fire ALL Netdata requests in parallel (not sequentially)
+        // Get stats from Docker API for running containers (parallel)
         const enriched = await Promise.all(
           containers.map(async (c) => {
             const name = c.Names[0].replace('/', '');
-            const [cpu, mem] = await Promise.all([
-              getNetdata(`cgroup_${name}.cpu_limit`),
-              getNetdata(`cgroup_${name}.mem_usage_limit`),
-            ]);
+            let cpu = 0, memMB = 0;
+
+            if (c.State === 'running') {
+              try {
+                const container = docker.getContainer(c.Id);
+                const stats = await container.stats({ stream: false });
+
+                // CPU % (same formula as `docker stats`)
+                const cpuDelta = (stats.cpu_stats?.cpu_usage?.total_usage || 0) -
+                                 (stats.precpu_stats?.cpu_usage?.total_usage || 0);
+                const systemDelta = (stats.cpu_stats?.system_cpu_usage || 0) -
+                                    (stats.precpu_stats?.system_cpu_usage || 0);
+                const numCpus = stats.cpu_stats?.online_cpus || 1;
+                if (systemDelta > 0 && cpuDelta > 0) {
+                  cpu = (cpuDelta / systemDelta) * numCpus * 100;
+                }
+
+                // Memory (usage minus cache, in MB)
+                const usage = stats.memory_stats?.usage || 0;
+                const cache = stats.memory_stats?.stats?.cache || stats.memory_stats?.stats?.inactive_file || 0;
+                memMB = (usage - cache) / (1024 * 1024);
+              } catch (e) {
+                // stats failed — leave at 0
+              }
+            }
+
             return {
               name,
               appKey: resolveAppKey(name),
               state: c.State,
               status: c.Status,
-              cpu: typeof cpu === 'number' ? cpu : 0,
-              mem: typeof mem === 'number' ? mem : 0,
+              cpu: Math.round(cpu * 100) / 100,
+              memMB: Math.round(memMB * 10) / 10,
             };
           })
         );
@@ -238,7 +266,7 @@ app.get('/api/metrics/server', async (req, res) => {
           }
           apps[c.appKey].containers.push(c);
           apps[c.appKey].totalCpu += c.cpu;
-          apps[c.appKey].totalMem += c.mem;
+          apps[c.appKey].totalMem += c.memMB;
         }
       } catch (e) {
         console.error('Container metrics error:', e.message);
