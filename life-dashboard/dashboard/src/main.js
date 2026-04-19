@@ -14,6 +14,7 @@ import { initWeather } from './components/WeatherForecast.js';
 import { initAuth, showLoginModal } from './components/LoginModal.js';
 import { renderLiveSchedule } from './components/LiveSchedule.js';
 import { renderDevOpsHUD } from './components/DevOpsHUD.js';
+import { renderHealthCharts } from './components/HealthCharts.js';
 import { io } from 'socket.io-client';
 
 function setGreeting() {
@@ -129,6 +130,9 @@ async function init() {
   // Quick entry
   const quickEntry = document.getElementById('quickEntry');
   if (quickEntry) renderQuickEntry(quickEntry);
+
+  // Health Charts (V2)
+  renderHealthCharts(data);
 
   // Tab switching
   document.getElementById('tabs')?.addEventListener('click', (e) => {

@@ -281,58 +281,117 @@ function toggleDetail(card, data, statContainer) {
 
   const allDays = getDays(data);
   const labels = allDays.map(d => d.date);
-  const values = allDays.map(d => card.get(d));
   const ctx = document.getElementById('detailCanvas')?.getContext('2d');
   if (!ctx) return;
 
-  detailChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: card.label,
-        data: values,
-        borderColor: card.color,
-        backgroundColor: card.color + '18',
-        borderWidth: 2,
-        pointRadius: 0,
-        pointHoverRadius: 4,
-        pointHoverBackgroundColor: card.color,
-        tension: 0.35,
-        fill: true,
-        spanGaps: true,
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: 'rgba(35, 42, 46, 0.95)',
-          titleColor: '#d3c6aa',
-          bodyColor: '#9da9a0',
-          borderColor: 'rgba(125, 135, 125, 0.15)',
-          borderWidth: 1,
-          cornerRadius: 10,
-          padding: 10,
-          displayColors: false,
-        },
+  if (card.id === 'sleep') {
+    const deepData = allDays.map(d => d.garmin?.sleep_phases?.deep_h || 0);
+    const lightData = allDays.map(d => d.garmin?.sleep_phases?.light_h || 0);
+    const remData = allDays.map(d => d.garmin?.sleep_phases?.rem_h || 0);
+    const awakeData = allDays.map(d => d.garmin?.sleep_phases?.awake_h || 0);
+    const scoreData = allDays.map(d => d.garmin?.sleep_score || null);
+
+    detailChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Оценка (Score)', data: scoreData, type: 'line', borderColor: '#dbbc7f', tension: 0.3, yAxisID: 'yScore', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#dbbc7f' },
+          { label: 'Глубокий', data: deepData, backgroundColor: '#475258', borderRadius: 0 },
+          { label: 'Легкий', data: lightData, backgroundColor: '#83c092', borderRadius: 0 },
+          { label: 'REM', data: remData, backgroundColor: '#7fbbb3', borderRadius: 0 },
+          { label: 'Бодрств.', data: awakeData, backgroundColor: '#e67e80', borderRadius: 0 }
+        ]
       },
-      scales: {
-        x: {
-          ticks: { color: '#6b7b72', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 12 },
-          grid: { color: 'rgba(125,135,125,0.06)' },
-          border: { display: false },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: true, position: 'top', align: 'end', labels: { color: '#9da9a0', boxWidth: 8, font: { size: 10 } } },
+          tooltip: {
+            backgroundColor: 'rgba(35, 42, 46, 0.95)',
+            titleColor: '#d3c6aa',
+            bodyColor: '#9da9a0',
+            borderColor: 'rgba(125, 135, 125, 0.15)',
+            borderWidth: 1, padding: 10, cornerRadius: 10
+          }
         },
-        y: {
-          ticks: { color: '#6b7b72', font: { size: 10 } },
-          grid: { color: 'rgba(125,135,125,0.06)' },
-          border: { display: false },
+        scales: {
+          x: {
+            stacked: true,
+            ticks: { color: '#6b7b72', font: { size: 10 }, maxTicksLimit: 12 },
+            grid: { display: false },
+            border: { display: false }
+          },
+          y: {
+            stacked: true,
+            position: 'left',
+            ticks: { color: '#6b7b72', font: { size: 10 } },
+            grid: { color: 'rgba(125,135,125,0.06)' },
+            border: { display: false }
+          },
+          yScore: {
+            position: 'right',
+            min: 0, max: 100,
+            ticks: { color: '#dbbc7f', font: { size: 9 }, stepSize: 20 },
+            grid: { display: false },
+            border: { display: false }
+          }
         },
+        animation: { duration: 600, easing: 'easeOutCubic' },
+      }
+    });
+  } else {
+    // Default Line chart for everything else
+    const values = allDays.map(d => card.get(d));
+    
+    detailChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: card.label,
+          data: values,
+          borderColor: card.color,
+          backgroundColor: card.color + '18',
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          pointHoverBackgroundColor: card.color,
+          tension: 0.35,
+          fill: true,
+          spanGaps: true,
+        }],
       },
-      animation: { duration: 600, easing: 'easeOutCubic' },
-    },
-  });
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(35, 42, 46, 0.95)',
+            titleColor: '#d3c6aa',
+            bodyColor: '#9da9a0',
+            borderColor: 'rgba(125, 135, 125, 0.15)',
+            borderWidth: 1, cornerRadius: 10, padding: 10, displayColors: false,
+          },
+        },
+        scales: {
+          x: {
+            ticks: { color: '#6b7b72', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 12 },
+            grid: { color: 'rgba(125,135,125,0.06)' },
+            border: { display: false },
+          },
+          y: {
+            ticks: { color: '#6b7b72', font: { size: 10 } },
+            grid: { color: 'rgba(125,135,125,0.06)' },
+            border: { display: false },
+          },
+        },
+        animation: { duration: 600, easing: 'easeOutCubic' },
+      },
+    });
+  }
 }
