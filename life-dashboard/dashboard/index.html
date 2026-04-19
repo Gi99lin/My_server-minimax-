@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Dashboard</title>
+    <meta name="description" content="Personal life metrics dashboard — mood, sleep, productivity, health tracking">
+    <link rel="icon" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app" id="app">
+        <!-- Header -->
+        <header class="header" id="header">
+            <div class="header-left">
+                <span class="logo"><span class="logo-accent">Life</span> Dashboard</span>
+                <h1 class="greeting" id="greeting">—</h1>
+            </div>
+            <div class="header-right">
+                <div class="weather-widget" id="weatherWidget">
+                    <span class="weather-icon" id="weatherIcon"></span>
+                    <span class="weather-temp" id="weatherTemp">—</span>
+                    <span class="weather-desc" id="weatherDesc"></span>
+                    <span class="weather-pressure" id="weatherPressure"></span>
+                </div>
+                <div class="date-display">
+                    <span class="sync-dot" id="syncDot"></span>
+                    <span id="dateDisplay">—</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tabs" id="tabs">
+            <button class="tab active" data-tab="dashboard">Обзор</button>
+            <button class="tab" data-tab="trends">Тренды</button>
+            <button class="tab" data-tab="pulse">Пульс недели</button>
+        </nav>
+
+        <!-- Tab: Dashboard -->
+        <main class="tab-content active" id="tab-dashboard">
+            <!-- Stat Cards -->
+            <section class="stat-cards" id="statCards"></section>
+
+            <!-- Charts Row -->
+            <section class="charts-row">
+                <div class="chart-card" id="trendChartCard" style="--i: 0">
+                    <div class="chart-header">
+                        <h2>Тренды</h2>
+                        <div class="period-selector" id="periodSelector">
+                            <button class="period-btn" data-days="7">7д</button>
+                            <button class="period-btn active" data-days="30">30д</button>
+                            <button class="period-btn" data-days="90">90д</button>
+                        </div>
+                    </div>
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <div class="chart-card" id="timeBreakdownCard" style="--i: 1">
+                    <div class="chart-header">
+                        <h2>Время за неделю</h2>
+                    </div>
+                    <canvas id="timeChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Bottom Row -->
+            <section class="bottom-row">
+                <div class="chart-card heatmap-card" id="heatmapCard" style="--i: 2">
+                    <div class="chart-header">
+                        <h2>История настроения</h2>
+                    </div>
+                    <div id="moodHeatmap" class="heatmap-container"></div>
+                </div>
+                <div class="chart-card quick-entry-card" id="quickEntryCard" style="--i: 3">
+                    <div class="chart-header">
+                        <h2>Быстрый ввод</h2>
+                    </div>
+                    <div id="quickEntry" class="quick-entry"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Tab: Trends (placeholder) -->
+        <main class="tab-content" id="tab-trends">
+            <div class="placeholder">Тренды — скоро</div>
+        </main>
+
+        <!-- Tab: Weekly Pulse (placeholder) -->
+        <main class="tab-content" id="tab-pulse">
+            <div class="placeholder">Пульс недели — скоро</div>
+        </main>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

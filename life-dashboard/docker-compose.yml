@@ -1,0 +1,72 @@
+services:
+  # ==================== Life Dashboard — Frontend ====================
+  life-dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    image: life-dashboard-frontend
+    container_name: life-dashboard
+    restart: unless-stopped
+    depends_on:
+      - life-dashboard-api
+    networks:
+      - life_dashboard_network
+      - proxy_network
+
+  # ==================== Life Dashboard — API ====================
+  life-dashboard-api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    image: life-dashboard-api
+    container_name: life-dashboard-api
+    restart: unless-stopped
+    environment:
+      - PORT=3001
+      - VAULT_PATH=/vault
+      - METRICS_PATH=/data/metrics.json
+      - TZ=Europe/Moscow
+    volumes:
+      - dashboard_data:/data
+      # Obsidian vault (synced via Syncthing)
+      - ${VAULT_PATH:-/mnt/data/obsidian}:/vault:ro
+    networks:
+      - life_dashboard_network
+
+  # ==================== Life Dashboard — Collector ====================
+  # Cron-based: fetches Garmin, weather, git every 2 hours
+  life-dashboard-collector:
+    build:
+      context: ./collector
+      dockerfile: Dockerfile
+    image: life-dashboard-collector
+    container_name: life-dashboard-collector
+    restart: unless-stopped
+    environment:
+      - METRICS_PATH=/data/metrics.json
+      - GARMIN_EMAIL=${GARMIN_EMAIL}
+      - GARMIN_PASSWORD=${GARMIN_PASSWORD}
+      - WEATHER_LAT=55.7558
+      - WEATHER_LON=37.6173
+      - GIT_REPOS_PATH=/repos
+      - TZ=Europe/Moscow
+    volumes:
+      - dashboard_data:/data
+      # Garmin tokens (persisted between restarts)
+      - garmin_tokens:/root/.garminconnect
+      # Git repos for commit tracking (optional, read-only)
+      - ${GIT_REPOS_PATH:-/mnt/data/repos}:/repos:ro
+
+# ==================== Networks & Volumes ====================
+networks:
+  life_dashboard_network:
+    driver: bridge
+  proxy_network:
+    external: true
+    name: my_server_proxy_network
+
+volumes:
+  dashboard_data:
+    name: life-dashboard-data
+  garmin_tokens:
+    name: life-dashboard-garmin-tokens

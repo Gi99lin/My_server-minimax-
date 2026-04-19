@@ -56,3 +56,9 @@ syncthing/config/index-v2/
 *.db-shm
 *.db-wal
 openclaw/.env.bak
+
+# Life Dashboard
+life-dashboard/dashboard/node_modules/
+life-dashboard/dashboard/dist/
+life-dashboard/api/node_modules/
+life-dashboard/.env
