@@ -440,7 +440,7 @@ app.get('/api/forecast', async (req, res) => {
   try {
     const lat = 55.7558;
     const lon = 37.6173;
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum&hourly=temperature_2m,weathercode&timezone=auto&forecast_days=7`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum,sunrise,sunset&hourly=temperature_2m,weathercode&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure&timezone=auto&forecast_days=7`;
 
     const response = await fetch(url);
     const data = await response.json();
@@ -473,6 +473,8 @@ app.get('/api/forecast', async (req, res) => {
         temp_max: daily.temperature_2m_max?.[i],
         temp_min: daily.temperature_2m_min?.[i],
         precip: daily.precipitation_sum?.[i],
+        sunrise: daily.sunrise?.[i],
+        sunset: daily.sunset?.[i],
         desc,
         icon,
       };
@@ -488,7 +490,16 @@ app.get('/api/forecast', async (req, res) => {
       };
     });
 
-    res.json({ days, hourly });
+    const currentRaw = data.current || {};
+    const current = {
+      temp: currentRaw.temperature_2m,
+      feels_like: currentRaw.apparent_temperature,
+      humidity: currentRaw.relative_humidity_2m,
+      wind: currentRaw.wind_speed_10m,
+      pressure: currentRaw.surface_pressure
+    };
+
+    res.json({ days, hourly, current });
   } catch (err) {
     console.error('Forecast error:', err);
     res.status(500).json({ error: err.message });

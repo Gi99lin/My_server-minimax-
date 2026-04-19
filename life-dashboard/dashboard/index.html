@@ -12,51 +12,60 @@
 </head>
 <body>
     <div class="app" id="app">
-        <!-- Header (Logo & Greeting) -->
-        <header class="header" id="header" style="margin-bottom: 12px;">
-            <div class="header-left">
-                <span class="logo"><span class="logo-accent">Life</span> Dashboard</span>
+        <!-- Single Top Header Row -->
+        <div class="top-header-row">
+            <!-- 1. Branding & Greeting -->
+            <div class="header-branding">
+                <div class="header-logo-row">
+                    <span class="logo"><span class="logo-accent">Life</span> Dashboard</span>
+                    <span class="sync-dot" id="syncDot" title="Sync Status"></span>
+                </div>
                 <h1 class="greeting" id="greeting">—</h1>
             </div>
-            <div class="header-right">
-                <span class="sync-dot" id="syncDot"></span>
-            </div>
-        </header>
 
-        <!-- Top Controls Row (Tabs + Widgets) -->
-        <div class="top-controls-row">
-            <!-- Left: Tabs Column -->
-            <div class="controls-left">
-                <nav class="tabs" id="tabs">
-                    <button class="tab active" data-tab="dashboard">Обзор</button>
-                    <button class="tab" data-tab="devops">Инфраструктура</button>
-                    <button class="tab" data-tab="analytics">Аналитика</button>
-                    <button class="tab" data-tab="librechat">LibreChat</button>
-                    <button class="tab" data-tab="openclaw">OpenClaw</button>
-                    <button class="tab" data-tab="omniroute">OmniRoute</button>
-                </nav>
-            </div>
+            <!-- 2. Tabs Column -->
+            <nav class="tabs" id="tabs">
+                <button class="tab active" data-tab="dashboard">Обзор</button>
+                <button class="tab" data-tab="devops">Инфраструктура</button>
+                <button class="tab" data-tab="analytics">Аналитика</button>
+                <button class="tab" data-tab="librechat">LibreChat</button>
+                <button class="tab" data-tab="openclaw">OpenClaw</button>
+                <button class="tab" data-tab="omniroute">OmniRoute</button>
+            </nav>
 
-            <!-- Right: Widgets Column -->
-            <div class="controls-right">
-                <!-- Weather Full Block -->
-                <div class="top-widget flex-col" id="weatherWidget">
-                    <div class="weather-current-row">
-                        <span class="weather-icon" id="weatherIcon"></span>
+            <!-- 3. Weather Block -->
+            <div class="top-widget weather-widget-pane" id="weatherWidget">
+                <div class="weather-current-row">
+                    <span class="weather-icon" id="weatherIcon"></span>
+                    <div class="weather-temp-col">
                         <span class="weather-temp" id="weatherTemp">—</span>
-                        <div class="weather-text">
-                            <div class="weather-desc" id="weatherDesc"></div>
-                            <div class="weather-pressure" id="weatherPressure"></div>
-                        </div>
+                        <span class="weather-desc" id="weatherDesc"></span>
                     </div>
+                    <div class="weather-metrics">
+                        <div class="wm-item" title="Влажность"><span class="wm-icon">💧</span> <span id="weatherHum">—</span></div>
+                        <div class="wm-item" title="Ветер"><span class="wm-icon">💨</span> <span id="weatherWind">—</span></div>
+                        <div class="wm-item" title="Ощущается как"><span class="wm-icon">🌡️</span> <span id="weatherFeels">—</span></div>
+                        <div class="wm-item" title="Атм. давление"><span class="wm-icon">🧭</span> <span id="weatherPressure">—</span></div>
+                    </div>
+                    
+                    <div class="weather-quote" id="weatherQuote">—</div>
+
+                    <!-- Moved back to top row -->
+                    <div class="weather-sun-col">
+                        <div class="ws-item"><span class="ws-icon">🌅</span> <span id="weatherSunrise">—</span></div>
+                        <div class="ws-item"><span class="ws-icon">🌇</span> <span id="weatherSunset">—</span></div>
+                    </div>
+                </div>
+                <!-- Hourly combined -->
+                <div class="weather-hourly-wrap">
                     <div class="weather-hourly" id="weatherHourly"></div>
                 </div>
+            </div>
 
-                <!-- Date & Schedule Block -->
-                <div class="top-widget flex-col schedule-widget-pane">
-                    <div class="date-big-display" id="dateDisplay">—</div>
-                    <div id="liveSchedule" class="top-live-schedule"></div>
-                </div>
+            <!-- 4. Schedule Block -->
+            <div class="top-widget schedule-widget-pane">
+                <div class="date-big-display" id="dateDisplay">—</div>
+                <div id="liveSchedule" class="top-live-schedule"></div>
             </div>
         </div>
 
