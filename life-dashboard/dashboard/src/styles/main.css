@@ -101,24 +101,33 @@ body::after {
   padding: 28px 32px;
 }
 
-/* ---- Header ---- */
-.header {
+/* ---- Top Header Row ---- */
+.top-header-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 20px;
-  margin-bottom: 8px;
+  gap: 16px;
+  margin-bottom: 22px;
+  align-items: stretch;
   animation: fadeSlideUp 0.6s var(--ease-out) both;
 }
 
-.header-left {
+/* 1. Branding (Logo & Greeting) */
+.header-branding {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  justify-content: center;
+  gap: 12px;
+  min-width: 180px;
+  flex-shrink: 0;
+}
+
+.header-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .logo {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--fg-dim);
   letter-spacing: 0.6px;
@@ -130,45 +139,33 @@ body::after {
   color: var(--green);
 }
 
+.sync-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.sync-dot.error {
+  background: var(--red);
+}
+
 .greeting {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 300;
   color: var(--fg);
   letter-spacing: -0.5px;
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-/* ---- Top Controls Row ---- */
-.top-controls-row {
-  display: flex;
-  gap: var(--gap);
-  margin-bottom: var(--gap);
-  align-items: stretch;
-}
-
-.controls-left {
-  flex: 0 0 auto;
-}
-
-.controls-right {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--gap);
-}
-
-/* ---- Top Widgets ---- */
+/* 3. Weather Widget & 4. Schedule Pane */
 .top-widget {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
-  padding: 10px 14px;
+  padding: 12px 16px;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   display: flex;
@@ -211,9 +208,10 @@ body::after {
   letter-spacing: -1px;
 }
 
-.weather-text {
+.weather-temp-col {
   display: flex;
   flex-direction: column;
+  margin-right: 12px;
 }
 
 .weather-desc {
@@ -222,16 +220,76 @@ body::after {
   font-weight: 500;
 }
 
-.weather-pressure {
+.weather-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 4px;
+  column-gap: 12px;
+  border-left: 1px solid rgba(125, 135, 125, 0.15);
+  padding-left: 14px;
+}
+
+.wm-item {
   font-size: 0.65rem;
   color: var(--fg-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.wm-icon { font-size: 0.7rem; opacity: 0.8; }
+
+.weather-quote {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--fg);
+  padding: 0 12px;
+  text-align: center;
+  line-height: 1.3;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.weather-sun-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-left: 1px solid rgba(125, 135, 125, 0.15);
+  padding-left: 12px;
+  margin-left: auto;
+  justify-content: center;
+}
+
+.ws-item {
+  font-size: 0.65rem;
+  color: var(--fg-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ws-icon { font-size: 0.85rem; }
+
+.weather-hourly-wrap {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background: rgba(26, 32, 36, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+  gap: 12px;
 }
 
 .weather-hourly {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 2px;
+  align-items: center;
   /* hide scrollbar */
   -ms-overflow-style: none;  
   scrollbar-width: none;  
@@ -243,17 +301,13 @@ body::after {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  background: rgba(26, 32, 36, 0.4);
-  padding: 6px 8px;
-  border-radius: var(--radius-sm);
-  min-width: 50px;
+  min-width: 48px;
   border: 1px solid transparent;
   transition: all 0.2s;
+  cursor: default;
 }
 
 .hourly-item:hover {
-  background: rgba(52, 63, 68, 0.6);
-  border-color: rgba(167, 192, 128, 0.15);
   transform: translateY(-2px);
 }
 
@@ -262,11 +316,18 @@ body::after {
 .hc-temp { font-size: 0.8rem; font-weight: 600; }
 
 /* ---- Date & Schedule Combo ---- */
+.weather-widget-pane {
+  flex: 1.35;
+  min-width: 0;
+}
+
 .schedule-widget-pane {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   gap: 8px;
+  flex: 1; /* allow it to grow in the top horizontal row */
+  min-width: 0;
 }
 
 .date-big-display {
@@ -493,7 +554,7 @@ body::after {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--card-border);
   width: auto;
-  height: 100%;
+  align-self: stretch;
   animation: fadeSlideUp 0.6s var(--ease-out) 0.1s both;
 }
 
