@@ -235,11 +235,17 @@ def main():
     git_base = os.environ.get('GIT_REPOS_PATH', '/repos')
     repos = []
     if os.path.isdir(git_base):
+        # Check if base dir itself is a git repo (monorepo)
+        if os.path.isdir(os.path.join(git_base, '.git')):
+            repos.append(git_base)
+        # Also scan subdirectories for individual repos
         for d in os.listdir(git_base):
             repo_path = os.path.join(git_base, d)
             if os.path.isdir(os.path.join(repo_path, '.git')):
                 repos.append(repo_path)
     
+    print(f"   Repos found: {[os.path.basename(r) for r in repos]}")
+
     git_data = {}
     if repos:
         try:
