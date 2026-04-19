@@ -1760,6 +1760,16 @@ body::after {
   max-width: 600px;
 }
 
+/* ---- Stat Detail Modal ---- */
+.stat-detail-modal {
+  max-width: 700px;
+}
+
+.stat-detail-chart-wrap {
+  height: 300px;
+  position: relative;
+}
+
 .sched-nav-btn {
   background: none;
   border: 1px solid var(--card-border);

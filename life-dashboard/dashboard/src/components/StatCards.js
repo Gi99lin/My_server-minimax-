@@ -248,16 +248,9 @@ function drawSparkline(canvasId, values, color) {
 }
 
 function toggleDetail(card, data, statContainer) {
-  let panel = document.getElementById('statDetail');
-
+  // If clicking same card again, just close
   if (expandedCard === card.id) {
-    if (panel) {
-      panel.style.maxHeight = '0';
-      setTimeout(() => panel?.remove(), 400);
-    }
-    if (detailChart) { detailChart.destroy(); detailChart = null; }
-    statContainer.querySelectorAll('.stat-card').forEach(c => c.classList.remove('stat-card-active'));
-    expandedCard = null;
+    closeStatModal();
     return;
   }
 
@@ -265,133 +258,170 @@ function toggleDetail(card, data, statContainer) {
   statContainer.querySelectorAll('.stat-card').forEach(c => c.classList.remove('stat-card-active'));
   statContainer.querySelector(`[data-metric="${card.id}"]`)?.classList.add('stat-card-active');
 
-  if (!panel) {
-    panel = document.createElement('div');
-    panel.id = 'statDetail';
-    panel.className = 'stat-detail';
-    panel.innerHTML = `<div class="stat-detail-inner"><canvas id="detailCanvas"></canvas></div>`;
-    statContainer.after(panel);
-  } else {
-    panel.innerHTML = `<div class="stat-detail-inner"><canvas id="detailCanvas"></canvas></div>`;
+  // Get or create modal
+  let overlay = document.getElementById('statDetailOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'statDetailOverlay';
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-content stat-detail-modal">
+        <div class="modal-header">
+          <h2 class="modal-title" id="statDetailTitle"></h2>
+          <button class="modal-close" id="statDetailClose">&times;</button>
+        </div>
+        <div class="stat-detail-chart-wrap">
+          <canvas id="detailCanvas"></canvas>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    document.getElementById('statDetailClose').addEventListener('click', closeStatModal);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeStatModal();
+    });
   }
 
-  requestAnimationFrame(() => { panel.style.maxHeight = '280px'; });
+  // Set title
+  document.getElementById('statDetailTitle').textContent = card.label;
+  overlay.classList.add('open');
 
+  // Render chart
   if (detailChart) { detailChart.destroy(); detailChart = null; }
 
   const allDays = getDays(data);
   const labels = allDays.map(d => d.date);
-  const ctx = document.getElementById('detailCanvas')?.getContext('2d');
-  if (!ctx) return;
 
-  if (card.id === 'sleep') {
-    const deepData = allDays.map(d => d.garmin?.sleep_phases?.deep_h || 0);
-    const lightData = allDays.map(d => d.garmin?.sleep_phases?.light_h || 0);
-    const remData = allDays.map(d => d.garmin?.sleep_phases?.rem_h || 0);
-    const awakeData = allDays.map(d => d.garmin?.sleep_phases?.awake_h || 0);
-    const scoreData = allDays.map(d => d.garmin?.sleep_score || null);
+  // Need to wait a frame for the canvas to be visible
+  requestAnimationFrame(() => {
+    const ctx = document.getElementById('detailCanvas')?.getContext('2d');
+    if (!ctx) return;
 
-    detailChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          { label: 'Оценка (Score)', data: scoreData, type: 'line', borderColor: '#dbbc7f', tension: 0.3, yAxisID: 'yScore', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#dbbc7f' },
-          { label: 'Глубокий', data: deepData, backgroundColor: '#475258', borderRadius: 0 },
-          { label: 'Легкий', data: lightData, backgroundColor: '#83c092', borderRadius: 0 },
-          { label: 'REM', data: remData, backgroundColor: '#7fbbb3', borderRadius: 0 },
-          { label: 'Бодрств.', data: awakeData, backgroundColor: '#e67e80', borderRadius: 0 }
-        ]
+    if (card.id === 'sleep') {
+      renderSleepDetail(ctx, labels, allDays);
+    } else {
+      renderDefaultDetail(ctx, labels, allDays, card);
+    }
+  });
+}
+
+function closeStatModal() {
+  const overlay = document.getElementById('statDetailOverlay');
+  if (overlay) overlay.classList.remove('open');
+  if (detailChart) { detailChart.destroy(); detailChart = null; }
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('stat-card-active'));
+  expandedCard = null;
+}
+
+function renderSleepDetail(ctx, labels, allDays) {
+  const deepData = allDays.map(d => d.garmin?.sleep_phases?.deep_h || 0);
+  const lightData = allDays.map(d => d.garmin?.sleep_phases?.light_h || 0);
+  const remData = allDays.map(d => d.garmin?.sleep_phases?.rem_h || 0);
+  const awakeData = allDays.map(d => d.garmin?.sleep_phases?.awake_h || 0);
+  const scoreData = allDays.map(d => d.garmin?.sleep_score || null);
+
+  detailChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Оценка (Score)', data: scoreData, type: 'line', borderColor: '#dbbc7f', tension: 0.3, yAxisID: 'yScore', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#dbbc7f' },
+        { label: 'Глубокий', data: deepData, backgroundColor: '#475258', borderRadius: 0 },
+        { label: 'Легкий', data: lightData, backgroundColor: '#83c092', borderRadius: 0 },
+        { label: 'REM', data: remData, backgroundColor: '#7fbbb3', borderRadius: 0 },
+        { label: 'Бодрств.', data: awakeData, backgroundColor: '#e67e80', borderRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, position: 'top', align: 'end', labels: { color: '#9da9a0', boxWidth: 8, font: { size: 10 } } },
+        tooltip: {
+          backgroundColor: 'rgba(35, 42, 46, 0.95)',
+          titleColor: '#d3c6aa',
+          bodyColor: '#9da9a0',
+          borderColor: 'rgba(125, 135, 125, 0.15)',
+          borderWidth: 1, padding: 10, cornerRadius: 10
+        }
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { display: true, position: 'top', align: 'end', labels: { color: '#9da9a0', boxWidth: 8, font: { size: 10 } } },
-          tooltip: {
-            backgroundColor: 'rgba(35, 42, 46, 0.95)',
-            titleColor: '#d3c6aa',
-            bodyColor: '#9da9a0',
-            borderColor: 'rgba(125, 135, 125, 0.15)',
-            borderWidth: 1, padding: 10, cornerRadius: 10
-          }
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { color: '#6b7b72', font: { size: 10 }, maxTicksLimit: 12 },
+          grid: { display: false },
+          border: { display: false }
         },
-        scales: {
-          x: {
-            stacked: true,
-            ticks: { color: '#6b7b72', font: { size: 10 }, maxTicksLimit: 12 },
-            grid: { display: false },
-            border: { display: false }
-          },
-          y: {
-            stacked: true,
-            position: 'left',
-            ticks: { color: '#6b7b72', font: { size: 10 } },
-            grid: { color: 'rgba(125,135,125,0.06)' },
-            border: { display: false }
-          },
-          yScore: {
-            position: 'right',
-            min: 0, max: 100,
-            ticks: { color: '#dbbc7f', font: { size: 9 }, stepSize: 20 },
-            grid: { display: false },
-            border: { display: false }
-          }
+        y: {
+          stacked: true,
+          position: 'left',
+          ticks: { color: '#6b7b72', font: { size: 10 } },
+          grid: { color: 'rgba(125,135,125,0.06)' },
+          border: { display: false }
         },
-        animation: { duration: 600, easing: 'easeOutCubic' },
-      }
-    });
-  } else {
-    // Default Line chart for everything else
-    const values = allDays.map(d => card.get(d));
-    
-    detailChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: card.label,
-          data: values,
-          borderColor: card.color,
-          backgroundColor: card.color + '18',
-          borderWidth: 2,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-          pointHoverBackgroundColor: card.color,
-          tension: 0.35,
-          fill: true,
-          spanGaps: true,
-        }],
+        yScore: {
+          position: 'right',
+          min: 0, max: 100,
+          ticks: { color: '#dbbc7f', font: { size: 9 }, stepSize: 20 },
+          grid: { display: false },
+          border: { display: false }
+        }
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(35, 42, 46, 0.95)',
-            titleColor: '#d3c6aa',
-            bodyColor: '#9da9a0',
-            borderColor: 'rgba(125, 135, 125, 0.15)',
-            borderWidth: 1, cornerRadius: 10, padding: 10, displayColors: false,
-          },
+      animation: { duration: 600, easing: 'easeOutCubic' },
+    }
+  });
+}
+
+function renderDefaultDetail(ctx, labels, allDays, card) {
+  const values = allDays.map(d => card.get(d));
+  
+  detailChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: card.label,
+        data: values,
+        borderColor: card.color,
+        backgroundColor: card.color + '18',
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: card.color,
+        tension: 0.35,
+        fill: true,
+        spanGaps: true,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(35, 42, 46, 0.95)',
+          titleColor: '#d3c6aa',
+          bodyColor: '#9da9a0',
+          borderColor: 'rgba(125, 135, 125, 0.15)',
+          borderWidth: 1, cornerRadius: 10, padding: 10, displayColors: false,
         },
-        scales: {
-          x: {
-            ticks: { color: '#6b7b72', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 12 },
-            grid: { color: 'rgba(125,135,125,0.06)' },
-            border: { display: false },
-          },
-          y: {
-            ticks: { color: '#6b7b72', font: { size: 10 } },
-            grid: { color: 'rgba(125,135,125,0.06)' },
-            border: { display: false },
-          },
-        },
-        animation: { duration: 600, easing: 'easeOutCubic' },
       },
-    });
-  }
+      scales: {
+        x: {
+          ticks: { color: '#6b7b72', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 12 },
+          grid: { color: 'rgba(125,135,125,0.06)' },
+          border: { display: false },
+        },
+        y: {
+          ticks: { color: '#6b7b72', font: { size: 10 } },
+          grid: { color: 'rgba(125,135,125,0.06)' },
+          border: { display: false },
+        },
+      },
+      animation: { duration: 600, easing: 'easeOutCubic' },
+    },
+  });
 }
