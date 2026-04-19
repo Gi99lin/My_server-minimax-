@@ -1530,16 +1530,13 @@ body.app-mode .tab {
   text-align: center;
 }
 
-/* --- Weather: compact single line, match tabs card style --- */
+/* --- Weather: compact chip --- */
 body.app-mode .weather-widget-pane {
-  padding: 4px 12px;
+  padding: 6px 12px;
   min-width: auto;
   width: auto;
   flex: 0 0 auto;
   border-radius: var(--radius-sm);
-  height: 34px;
-  display: flex;
-  align-items: center;
 }
 
 body.app-mode .weather-current-row {
@@ -1567,33 +1564,27 @@ body.app-mode .weather-temp-col {
   gap: 0;
 }
 
-/* --- Schedule: compact single line, match tabs card style --- */
+/* --- Schedule: compact chip --- */
 body.app-mode .schedule-widget-pane {
-  padding: 4px 12px;
+  padding: 6px 12px;
   min-width: auto;
   width: auto;
   flex: 0 0 auto;
   border-radius: var(--radius-sm);
-  height: 34px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 body.app-mode .date-big-display {
-  font-size: 0.75rem;
-  margin-bottom: 0;
+  font-size: 0.8rem;
+  margin-bottom: 2px;
 }
 
 body.app-mode .top-live-schedule {
   font-size: 0.7rem;
-  max-height: 24px;
-  overflow: hidden;
 }
 
 /* iframe fills the rest */
 body.app-mode .app-iframe-tab {
-  height: calc(100vh - 66px);
+  height: calc(100vh - 80px);
   border-radius: 6px 6px 0 0;
 }
 
