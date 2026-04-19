@@ -226,10 +226,10 @@ function chartOpts(yLabel) {
   };
 }
 
-function fmtMem(kib) {
-  if (kib > 1048576) return (kib / 1048576).toFixed(1) + ' GB';
-  if (kib > 1024) return (kib / 1024).toFixed(0) + ' MB';
-  return Math.round(kib) + ' KB';
+function fmtMem(mb) {
+  if (mb >= 1024) return (mb / 1024).toFixed(1) + ' GB';
+  if (mb >= 1) return mb.toFixed(0) + ' MB';
+  return (mb * 1024).toFixed(0) + ' KB';
 }
 
 function renderApps(apps) {
