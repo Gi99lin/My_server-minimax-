@@ -20,7 +20,7 @@ services:
       - OPENCLAW_PROXY_URL=${OPENCLAW_PROXY_URL}
       - HTTP_PROXY=${OPENCLAW_PROXY_URL}
       - HTTPS_PROXY=${OPENCLAW_PROXY_URL}
-      - no_proxy=spawn-sanitizer,localhost,127.0.0.1
+      - no_proxy=spawn-sanitizer,localhost,127.0.0.1,playwright-mcp
       - MINIMAX_API_KEY=${MINIMAX_API_KEY}
       - TRADINGVIEW_RAPIDAPI_KEY=${TRADINGVIEW_RAPIDAPI_KEY}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
