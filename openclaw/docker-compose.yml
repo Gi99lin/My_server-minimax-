@@ -103,7 +103,7 @@ services:
       - 1.1.1.1
     environment:
       - TZ=Europe/Moscow
-    command: ["--port", "8931", "--host", "0.0.0.0", "--allowed-hosts", "*", "--headless", "--browser", "chromium", "--no-sandbox", "--ignore-https-errors", "--caps", "testing"]
+    command: ["--port", "8931", "--host", "0.0.0.0", "--allowed-hosts", "*", "--headless", "--isolated", "--browser", "chromium", "--no-sandbox", "--ignore-https-errors", "--caps", "testing"]
     healthcheck:
       test: ["CMD", "node", "-e", "require('net').connect(8931, 'localhost', ()=>process.exit(0)).on('error', ()=>process.exit(1))"]
       interval: 2s
