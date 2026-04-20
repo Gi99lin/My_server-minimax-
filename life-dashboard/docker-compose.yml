@@ -1,10 +1,7 @@
 services:
   # ==================== Life Dashboard — Frontend ====================
   life-dashboard:
-    build:
-      context: ../../life-dashboard/dashboard
-      dockerfile: Dockerfile
-    image: life-dashboard-frontend
+    image: ghcr.io/gi99lin/life-dashboard-frontend:latest
     container_name: life-dashboard
     restart: unless-stopped
     depends_on:
@@ -17,10 +14,7 @@ services:
 
   # ==================== Life Dashboard — API ====================
   life-dashboard-api:
-    build:
-      context: ../../life-dashboard/api
-      dockerfile: Dockerfile
-    image: life-dashboard-api
+    image: ghcr.io/gi99lin/life-dashboard-api:latest
     container_name: life-dashboard-api
     restart: unless-stopped
     environment:
@@ -41,10 +35,7 @@ services:
   # ==================== Life Dashboard — Collector ====================
   # Cron-based: fetches Garmin, weather, git every 2 hours
   life-dashboard-collector:
-    build:
-      context: ../../life-dashboard/collector
-      dockerfile: Dockerfile
-    image: life-dashboard-collector
+    image: ghcr.io/gi99lin/life-dashboard-collector:latest
     container_name: life-dashboard-collector
     restart: unless-stopped
     environment:
