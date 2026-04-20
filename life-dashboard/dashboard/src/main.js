@@ -53,26 +53,23 @@ function setSyncDot(status) {
 }
 
 async function init() {
-  const token = initAuth();
-  if (!token) return; // Halt init until authenticated
+  // Check auth via cookie
+  const authed = await initAuth();
+  if (!authed) {
+    showLoginModal();
+    return;
+  }
 
   setGreeting();
   setDate();
 
-  // Setup generic fetch wrapper to inject Auth header
-  const originalFetch = window.fetch;
-  window.fetch = async (url, options = {}) => {
-    if (url.startsWith('/api')) {
-      options.headers = { ...options.headers, 'Authorization': encodeURIComponent(token) };
-    }
-    return originalFetch(url, options);
-  };
+  // Cookies are sent automatically — no fetch wrapper needed
 
-  // V2 live sockets
-  const socket = io('/', { auth: { token } });
-  
+  // V2 live sockets (cookies sent via handshake)
+  const socket = io('/');
+
   socket.on('connect_error', (err) => {
-    if (err.message === 'Unauthorized') showLoginModal('Неверный пароль');
+    if (err.message === 'Unauthorized') showLoginModal('Сессия истекла');
   });
 
   socket.on('docker_pulse', (state) => {
