@@ -247,6 +247,7 @@ function minToTime(min) {
 }
 
 async function saveSchedule() {
+  const btn = document.getElementById('schedSaveBtn');
   try {
     const res = await fetch('/api/schedule', {
       method: 'POST',
@@ -255,7 +256,31 @@ async function saveSchedule() {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     console.log(`[ScheduleEditor] Saved ${blocks.length} blocks for ${currentDate}`);
+
+    // Visual confirmation
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = '✓ Сохранено';
+      btn.style.background = 'var(--green)';
+      btn.style.color = 'var(--bg0)';
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 1500);
+    }
   } catch (err) {
     console.error('[ScheduleEditor] Save error:', err);
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = '✗ Ошибка';
+      btn.style.background = 'var(--red)';
+      btn.style.color = '#fff';
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 2000);
+    }
   }
 }
