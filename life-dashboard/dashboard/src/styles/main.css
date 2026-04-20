@@ -1508,7 +1508,7 @@ body.app-mode .header-branding {
 body.app-mode .app {
   padding: 4px 8px 0;
   max-width: 100%;
-  height: 100dvh;
+  height: calc(100dvh - 20px);
   display: flex;
   flex-direction: column;
 }
