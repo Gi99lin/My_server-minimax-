@@ -101,6 +101,11 @@ services:
     environment:
       - TZ=Europe/Moscow
       - DEBUG=mcp:*
+      - PLAYWRIGHT_MCP_PROXY_SERVER=${OPENCLAW_PROXY_URL}
+      - PLAYWRIGHT_MCP_PROXY_BYPASS=localhost,127.0.0.1
+      - HTTP_PROXY=${OPENCLAW_PROXY_URL}
+      - HTTPS_PROXY=${OPENCLAW_PROXY_URL}
+      - no_proxy=localhost,127.0.0.1
     command: ["--port", "8931", "--host", "0.0.0.0", "--allowed-hosts", "*"]
     healthcheck:
       test: ["CMD", "node", "-e", "require('net').connect(8931, 'localhost', ()=>process.exit(0)).on('error', ()=>process.exit(1))"]
