@@ -98,7 +98,7 @@ services:
     environment:
       - TZ=Europe/Moscow
       - DEBUG=mcp:*
-    command: ["--headless", "--browser", "chromium", "--no-sandbox", "--port", "8931", "--host", "0.0.0.0"]
+    command: ["--port", "8931", "--host", "0.0.0.0", "--allowed-hosts", "*"]
     networks:
       - openclaw_network
 
