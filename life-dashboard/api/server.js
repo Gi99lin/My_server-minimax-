@@ -14,6 +14,8 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import Docker from 'dockerode';
 
+import crypto from 'crypto';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const app = express();
@@ -28,23 +30,62 @@ try {
 }
 
 const DASHBOARD_PASS = process.env.DASHBOARD_PASS;
+const SESSION_SECRET = crypto.randomBytes(32).toString('hex');
+
+function makeSessionToken() {
+  return crypto.createHmac('sha256', SESSION_SECRET).update(DASHBOARD_PASS || '').digest('hex');
+}
+
+function parseCookies(header) {
+  const cookies = {};
+  if (!header) return cookies;
+  header.split(';').forEach(c => {
+    const [key, ...v] = c.trim().split('=');
+    if (key) cookies[key] = decodeURIComponent(v.join('='));
+  });
+  return cookies;
+}
+
+function isAuthed(req) {
+  if (!DASHBOARD_PASS) return true;
+  const cookies = parseCookies(req.headers.cookie);
+  return cookies.dashboard_session === makeSessionToken();
+}
 
 app.use(cors());
 app.use(express.json());
 
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') return next();
-  if (DASHBOARD_PASS && req.headers.authorization !== encodeURIComponent(DASHBOARD_PASS)) {
-    return res.status(401).json({ error: 'Unauthorized' });
+// Login endpoint — sets httpOnly session cookie
+app.post('/api/login', (req, res) => {
+  const { password } = req.body;
+  if (!DASHBOARD_PASS || password === DASHBOARD_PASS) {
+    res.setHeader('Set-Cookie',
+      `dashboard_session=${makeSessionToken()}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${30 * 24 * 3600}`
+    );
+    return res.json({ ok: true });
   }
-  next();
+  res.status(401).json({ error: 'Неверный пароль' });
 });
 
+// Auth check endpoint
+app.get('/api/auth-check', (req, res) => {
+  if (isAuthed(req)) return res.json({ ok: true });
+  res.status(401).json({ error: 'Unauthorized' });
+});
+
+// Protect all API routes (except login)
+app.use('/api', (req, res, next) => {
+  if (req.path === '/login' || req.path === '/auth-check') return next();
+  if (isAuthed(req)) return next();
+  res.status(401).json({ error: 'Unauthorized' });
+});
+
+// Socket.io auth via cookie
 io.use((socket, next) => {
-  if (DASHBOARD_PASS && socket.handshake.auth.token !== DASHBOARD_PASS) {
-    return next(new Error('Unauthorized'));
-  }
-  next();
+  if (!DASHBOARD_PASS) return next();
+  const cookies = parseCookies(socket.handshake.headers.cookie);
+  if (cookies.dashboard_session === makeSessionToken()) return next();
+  next(new Error('Unauthorized'));
 });
 
 // ---- Docker Polling ----
