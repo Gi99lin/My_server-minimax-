@@ -93,7 +93,7 @@ services:
 
   # ==================== Playwright MCP Sidecar ====================
   playwright-mcp:
-    image: mcr.microsoft.com/playwright/mcp:latest
+    image: mcr.microsoft.com/playwright/mcp:v0.0.56
     container_name: playwright-mcp
     restart: unless-stopped
     ports:
@@ -103,7 +103,7 @@ services:
       - 1.1.1.1
     environment:
       - TZ=Europe/Moscow
-    command: ["--port", "8931", "--host", "0.0.0.0", "--allowed-hosts", "*", "--headless", "--browser", "chromium", "--no-sandbox", "--ignore-https-errors"]
+    command: ["--port", "8931", "--host", "0.0.0.0", "--allowed-hosts", "*", "--headless", "--browser", "chromium", "--no-sandbox", "--ignore-https-errors", "--caps", "testing"]
     healthcheck:
       test: ["CMD", "node", "-e", "require('net').connect(8931, 'localhost', ()=>process.exit(0)).on('error', ()=>process.exit(1))"]
       interval: 2s
