@@ -98,6 +98,9 @@ services:
     restart: unless-stopped
     ports:
       - "8931:8931"
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     environment:
       - TZ=Europe/Moscow
       - DEBUG=mcp:*
