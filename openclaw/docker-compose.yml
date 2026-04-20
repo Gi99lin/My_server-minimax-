@@ -98,6 +98,8 @@ services:
     environment:
       - TZ=Europe/Moscow
       - DEBUG=mcp:*
+    entrypoint: ["node", "cli.js"]
+    command: ["--headless", "--browser", "chromium", "--no-sandbox", "--port", "8931", "--host", "0.0.0.0"]
     networks:
       - openclaw_network
 
