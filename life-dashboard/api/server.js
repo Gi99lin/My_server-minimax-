@@ -649,6 +649,32 @@ app.post('/api/schedule', (req, res) => {
 });
 
 /**
+ * GET /api/entry?date=YYYY-MM-DD
+ * Returns existing mood/food/note data for a specific day
+ */
+app.get('/api/entry', (req, res) => {
+  try {
+    const dateStr = req.query.date || new Date().toISOString().slice(0, 10);
+    const metrics = loadMetrics();
+    const day = metrics.days[dateStr];
+
+    if (!day || !day.manual) {
+      return res.json({ date: dateStr, mood: null, food_before_20: false, note: '' });
+    }
+
+    res.json({
+      date: dateStr,
+      mood: day.manual.mood ?? null,
+      food_before_20: day.manual.food_before_20 ?? false,
+      note: day.manual.note ?? '',
+    });
+  } catch (err) {
+    console.error('GET entry error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * POST /api/entry
  * Body: { date, mood, food_before_20, note }
  */

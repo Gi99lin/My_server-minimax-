@@ -1,6 +1,10 @@
 /**
  * QuickEntry.js — Refined entry form with mini-card sections.
+ * Pre-loads existing data when opening for a specific date.
  */
+
+let selectedMood = null;
+let currentEntryDate = null;
 
 export function renderQuickEntry(container) {
   container.innerHTML = `
@@ -38,8 +42,6 @@ export function renderQuickEntry(container) {
     </div>
   `;
 
-  let selectedMood = null;
-
   // Mood selection
   container.querySelector('#moodButtons').addEventListener('click', (e) => {
     const btn = e.target.closest('.mood-btn');
@@ -59,12 +61,15 @@ export function renderQuickEntry(container) {
   // Save
   container.querySelector('#saveBtn').addEventListener('click', async () => {
     const note = container.querySelector('#entryNote').value.trim();
+    const dateStr = currentEntryDate || new Date().toISOString().slice(0, 10);
     const entry = {
-      date: new Date().toISOString().slice(0, 10),
+      date: dateStr,
       mood: selectedMood,
       food_before_20: foodToggle.checked,
       note: note || undefined,
     };
+
+    const btn = container.querySelector('#saveBtn');
 
     try {
       const res = await fetch('/api/entry', {
@@ -73,30 +78,79 @@ export function renderQuickEntry(container) {
         body: JSON.stringify(entry),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      showStatus(container, 'Сохранено');
-      resetForm(container);
+
+      if (btn) {
+        const orig = btn.textContent;
+        btn.textContent = '✓ Сохранено';
+        btn.style.background = 'var(--green)';
+        btn.style.color = 'var(--bg0)';
+        setTimeout(() => {
+          btn.textContent = orig;
+          btn.style.background = '';
+          btn.style.color = '';
+        }, 1500);
+      }
     } catch (err) {
       console.warn('API save failed, storing locally:', err);
       const local = JSON.parse(localStorage.getItem('pendingEntries') || '[]');
       local.push(entry);
       localStorage.setItem('pendingEntries', JSON.stringify(local));
-      showStatus(container, 'Сохранено локально');
+
+      if (btn) {
+        btn.textContent = '⚠ Локально';
+        btn.style.background = 'var(--yellow)';
+        btn.style.color = 'var(--bg0)';
+        setTimeout(() => {
+          btn.textContent = 'Сохранить';
+          btn.style.background = '';
+          btn.style.color = '';
+        }, 2000);
+      }
     }
   });
-
-  function resetForm(c) {
-    selectedMood = null;
-    c.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
-    c.querySelector('#entryNote').value = '';
-    foodToggle.checked = false;
-    foodLabel.textContent = 'Нет';
-  }
 }
 
-function showStatus(container, text) {
-  const el = container.querySelector('#saveStatus');
-  if (!el) return;
-  el.textContent = text;
-  el.classList.add('visible');
-  setTimeout(() => el.classList.remove('visible'), 2500);
+/**
+ * Load existing entry data for a date and pre-fill the form.
+ */
+export async function loadEntryForDate(date) {
+  currentEntryDate = date || new Date().toISOString().slice(0, 10);
+
+  // Reset form first
+  selectedMood = null;
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  const noteEl = document.getElementById('entryNote');
+  const foodToggle = document.getElementById('foodToggle');
+  const foodLabel = document.getElementById('foodLabel');
+  if (noteEl) noteEl.value = '';
+  if (foodToggle) { foodToggle.checked = false; }
+  if (foodLabel) foodLabel.textContent = 'Нет';
+
+  // Fetch existing data
+  try {
+    const res = await fetch(`/api/entry?date=${currentEntryDate}`);
+    if (!res.ok) return;
+    const data = await res.json();
+
+    // Pre-fill mood
+    if (data.mood != null) {
+      selectedMood = data.mood;
+      document.querySelectorAll('.mood-btn').forEach(b => {
+        b.classList.toggle('selected', parseInt(b.dataset.mood) === data.mood);
+      });
+    }
+
+    // Pre-fill food toggle
+    if (data.food_before_20) {
+      if (foodToggle) foodToggle.checked = true;
+      if (foodLabel) foodLabel.textContent = 'Да';
+    }
+
+    // Pre-fill note
+    if (data.note && noteEl) {
+      noteEl.value = data.note;
+    }
+  } catch (err) {
+    console.warn('[QuickEntry] Failed to load existing data:', err);
+  }
 }
