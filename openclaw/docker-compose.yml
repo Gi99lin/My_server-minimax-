@@ -88,6 +88,18 @@ services:
     networks:
       - proxy_network
 
+  # ==================== Playwright MCP Sidecar ====================
+  playwright-mcp:
+    image: mcr.microsoft.com/playwright/mcp:latest
+    container_name: playwright-mcp
+    restart: unless-stopped
+    ports:
+      - "8931:8931"
+    environment:
+      - TZ=Europe/Moscow
+      - DEBUG=mcp:*
+    networks:
+      - openclaw_network
 
 # ==================== Networks & Volumes ====================
 networks:
