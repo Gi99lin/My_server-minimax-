@@ -7,7 +7,7 @@ import { renderStatCards } from './components/StatCards.js';
 import { renderTrendChart } from './components/TrendChart.js';
 import { renderTimeBreakdown } from './components/TimeBreakdown.js';
 import { renderMoodHeatmap } from './components/MoodHeatmap.js';
-import { renderQuickEntry } from './components/QuickEntry.js';
+import { renderQuickEntry, loadEntryForDate } from './components/QuickEntry.js';
 import { initWeather } from './components/WeatherForecast.js';
 import { openScheduleEditor } from './components/ScheduleEditor.js';
 import { initGlobalTooltip } from './utils/tooltip.js';
@@ -144,9 +144,11 @@ async function init() {
 
   function openQuickEntry(date) {
     if (qeOverlay) {
+      const dateStr = date || new Date().toISOString().slice(0, 10);
       const dateEl = document.getElementById('qeModalDate');
-      if (dateEl) dateEl.textContent = date || new Date().toISOString().slice(0, 10);
+      if (dateEl) dateEl.textContent = dateStr;
       qeOverlay.classList.add('open');
+      loadEntryForDate(dateStr);
     }
   }
 
