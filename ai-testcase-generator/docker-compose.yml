@@ -1,0 +1,78 @@
+
+services:
+  # ==================== Testcase Generator — PostgreSQL ====================
+  testcase-db:
+    image: postgres:15-alpine
+    container_name: testcase-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: testimporter
+    volumes:
+      - testcase_postgres_data:/var/lib/postgresql/data
+    networks:
+      - testcase_network
+
+  # ==================== Testcase Generator — Backend ====================
+  testcase-backend:
+    image: ai-testcase-generator-backend:latest
+    container_name: testcase-backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - TZ=Europe/Moscow
+      - POSTGRES_SERVER=testcase-db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=testimporter
+      - SECRET_KEY=${SECRET_KEY:-supersecretkey_change_in_production}
+      - FIRST_USER_EMAIL=${FIRST_USER_EMAIL:-admin@example.com}
+      - FIRST_USER_PASSWORD=${FIRST_USER_PASSWORD:-admin}
+      - FIRST_USER_DISPLAY_NAME=${FIRST_USER_DISPLAY_NAME:-Admin}
+    depends_on:
+      - testcase-db
+    volumes:
+      - testcase_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - testcase_network
+      - openclaw_network
+      - proxy_network
+
+  # ==================== Testcase Generator — Frontend ====================
+  testcase-frontend:
+    image: ai-testcase-generator-frontend:latest
+    container_name: testcase-frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "3511:3000"
+    depends_on:
+      - testcase-backend
+    networks:
+      - openclaw_network
+      - proxy_network
+
+# ==================== Networks & Volumes ====================
+networks:
+  testcase_network:
+    driver: bridge
+  openclaw_network:
+    external: true
+    name: openclaw_network
+  proxy_network:
+    external: true
+    name: my_server_proxy_network
+
+volumes:
+  testcase_postgres_data:
+    name: testcase-postgres-data
+  testcase_uploads:
+    name: testcase-uploads
