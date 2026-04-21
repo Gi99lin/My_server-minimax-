@@ -1,0 +1,63 @@
+
+services:
+  # ==================== AI Presentation — Backend ====================
+  ai-presentation-backend:
+    image: ai-presentation-backend:latest
+    container_name: ai-presentation-backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - TZ=Europe/Moscow
+      - DEBUG=${DEBUG:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - DATA_DIR=/app/data
+      - PRESENTATIONS_DIR=/app/data/presentations
+      - LAYOUTS_DIR=/app/data/layouts
+      - LOG_DIR=/app/logs
+    volumes:
+      - presentation_data:/app/data
+      - presentation_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - openclaw_network
+      - proxy_network
+
+  # ==================== AI Presentation — Frontend (Nginx) ====================
+  ai-presentation-frontend:
+    image: ai-presentation-frontend:latest
+    container_name: ai-presentation-frontend
+    restart: unless-stopped
+    ports:
+      - "8501:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./.htpasswd:/etc/nginx/.htpasswd:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      ai-presentation-backend:
+        condition: service_healthy
+    networks:
+      - openclaw_network
+      - proxy_network
+
+# ==================== Networks & Volumes ====================
+networks:
+  openclaw_network:
+    external: true
+    name: openclaw_network
+  proxy_network:
+    external: true
+    name: my_server_proxy_network
+
+volumes:
+  presentation_data:
+    name: ai-presentation-data
+  presentation_logs:
+    name: ai-presentation-logs
+  nginx_logs:
+    name: ai-presentation-nginx-logs

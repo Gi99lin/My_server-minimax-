@@ -20,7 +20,7 @@ services:
       - OPENCLAW_PROXY_URL=${OPENCLAW_PROXY_URL}
       - HTTP_PROXY=${OPENCLAW_PROXY_URL}
       - HTTPS_PROXY=${OPENCLAW_PROXY_URL}
-      - no_proxy=spawn-sanitizer,localhost,127.0.0.1,playwright-mcp
+      - no_proxy=spawn-sanitizer,localhost,127.0.0.1,playwright-mcp,ai-presentation-frontend,ai-presentation-backend,testcase-backend,testcase-frontend
       - MINIMAX_API_KEY=${MINIMAX_API_KEY}
       - TRADINGVIEW_RAPIDAPI_KEY=${TRADINGVIEW_RAPIDAPI_KEY}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
@@ -117,6 +117,7 @@ services:
 networks:
   openclaw_network:
     driver: bridge
+    name: openclaw_network
   proxy_network:
     external: true
     name: my_server_proxy_network

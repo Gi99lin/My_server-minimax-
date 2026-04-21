@@ -62,3 +62,11 @@ life-dashboard/dashboard/node_modules/
 life-dashboard/dashboard/dist/
 life-dashboard/api/node_modules/
 life-dashboard/.env
+# AI Presentation
+ai-presentation/.env
+ai-presentation/.htpasswd
+ai-presentation/*.tar.gz
+
+# AI Testcase Generator
+ai-testcase-generator/.env
+ai-testcase-generator/*.tar.gz
