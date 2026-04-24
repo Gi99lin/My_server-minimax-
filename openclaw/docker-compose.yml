@@ -15,7 +15,7 @@ services:
     environment:
       - TZ=Europe/Moscow
       - OPENCLAW_GATEWAY_BIND=lan
-      - NODE_OPTIONS=--max-old-space-size=2048 --dns-result-order=ipv4first
+      - NODE_OPTIONS=--max-old-space-size=4096 --dns-result-order=ipv4first
       - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
       - OPENCLAW_PROXY_URL=${OPENCLAW_PROXY_URL}
       - HTTP_PROXY=${OPENCLAW_PROXY_URL}
@@ -47,7 +47,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 3G
+          memory: 5G
     networks:
       - openclaw_network
       - proxy_network
