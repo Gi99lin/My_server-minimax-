@@ -1,0 +1,4 @@
+# Extra deps for SSE transport (not in upstream requirements.txt)
+uvicorn>=0.30.0
+starlette>=0.37.0
+sse-starlette>=1.6.0
