@@ -36,8 +36,6 @@ services:
       - TELEGRAM_TEST_PHONE=${TELEGRAM_TEST_PHONE}
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/node/.openclaw/.npm-global/bin
     depends_on:
-      playwright-mcp:
-        condition: service_healthy
       telegram-mcp:
         condition: service_healthy
     healthcheck:
@@ -92,28 +90,6 @@ services:
     command: ["node", "/app/proxy.mjs"]
     networks:
       - proxy_network
-
-  # ==================== Playwright MCP Sidecar ====================
-  playwright-mcp:
-    image: mcr.microsoft.com/playwright/mcp:v0.0.56
-    container_name: playwright-mcp
-    restart: unless-stopped
-    ports:
-      - "8931:8931"
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
-    environment:
-      - TZ=Europe/Moscow
-    command: ["--port", "8931", "--host", "0.0.0.0", "--allowed-hosts", "*", "--headless", "--isolated", "--browser", "chromium", "--no-sandbox", "--ignore-https-errors", "--caps", "testing"]
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('net').connect(8931, 'localhost', ()=>process.exit(0)).on('error', ()=>process.exit(1))"]
-      interval: 2s
-      timeout: 2s
-      retries: 5
-      start_period: 5s
-    networks:
-      - openclaw_network
 
   # ==================== Telegram MCP Sidecar ====================
   telegram-mcp:
