@@ -35,6 +35,7 @@ services:
       - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
       - TELEGRAM_TEST_PHONE=${TELEGRAM_TEST_PHONE}
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/node/.openclaw/.npm-global/bin
+      - PLAYWRIGHT_BROWSERS_PATH=/home/node/.openclaw/.cache/ms-playwright
     depends_on:
       telegram-mcp:
         condition: service_healthy
@@ -68,6 +69,7 @@ services:
       - HTTP_PROXY=${OPENCLAW_PROXY_URL}
       - HTTPS_PROXY=${OPENCLAW_PROXY_URL}
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/node/.openclaw/.npm-global/bin
+      - PLAYWRIGHT_BROWSERS_PATH=/home/node/.openclaw/.cache/ms-playwright
     entrypoint: ["node", "dist/index.js"]
 
   # ==================== Spawn Sanitizer Proxy ====================
