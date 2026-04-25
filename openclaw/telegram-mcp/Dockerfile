@@ -38,6 +38,6 @@ EXPOSE 8932
 
 # Healthcheck: verify SSE endpoint is reachable
 HEALTHCHECK --interval=5s --timeout=3s --retries=5 --start-period=15s \
-    CMD curl -fsS http://localhost:8932/sse > /dev/null 2>&1 || exit 1
+    CMD curl -fsS http://localhost:8932/health > /dev/null 2>&1 || exit 1
 
 CMD ["python", "sse_entrypoint.py"]
