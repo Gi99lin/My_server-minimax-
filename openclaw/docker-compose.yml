@@ -140,7 +140,7 @@ services:
       - no_proxy=localhost,127.0.0.1
     # Healthcheck mirrors playwright-mcp pattern: TCP port check
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8932/sse"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:8932/health"]
       interval: 5s
       timeout: 3s
       retries: 5
