@@ -8,7 +8,7 @@ This entrypoint:
 2. Parses proxy settings from OPENCLAW_PROXY_URL (Telethon needs explicit proxy config)
 3. Connects all configured Telegram clients
 4. Warms entity caches (StringSession has no persistent cache)
-5. Starts the MCP server with SSE transport on 0.0.0.0:8932
+5. Starts the MCP SSE server via Starlette + Uvicorn on 0.0.0.0:8932
 """
 
 import asyncio
@@ -23,15 +23,11 @@ from main import mcp, clients, _configure_allowed_roots_from_cli
 
 
 def _parse_proxy():
-    """Parse OPENCLAW_PROXY_URL into a Telethon-compatible proxy tuple.
+    """Parse OPENCLAW_PROXY_URL into a Telethon-compatible proxy dict.
 
     Telethon ignores HTTP_PROXY/HTTPS_PROXY env vars because it uses
     raw TCP (MTProto), not HTTP. We must configure the proxy explicitly
     on each TelegramClient instance.
-
-    Supports:
-      - http://user:pass@host:port  → HTTP CONNECT proxy
-      - socks5://user:pass@host:port → SOCKS5 proxy
 
     Returns None if no proxy is configured.
     """
@@ -46,14 +42,12 @@ def _parse_proxy():
 
     scheme = (parsed.scheme or "http").lower()
 
-    # python-socks proxy types that Telethon understands
     import python_socks
     if scheme in ("socks5", "socks5h"):
         proxy_type = python_socks.ProxyType.SOCKS5
     elif scheme in ("socks4", "socks4a"):
         proxy_type = python_socks.ProxyType.SOCKS4
     else:
-        # Default to HTTP CONNECT (works for http:// scheme)
         proxy_type = python_socks.ProxyType.HTTP
 
     proxy = {
@@ -72,14 +66,9 @@ def _parse_proxy():
 
 
 def _apply_proxy_to_clients(proxy):
-    """Patch all Telegram clients to use the proxy before connecting.
-
-    Telethon stores proxy config in client._proxy, used when
-    creating new connections. Setting it before .start() works.
-    """
+    """Patch all Telegram clients to use the proxy before connecting."""
     if not proxy:
         return
-
     for name, client in clients.items():
         client._proxy = proxy
         print(f"[sse_entrypoint] Proxy applied to client '{name}'", file=sys.stderr)
@@ -89,13 +78,48 @@ async def _start_clients():
     """Connect all discovered Telegram clients and warm caches."""
     labels = ", ".join(clients.keys())
     print(f"[sse_entrypoint] Starting {len(clients)} Telegram client(s) ({labels})...", file=sys.stderr)
-
     await asyncio.gather(*(cl.start() for cl in clients.values()))
 
     print("[sse_entrypoint] Warming entity caches...", file=sys.stderr)
     await asyncio.gather(*(cl.get_dialogs() for cl in clients.values()))
 
     print(f"[sse_entrypoint] Telegram client(s) ready ({labels}).", file=sys.stderr)
+
+
+def _build_sse_app():
+    """Build a Starlette ASGI app that serves MCP over SSE.
+
+    This bypasses FastMCP.run() which may not accept host/port kwargs
+    in all versions of the mcp SDK.
+    """
+    from mcp.server.sse import SseServerTransport
+    from starlette.applications import Starlette
+    from starlette.routing import Route, Mount
+    from starlette.responses import JSONResponse
+
+    sse_transport = SseServerTransport("/messages/")
+
+    async def handle_sse(request):
+        async with sse_transport.connect_sse(
+            request.scope, request.receive, request._send
+        ) as (read_stream, write_stream):
+            await mcp._mcp_server.run(
+                read_stream,
+                write_stream,
+                mcp._mcp_server.create_initialization_options(),
+            )
+
+    async def handle_health(request):
+        return JSONResponse({"status": "ok"})
+
+    app = Starlette(
+        routes=[
+            Route("/sse", endpoint=handle_sse),
+            Mount("/messages/", app=sse_transport.handle_post_message),
+            Route("/health", endpoint=handle_health),
+        ],
+    )
+    return app
 
 
 async def _main_sse():
@@ -112,8 +136,12 @@ async def _main_sse():
 
         print(f"[sse_entrypoint] Starting MCP SSE server on {host}:{port}...", file=sys.stderr)
 
-        # FastMCP's run() with transport="sse" starts a Starlette/Uvicorn server
-        mcp.run(transport="sse", host=host, port=port)
+        app = _build_sse_app()
+
+        import uvicorn
+        config = uvicorn.Config(app, host=host, port=port, log_level="info")
+        server = uvicorn.Server(config)
+        await server.serve()
 
     except Exception as e:
         print(f"[sse_entrypoint] Fatal error: {e}", file=sys.stderr)
