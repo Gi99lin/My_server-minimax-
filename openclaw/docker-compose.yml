@@ -20,7 +20,7 @@ services:
       - OPENCLAW_PROXY_URL=${OPENCLAW_PROXY_URL}
       - HTTP_PROXY=${OPENCLAW_PROXY_URL}
       - HTTPS_PROXY=${OPENCLAW_PROXY_URL}
-      - no_proxy=spawn-sanitizer,localhost,127.0.0.1,playwright-mcp,telegram-mcp,ai-presentation-frontend,ai-presentation-backend,testcase-backend,testcase-frontend
+      - no_proxy=spawn-sanitizer,localhost,127.0.0.1,browserless,telegram-mcp,ai-presentation-frontend,ai-presentation-backend,testcase-backend,testcase-frontend
       - MINIMAX_API_KEY=${MINIMAX_API_KEY}
       - TRADINGVIEW_RAPIDAPI_KEY=${TRADINGVIEW_RAPIDAPI_KEY}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
@@ -35,10 +35,11 @@ services:
       - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
       - TELEGRAM_TEST_PHONE=${TELEGRAM_TEST_PHONE}
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/node/.openclaw/.npm-global/bin
-      - PLAYWRIGHT_BROWSERS_PATH=/home/node/.openclaw/.cache/ms-playwright
     depends_on:
       telegram-mcp:
         condition: service_healthy
+      browserless:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:18789/healthz"]
       interval: 30s
@@ -69,7 +70,6 @@ services:
       - HTTP_PROXY=${OPENCLAW_PROXY_URL}
       - HTTPS_PROXY=${OPENCLAW_PROXY_URL}
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/node/.openclaw/.npm-global/bin
-      - PLAYWRIGHT_BROWSERS_PATH=/home/node/.openclaw/.cache/ms-playwright
     entrypoint: ["node", "dist/index.js"]
 
   # ==================== Spawn Sanitizer Proxy ====================
@@ -92,6 +92,21 @@ services:
     command: ["node", "/app/proxy.mjs"]
     networks:
       - proxy_network
+
+  # ==================== Browserless (headless Chrome for browser plugin) ====================
+  browserless:
+    image: ghcr.io/browserless/chromium:latest
+    container_name: browserless
+    restart: unless-stopped
+    environment:
+      - TIMEOUT=120000
+      - CONCURRENT=5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    networks:
+      - openclaw_network
 
   # ==================== Telegram MCP Sidecar ====================
   telegram-mcp:
