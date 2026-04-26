@@ -11,6 +11,7 @@ services:
     volumes:
       - ${OPENCLAW_CONFIG_DIR:-~/.openclaw}:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE_DIR:-~/.openclaw/workspace}:/home/node/.openclaw/workspace
+      - ${DEVTEAM_PROJECTS_DIR:-~/devteam-projects}:/home/node/.openclaw/workspace/devteam/projects
       - ${OBSIDIAN_VAULT_DIR:-~/obsidian-vault}:/home/node/.openclaw/workspace/obsidian-vault:rw
     environment:
       - TZ=Europe/Moscow
@@ -62,6 +63,7 @@ services:
     volumes:
       - ${OPENCLAW_CONFIG_DIR:-~/.openclaw}:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE_DIR:-~/.openclaw/workspace}:/home/node/.openclaw/workspace
+      - ${DEVTEAM_PROJECTS_DIR:-~/devteam-projects}:/home/node/.openclaw/workspace/devteam/projects
     profiles:
       - cli
     environment:
