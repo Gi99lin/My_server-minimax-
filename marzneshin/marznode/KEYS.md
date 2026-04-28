@@ -26,13 +26,12 @@
 - **ShortIds**: `7f2af75868d1223a`, `a4145fcd`, `61ba`, `86`
 - **Hysteria2 obfs password**: `E7yPj1K5CNQbq04E6HZBpD5uu5Mp1eIC`
 
-## Node: LU (Luxembourg, 45.12.139.177)
-- **SNI**: www.nvidia.com
-- **ASN**: AS209847 WorkTitans B.V.
-- **Reality PrivateKey**: `8NnxRTQWzTCrdOD2s7nsH3cpWFzC5hib9Ri9-IL49HE`
-- **Reality PublicKey**: `MiNV09NcFkyh097KVeTMkDtiXvmVef0Artaz1-rjtj4`
-- **ShortIds**: `a445b412b415ec41`, `ab873cb7`, `7c16`, `ab`
-- **Hysteria2 obfs password**: `LFltj6ZixEhM2zQH0JofWPPaCSGSk8Hy`
+## Node: US (United States, 45.8.146.67)
+- **SNI**: www.microsoft.com
+- **Reality PrivateKey**: `OIrPqy_ptVUJytRSxf-110IZ4OBEM0RXv2KRYk4M1lQ`
+- **Reality PublicKey**: `53m9sAoGezwte6zoqtp_ocR6leyuhtMTE28_wiMMNVE`
+- **ShortIds**: `ff406ca53df8032b`, `5b867f07`, `529f`, `d5`
+- **Hysteria2 obfs password**: `CMbvEi8O7joEvw78p9GJHnTym2XeENZE`
 
 ## Node: KZ-2 (Kazakhstan 2, 212.116.240.211)
 - **SNI**: ge.gigglin.tech (via kz config)

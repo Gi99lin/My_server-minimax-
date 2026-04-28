@@ -12,11 +12,11 @@
             "down_mbps": 1000,
             "obfs": {
                 "type": "salamander",
-                "password": "LFltj6ZixEhM2zQH0JofWPPaCSGSk8Hy"
+                "password": "CMbvEi8O7joEvw78p9GJHnTym2XeENZE"
             },
             "tls": {
                 "enabled": true,
-                "server_name": "lu.gigglin.tech",
+                "server_name": "us.gigglin.tech",
                 "certificate_path": "/var/lib/marznode/hysteria.cert",
                 "key_path": "/var/lib/marznode/hysteria.key"
             }

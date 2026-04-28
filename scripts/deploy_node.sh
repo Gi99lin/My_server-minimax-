@@ -194,6 +194,6 @@ case "$NODE_NAME" in
     nl1) echo "  PublicKey: uv0nhtNTdsHmFYoKFGMd3vO8JtpkKCf9yYf36wiH1jM" ;;
     nl2) echo "  PublicKey: KW0_1AlQW752_llEAOA_hiMK6GGp4JHS-bSRCjnctzE" ;;
     fi)  echo "  PublicKey: lgvlY3Vh-kzRAqllq6K0_GZPW1CoGPsaUuqFn2_JSmc" ;;
-    lu)  echo "  PublicKey: MiNV09NcFkyh097KVeTMkDtiXvmVef0Artaz1-rjtj4" ;;
+    us)  echo "  PublicKey: 53m9sAoGezwte6zoqtp_ocR6leyuhtMTE28_wiMMNVE" ;;
 esac
 echo "============================================"
