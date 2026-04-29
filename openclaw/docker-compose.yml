@@ -101,7 +101,7 @@ services:
     container_name: browserless
     restart: unless-stopped
     environment:
-      - TIMEOUT=1
+      - TIMEOUT=9600000
       - CONCURRENT=5
     deploy:
       resources:
