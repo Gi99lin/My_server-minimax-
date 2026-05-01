@@ -3,7 +3,7 @@
 services:
   # ==================== OpenClaw Gateway ====================
   openclaw-gateway:
-    image: ghcr.io/gi99lin/openclaw:2026.4.21-patched2
+    image: ghcr.io/openclaw/openclaw:latest
     container_name: openclaw-gateway
     restart: unless-stopped
     ports:
