@@ -1,0 +1,61 @@
+services:
+  hermes-qa:
+    image: ghcr.io/nousresearch/hermes-agent:latest
+    container_name: hermes-qa
+    restart: unless-stopped
+    volumes:
+      - ./hermes-qa:/opt/data
+    env_file:
+      - .env
+    environment:
+      - HERMES_GATEWAY_PORT=19700
+      # Per-service Telegram bot token (uncomment when ready):
+      # - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN_QA}
+    ports:
+      - "19700:19700"
+    command: ["gateway", "run", "--port", "19700"]
+    networks:
+      - proxy_network
+    mem_limit: 2g
+
+  hermes-finanalyst:
+    image: ghcr.io/nousresearch/hermes-agent:latest
+    container_name: hermes-finanalyst
+    restart: unless-stopped
+    volumes:
+      - ./hermes-finanalyst:/opt/data
+    env_file:
+      - .env
+    environment:
+      - HERMES_GATEWAY_PORT=19701
+      # Per-service Telegram bot token (uncomment when ready):
+      # - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN_FINANALYST}
+    ports:
+      - "19701:19701"
+    command: ["gateway", "run", "--port", "19701"]
+    networks:
+      - proxy_network
+    mem_limit: 2g
+
+  hermes-dashboard:
+    image: ghcr.io/nousresearch/hermes-agent:latest
+    container_name: hermes-dashboard
+    restart: unless-stopped
+    depends_on:
+      - hermes-qa
+      - hermes-finanalyst
+    volumes:
+      # Switch between profiles by changing this mount:
+      # ./hermes-qa:/opt/data     — view QA profile
+      # ./hermes-finanalyst:/opt/data — view FinAnalyst profile
+      - ./hermes-qa:/opt/data
+    ports:
+      - "9119:9119"
+    command: ["dashboard", "--host", "0.0.0.0", "--port", "9119", "--no-open"]
+    networks:
+      - proxy_network
+
+networks:
+  proxy_network:
+    external: true
+    name: my_server_proxy_network

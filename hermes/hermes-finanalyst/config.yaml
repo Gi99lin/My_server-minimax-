@@ -1,0 +1,53 @@
+# ═══════════════════════════════════════════════════════════════
+# Hermes FinAnalyst Team — CLI Configuration
+# ═══════════════════════════════════════════════════════════════
+
+# Model — all requests go through OmniRoute (spawn-sanitizer)
+model:
+  default: "gemini-cli/gemini-3.1-pro-preview"
+  provider: "custom"
+  base_url: "http://spawn-sanitizer:18780/v1"
+  # api_key comes from OPENAI_API_KEY in .env
+
+# ── Agent Behavior ──────────────────────────────────────────
+agent:
+  max_turns: 100        # Longer sessions for full pipeline runs
+  auto_compact: true
+
+# ── Context Compression ────────────────────────────────────
+compression:
+  threshold: 0.40       # More aggressive compression for data-heavy sessions
+
+# ── Terminal Access ─────────────────────────────────────────
+terminal:
+  backend: local
+  timeout: 300          # Longer timeout for collect_metrics.py
+  allowed_commands: "all"
+
+# ── Sub-Agent Delegation ──────────────────────────────────
+# FinAnalyst delegates to: metrics, news, review, hypothesis, briefing
+delegation:
+  max_iterations: 80
+  max_spawn_depth: 2        # news_agent can spawn news_searcher
+  max_concurrent_children: 5  # Parallel: 1 metrics + 1 news_macro + N news_ticker
+  subagent_auto_approve: false
+  inherit_mcp_toolsets: true
+
+# ── Code Execution Sandbox ────────────────────────────────
+code_execution:
+  timeout: 300
+  max_tool_calls: 50
+
+# ── Display ───────────────────────────────────────────────
+display:
+  compact: false
+  tool_progress: all
+  streaming: true
+  skin: default
+
+# ── Model Aliases ─────────────────────────────────────────
+model_aliases:
+  gemini:
+    model: "gemini-cli/gemini-3.1-pro-preview"
+    provider: custom
+    base_url: "http://spawn-sanitizer:18780/v1"
