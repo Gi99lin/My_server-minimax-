@@ -51,3 +51,13 @@ model_aliases:
     model: "gemini-cli/gemini-3.1-pro-preview"
     provider: custom
     base_url: "http://spawn-sanitizer:18780/v1"
+
+# ── MCP Servers ──────────────────────────────────────────
+mcp_servers:
+  playwright:
+    command: "npx"
+    args:
+      - "-y"
+      - "@playwright/mcp@latest"
+      - "--cdp-endpoint"
+      - "ws://browserless:3000"
