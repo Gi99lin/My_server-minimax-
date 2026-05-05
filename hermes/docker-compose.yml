@@ -16,7 +16,7 @@ services:
       - no_proxy=spawn-sanitizer,localhost,127.0.0.1
     ports:
       - "19700:19700"
-      - "9119:9119"
+      - "127.0.0.1:9119:9119"
     command: ["gateway", "run"]
     networks:
       - proxy_network
@@ -39,7 +39,7 @@ services:
       - no_proxy=spawn-sanitizer,localhost,127.0.0.1
     ports:
       - "19701:19701"
-      - "9120:9120"
+      - "127.0.0.1:9120:9120"
     command: ["gateway", "run"]
     networks:
       - proxy_network
