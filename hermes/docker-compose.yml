@@ -12,6 +12,8 @@ services:
       - HERMES_DASHBOARD=1
       - HERMES_DASHBOARD_PORT=9119
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN_QA}
+      - TELEGRAM_PROXY=${TELEGRAM_PROXY}
+      - no_proxy=spawn-sanitizer,localhost,127.0.0.1
     ports:
       - "19700:19700"
       - "9119:9119"
@@ -33,6 +35,8 @@ services:
       - HERMES_DASHBOARD=1
       - HERMES_DASHBOARD_PORT=9120
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN_FINANALYST}
+      - TELEGRAM_PROXY=${TELEGRAM_PROXY}
+      - no_proxy=spawn-sanitizer,localhost,127.0.0.1
     ports:
       - "19701:19701"
       - "9120:9120"
