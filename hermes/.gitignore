@@ -1,0 +1,51 @@
+# ═══════════════════════════════════════════════════════════════
+# Hermes Agent — Runtime files (auto-generated, not versioned)
+# ═══════════════════════════════════════════════════════════════
+
+# Runtime state & locks
+hermes-*/gateway.lock
+hermes-*/gateway.pid
+hermes-*/gateway_state.json
+hermes-*/auth.lock
+hermes-*/channel_directory.json
+hermes-*/.clean_shutdown
+hermes-*/.skills_prompt_snapshot.json
+
+# Caches, sessions, logs
+hermes-*/bin/
+hermes-*/cache/
+hermes-*/sessions/
+hermes-*/cron/
+hermes-*/.local/
+hermes-*/.npm/
+
+# Bundled skills (downloaded at container start, not our code)
+hermes-*/skills/.bundled_manifest
+hermes-*/skills/.curator_state
+hermes-*/skills/apple/
+hermes-*/skills/autonomous-ai-agents/
+hermes-*/skills/creative/
+hermes-*/skills/data-science/
+hermes-*/skills/devops/
+hermes-*/skills/diagramming/
+hermes-*/skills/dogfood/
+hermes-*/skills/domain/
+hermes-*/skills/email/
+hermes-*/skills/gaming/
+hermes-*/skills/gifs/
+hermes-*/skills/github/
+hermes-*/skills/inference-sh/
+hermes-*/skills/mcp/
+hermes-*/skills/media/
+hermes-*/skills/mlops/
+hermes-*/skills/note-taking/
+hermes-*/skills/productivity/
+hermes-*/skills/red-teaming/
+hermes-*/skills/research/
+hermes-*/skills/smart-home/
+hermes-*/skills/social-media/
+hermes-*/skills/software-development/
+hermes-*/skills/yuanbao/
+
+# Python generated
+hermes-*/generate_testcases.py
