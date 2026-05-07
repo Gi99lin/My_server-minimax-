@@ -21,7 +21,7 @@ compression:
 # ── Terminal Access ─────────────────────────────────────────
 terminal:
   backend: local
-  timeout: 180
+  timeout: 600
   allowed_commands: "all"
 
 # ── Sub-Agent Delegation ──────────────────────────────────
@@ -35,7 +35,7 @@ delegation:
 
 # ── Code Execution Sandbox ────────────────────────────────
 code_execution:
-  timeout: 300
+  timeout: 600
   max_tool_calls: 50
 
 # ── Display ───────────────────────────────────────────────
