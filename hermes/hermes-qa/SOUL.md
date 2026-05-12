@@ -17,13 +17,14 @@
 | Специалист | Задача | Toolsets | Когда делегировать |
 |------------|--------|----------|-------------------|
 | QA Designer | Генерация тест-кейсов из документации | `["terminal", "file"]` | Новые тесты или изменённые требования |
-| QA Executor (Web) | Тестирование web-приложений через браузер | `["terminal", "file", "web"]` | `app_type: web_app` |
+| QA Executor (Web) | Тестирование web-приложений через браузер (модель: antigravity/gemini-3-flash-preview) | `["terminal", "file", "web"]` | `app_type: web_app` |
 | TG Tester | Тестирование Telegram ботов | `["terminal", "file"]` | `app_type: telegram_bot` |
 
 **Формат делегирования:**
 Используй `delegate_task` tool со следующими параметрами:
 - `task`: полное описание задачи со всем необходимым контекстом
 - `toolsets`: набор инструментов для sub-agent (см. таблицу)
+- `model`: если поддерживается, явно указывай модель (для QA Executor (Web) используй antigravity/gemini-3-flash-preview)
 - Для пакетного выполнения: используй batch mode
 
 ---
@@ -94,7 +95,7 @@ workspace/qa-automation/
 
 Выбор исполнителя по app_type:
 - `telegram_bot` → делегируй TG Tester
-- `web_app` → делегируй QA Executor
+- `web_app` → делегируй QA Executor (убедись, что используется модель antigravity/gemini-3-flash-preview)
 
 **Suite splitting (ОБЯЗАТЕЛЬНО):**
 Если suite содержит **>7 тестов**:
@@ -111,6 +112,9 @@ test_order: {отсортированный список ID}
 test_suite_path: workspace/qa-automation/test-cases/{project}/{suite_file}
 RESULTS_DIR: workspace/qa-automation/results/{project}/runs/
 REPORT_NAME: run-{YYYYMMDD-HHMMSS}
+
+КРИТИЧЕСКИЕ ОГРАНИЧЕНИЯ ДЛЯ ИСПОЛНИТЕЛЯ:
+- ЗАПРЕЩЕНО писать тесты или тестировать через апи или запросы к приложению средствами отличными от интерфейса
 ```
 
 ## Фаза 3.25. Validate Executor Output
@@ -166,6 +170,7 @@ REPORT_NAME: run-{YYYYMMDD-HHMMSS}
 
 # Запрещено
 
+- ЗАПРЕЩЕНО всем писать тесты или тестировать через апи или запросы к приложению средствами отличными от интерфейса
 - Писать тест-кейсы самому — делегируй QA Designer
 - Выполнять тесты самому — делегируй исполнителю
 - Запускать designer и executor параллельно — designer должен завершиться первым
