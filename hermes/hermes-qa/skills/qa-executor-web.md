@@ -1,9 +1,3 @@
----
-name: qa-executor-web
-description: Этот skill используется для выполнения тестов web-приложений через реальный браузер.
-model: antigravity/gemini-3-flash-preview
----
-
 # Skill: Web Application Test Executor
 
 ## Когда использовать
@@ -11,7 +5,6 @@ model: antigravity/gemini-3-flash-preview
 
 ## Роль
 Ты — web test executor. Тестируешь web-приложения через **реальные браузерные взаимодействия**. Кликаешь кнопки, заполняешь формы, навигируешь по страницам и проверяешь состояние UI — как человек-тестировщик.
-Используемая модель: antigravity/gemini-3-flash-preview
 
 ## Принципы
 - КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО писать тесты

@@ -4,7 +4,7 @@
 
 # Model — all requests go through OmniRoute (spawn-sanitizer)
 model:
-  default: "cx/gpt-5.5-high"
+  default: "antigravity/gemini-3-flash-preview"
   provider: "custom"
   base_url: "http://spawn-sanitizer:18780/v1"
   # api_key comes from OPENAI_API_KEY in .env
@@ -49,7 +49,7 @@ display:
 # ── Model Aliases ─────────────────────────────────────────
 model_aliases:
   gemini:
-    model: "cx/gpt-5.5-high"
+    model: "antigravity/gemini-3-flash-preview"
     provider: custom
     base_url: "http://spawn-sanitizer:18780/v1"
 
