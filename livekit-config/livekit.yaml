@@ -1,0 +1,46 @@
+# LiveKit Server Configuration
+# https://docs.livekit.io/realtime/self-hosting/deployment/
+
+port: 7880
+log_level: info
+
+rtc:
+  # TCP порт для WebRTC
+  tcp_port: 7881
+  # UDP диапазон для медиа
+  port_range_start: 50000
+  port_range_end: 50100
+  # Автоопределение внешнего IP (важно для VPS)
+  use_external_ip: true
+  # Включить ICE Lite для лучшей совместимости
+  # enable_loopback_candidate: false
+
+# Redis для масштабирования (обязателен для продакшена)
+redis:
+  address: redis:6379
+
+# API ключи для аутентификации
+keys:
+  # ЗАМЕНИТЕ ЭТОТ КЛЮЧ НА СВОЙ
+  # Используйте: LIVEKIT_KEYS в переменных окружения или укажите здесь
+  APIgiggl1n: your_livekit_api_key_secret_here
+
+# Встроенный TURN сервер (отключен - требует отдельного сертификата)
+# При необходимости настройте внешний TURN сервер (coturn)
+turn:
+  enabled: false
+
+# Лимиты комнат
+room:
+  # Максимум участников в комнате
+  max_participants: 50
+  # Пустые комнаты удаляются через 5 минут
+  empty_timeout: 300
+
+# Prometheus метрики (опционально)
+# prometheus_port: 6789
+
+# Логирование
+logging:
+  json: false
+  sample: true
