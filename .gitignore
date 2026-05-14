@@ -38,12 +38,13 @@ openclaw/.env
 # Backup sensitive files
 backup/.env
 
-# Marzneshin sensitive files
+# Sensitive keys and certs
 marzneshin/.env
 client_cert.pem
-marzneshin/marznode/hysteria.key
-marzneshin/marznode/hysteria.cert
-marzneshin/marznode/KEYS.md
+KEYS.md
+**/hysteria.key
+**/hysteria.cert
+syncthing/config/*.pem
 # Container Data & Logs
 hrBot/
 librechat/data-node/
