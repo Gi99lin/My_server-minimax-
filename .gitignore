@@ -45,6 +45,8 @@ KEYS.md
 **/hysteria.key
 **/hysteria.cert
 syncthing/config/*.pem
+marzneshin/restore.sql
+syncthing/config/config.xml
 # Container Data & Logs
 hrBot/
 librechat/data-node/
