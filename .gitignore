@@ -40,11 +40,10 @@ backup/.env
 
 # Marzneshin sensitive files
 marzneshin/.env
-marzneshin/marznode/client_cert.pem
+client_cert.pem
 marzneshin/marznode/hysteria.key
 marzneshin/marznode/hysteria.cert
 marzneshin/marznode/KEYS.md
-marzneshin/marznode/*/client_cert.pem
 # Container Data & Logs
 hrBot/
 librechat/data-node/
