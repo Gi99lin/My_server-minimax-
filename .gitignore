@@ -78,3 +78,21 @@ ai-testcase-generator/*.tar.gz
 .stfolder/
 .stignore
 .stversions/
+
+# Hermes QA Synced Data
+hermes/hermes-qa/.cache/
+hermes/hermes-qa/home/
+hermes/hermes-qa/hooks/
+hermes/hermes-qa/logs/
+hermes/hermes-qa/memories/
+hermes/hermes-qa/plans/
+hermes/hermes-qa/platforms/
+hermes/hermes-qa/processes.json
+hermes/hermes-qa/sandboxes/
+hermes/hermes-qa/skills/.archive/
+hermes/hermes-qa/skills/.curator_backups/
+hermes/hermes-qa/skills/.usage.json
+hermes/hermes-qa/skills/.usage.json.lock
+hermes/hermes-qa/skins/
+hermes/hermes-qa/temp_restore/
+hermes/hermes-qa/workspace/
