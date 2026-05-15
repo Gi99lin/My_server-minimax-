@@ -1,31 +1,16 @@
-# ═══════════════════════════════════════════════════════════════
-# Hermes QA Team — CLI Configuration
-# ═══════════════════════════════════════════════════════════════
-
-# Model — all requests go through OmniRoute (spawn-sanitizer)
 model:
-  default: "antigravity/gemini-3-flash-preview"
-  provider: "custom"
-  base_url: "http://spawn-sanitizer:18780/v1"
-  # api_key comes from OPENAI_API_KEY in .env
-
-# ── Agent Behavior ──────────────────────────────────────────
+  default: cx/gpt-5.5-xhigh
+  provider: custom
+  base_url: http://spawn-sanitizer:18780/v1
 agent:
   max_turns: 60
   auto_compact: true
-
-# ── Context Compression ────────────────────────────────────
 compression:
-  threshold: 0.50
-
-# ── Terminal Access ─────────────────────────────────────────
+  threshold: 0.5
 terminal:
   backend: local
   timeout: 1200
-  allowed_commands: "all"
-
-# ── Sub-Agent Delegation ──────────────────────────────────
-# QA Orchestrator delegates to: qa_designer, qa_executor, tg_tester
+  allowed_commands: all
 delegation:
   max_iterations: 50
   max_spawn_depth: 2
@@ -33,32 +18,27 @@ delegation:
   timeout: 1200
   subagent_auto_approve: false
   inherit_mcp_toolsets: true
-
-# ── Code Execution Sandbox ────────────────────────────────
 code_execution:
   timeout: 1200
   max_tool_calls: 50
-
-# ── Display ───────────────────────────────────────────────
 display:
   compact: false
   tool_progress: all
   streaming: true
   skin: slate
-
-# ── Model Aliases ─────────────────────────────────────────
 model_aliases:
   gemini:
-    model: "antigravity/gemini-3-flash-preview"
+    model: cx/gpt-5.5-xhigh
     provider: custom
-    base_url: "http://spawn-sanitizer:18780/v1"
-
-# ── MCP Servers ──────────────────────────────────────────
+    base_url: http://spawn-sanitizer:18780/v1
 mcp_servers:
   playwright:
-    command: "npx"
+    command: npx
     args:
-      - "-y"
-      - "@playwright/mcp@latest"
-      - "--cdp-endpoint"
-      - "ws://browserless:3000"
+    - -y
+    - '@playwright/mcp@latest'
+    - --cdp-endpoint
+    - ws://browserless:3000
+onboarding:
+  seen:
+    busy_input_prompt: true
