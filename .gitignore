@@ -73,3 +73,8 @@ ai-presentation/*.tar.gz
 # AI Testcase Generator
 ai-testcase-generator/.env
 ai-testcase-generator/*.tar.gz
+
+# Syncthing
+.stfolder/
+.stignore
+.stversions/

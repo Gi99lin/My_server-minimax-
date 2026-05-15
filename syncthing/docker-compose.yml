@@ -16,6 +16,7 @@ services:
       - ./config:/var/syncthing/config
       - ${OBSIDIAN_VAULT_DIR:-~/obsidian-vault}:/var/syncthing/obsidian-vault
       - /home/gigglin/.openclaw:/var/syncthing/openclaw
+      - /home/gigglin/My_server/hermes:/var/syncthing/hermes
     environment:
       - STGUIADDRESS=0.0.0.0:8384
     healthcheck:
